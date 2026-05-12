@@ -41,6 +41,7 @@ Humans retain sovereignty over their intentions.
 4. **Execute** — tools and agents perform the required actions.
 5. **Prove** — results are hashed, attested, or verified.
 6. **Settle** — payments, rewards, reputation, and records are finalized.
+7. **Remember** — the intent, mandate, proof, and outcome become part of the user-owned intent history.
 
 ## Ecosystem Roles
 
