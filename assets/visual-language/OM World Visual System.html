@@ -1,0 +1,2646 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OM World · Visual Language System v1</title>
+<meta name="viewport" content="width=1440" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   OM WORLD · Visual Language System
+   "One Mind, One World"
+   ========================================================= */
+
+:root {
+  /* ---- Dark mode (canonical) ---- */
+  --void:        #06070C;          /* deep cosmos black, cool-warm balanced */
+  --void-2:      #0B0D14;          /* surface 1 */
+  --void-3:      #11141E;          /* surface 2 (cards) */
+  --void-4:      #181B26;          /* surface 3 (raised) */
+  --rule:        #1F2331;          /* hairline */
+  --rule-2:      #2A2F40;          /* stronger hairline */
+  --ash:         #4A4F62;          /* tertiary text */
+  --mute:        #7A7F92;          /* secondary text */
+  --ink:         #E8E9F0;          /* body text */
+  --ink-hi:      #F5F6FB;          /* primary text */
+
+  /* Accents — restrained, equal-chroma harmony */
+  --gold:        #E8C26B;          /* Consciousness Gold — primary signal */
+  --gold-soft:   #BFA15A;
+  --gold-deep:   #6A5328;
+  --cyan:        #6FD3D6;          /* Signal Cyan — verification / proof */
+  --cyan-deep:   #2F6A6B;
+  --indigo:      #4A5BFF;          /* Protocol Indigo — used very sparingly */
+  --indigo-deep: #1B2280;
+
+  /* Semantic */
+  --ok:          var(--cyan);
+  --warn:        var(--gold);
+  --err:         #E47474;          /* reserved, sparingly used */
+
+  /* Type */
+  --f-display:   "Space Grotesk", "Noto Sans SC", system-ui, sans-serif;
+  --f-body:      "Space Grotesk", "Noto Sans SC", system-ui, sans-serif;
+  --f-cn:        "Noto Sans SC", "Space Grotesk", system-ui, sans-serif;
+  --f-cn-serif:  "Noto Serif SC", serif;
+  --f-mono:      "JetBrains Mono", ui-monospace, "Menlo", monospace;
+
+  /* Radius / shadow */
+  --r-0: 0;
+  --r-1: 2px;
+  --r-2: 6px;
+  --r-3: 14px;
+  --shadow-deep: 0 1px 0 rgba(255,255,255,.02), 0 20px 60px -20px rgba(0,0,0,.8);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--void); color: var(--ink); }
+body {
+  font-family: var(--f-body);
+  font-weight: 400;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  /* faint star noise on the cosmic black */
+  background-image:
+    radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1.4px),
+    radial-gradient(rgba(255,255,255,0.012) 1px, transparent 1.4px);
+  background-size: 80px 80px, 130px 130px;
+  background-position: 0 0, 40px 60px;
+}
+
+::selection { background: var(--gold); color: var(--void); }
+
+a { color: inherit; text-decoration: none; }
+
+/* ---------- shell ---------- */
+.page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 56px 72px 160px;
+}
+
+.section { padding-top: 120px; scroll-margin-top: 24px; }
+.section + .section { border-top: 1px solid var(--rule); margin-top: 120px; }
+
+.row { display: flex; }
+.col { display: flex; flex-direction: column; }
+.grow { flex: 1; }
+
+/* ---------- meta / eyebrows ---------- */
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--mute);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: "";
+  width: 8px; height: 8px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  display: inline-block;
+}
+.eyebrow.num { color: var(--gold-soft); }
+.eyebrow.num::before { border-color: var(--gold-soft); background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+
+/* ---------- titles ---------- */
+.h-hero {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 132px;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  color: var(--ink-hi);
+  margin: 0;
+}
+.h-hero em {
+  font-style: normal;
+  color: var(--gold);
+}
+.h-section {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 64px;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  color: var(--ink-hi);
+  margin: 18px 0 28px;
+}
+.h-block {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.018em;
+  color: var(--ink-hi);
+  margin: 0 0 12px;
+}
+.h-small {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--ink-hi);
+  margin: 0 0 8px;
+}
+.lede {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.42;
+  letter-spacing: -0.014em;
+  color: var(--ink);
+  max-width: 880px;
+}
+.body { font-size: 15px; line-height: 1.62; color: var(--ink); }
+.body p { margin: 0 0 1em; }
+.body p:last-child { margin-bottom: 0; }
+.muted { color: var(--mute); }
+.tiny  { font-size: 12px; line-height: 1.5; color: var(--mute); }
+.mono  { font-family: var(--f-mono); letter-spacing: 0; }
+.cn    { font-family: var(--f-cn); }
+
+hr.hair { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+/* ---------- cover ---------- */
+.cover {
+  position: relative;
+  min-height: 760px;
+  padding: 56px 0 0;
+}
+.cover .topbar {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding-bottom: 56px;
+  border-bottom: 1px solid var(--rule);
+}
+.cover .topbar .left, .cover .topbar .right { display: flex; gap: 28px; }
+.cover .topbar .pair { display: flex; flex-direction: column; gap: 6px; }
+.cover .topbar .pair .k { font-family: var(--f-mono); font-size: 10px; letter-spacing: .18em; color: var(--ash); text-transform: uppercase; }
+.cover .topbar .pair .v { font-family: var(--f-mono); font-size: 12px; color: var(--ink); letter-spacing: .04em; }
+
+.cover .glyph-wall {
+  position: relative;
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 48px;
+  align-items: end;
+}
+.cover h1.h-hero { max-width: 920px; }
+.cover .colophon {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 20px 0;
+  border-left: 1px solid var(--rule);
+  padding-left: 28px;
+}
+.cover .colophon .line { font-family: var(--f-mono); font-size: 12px; color: var(--mute); letter-spacing: .04em; }
+.cover .colophon .line b { color: var(--ink-hi); font-weight: 500; }
+
+.cover .lower {
+  margin-top: 72px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  border-top: 1px solid var(--rule);
+  padding-top: 36px;
+}
+.cover .tagline {
+  font-family: var(--f-display);
+  font-size: 22px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--ink-hi);
+}
+.cover .tagline span.cn { color: var(--mute); display: block; margin-top: 6px; font-size: 20px; }
+.cover .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.cover .principles .p { display: flex; flex-direction: column; gap: 4px; }
+.cover .principles .p .k { font-family: var(--f-mono); font-size: 10px; letter-spacing: .14em; color: var(--gold-soft); text-transform: uppercase; }
+.cover .principles .p .v { font-size: 14px; color: var(--ink); line-height: 1.45; }
+
+/* ---------- table of contents ---------- */
+.toc {
+  margin-top: 88px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.toc .row {
+  display: grid;
+  grid-template-columns: 60px 1fr 220px 80px;
+  align-items: center;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.toc .row:nth-last-child(-n+2) { border-bottom: 0; }
+.toc .row:nth-child(odd) { border-right: 1px solid var(--rule); padding-right: 32px; }
+.toc .row:nth-child(even) { padding-left: 32px; }
+.toc .n { font-family: var(--f-mono); font-size: 12px; color: var(--gold-soft); letter-spacing: .12em; }
+.toc .t { font-family: var(--f-display); font-size: 17px; color: var(--ink-hi); letter-spacing: -0.01em; }
+.toc .d { font-family: var(--f-mono); font-size: 11px; color: var(--mute); letter-spacing: .08em; text-transform: uppercase; }
+.toc .p { font-family: var(--f-mono); font-size: 12px; color: var(--mute); text-align: right; }
+
+/* ---------- generic section header ---------- */
+.section-head { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 56px; }
+.section-head .left .h-section { max-width: 700px; }
+.section-head .right { padding-top: 24px; }
+.section-head .right .body { max-width: 480px; }
+
+/* ---------- cards ---------- */
+.card {
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2);
+}
+.card.stark { border-radius: 0; }
+
+/* ---------- LOGO section ---------- */
+.logo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+.logo-card {
+  display: flex; flex-direction: column;
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+.logo-card .hero {
+  aspect-ratio: 4 / 5;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(ellipse at center, rgba(232,194,107,0.06), transparent 70%),
+    linear-gradient(180deg, var(--void-3), var(--void-2));
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+.logo-card .hero::before {
+  content: "";
+  position: absolute; inset: 24px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  pointer-events: none;
+}
+.logo-card .meta { padding: 20px 24px 8px; }
+.logo-card .meta .dir { font-family: var(--f-mono); font-size: 11px; color: var(--gold-soft); letter-spacing: .14em; text-transform: uppercase; }
+.logo-card .meta .name { font-family: var(--f-display); font-size: 22px; color: var(--ink-hi); letter-spacing: -0.01em; margin-top: 4px; }
+.logo-card .body  { padding: 12px 24px 20px; font-size: 13px; line-height: 1.55; color: var(--mute); }
+.logo-card .variants {
+  border-top: 1px solid var(--rule);
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+}
+.logo-card .variants .v {
+  display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 1 / 1;
+  border-right: 1px solid var(--rule);
+}
+.logo-card .variants .v:last-child { border-right: 0; }
+.logo-card .variants .v.dark { background: var(--void); }
+.logo-card .variants .v.mid  { background: var(--void-4); }
+.logo-card .variants .v.light{ background: #F4F2EA; }
+.logo-card .variants .v .lbl {
+  position: absolute; left: 8px; bottom: 6px;
+  font-family: var(--f-mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+}
+.logo-card .variants .v { position: relative; }
+.logo-card .variants .v.dark  .lbl { color: var(--ash); }
+.logo-card .variants .v.mid   .lbl { color: var(--ash); }
+.logo-card .variants .v.light .lbl { color: #999084; }
+
+/* SVG color helpers */
+.fg-ink { stroke: var(--ink-hi); }
+.fg-gold { stroke: var(--gold); }
+.fg-cyan { stroke: var(--cyan); }
+
+/* ---------- wordmark / lockup specimens ---------- */
+.lockup-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 64px;
+}
+.lockup {
+  padding: 56px 48px;
+  border: 1px solid var(--rule);
+  background: var(--void-2);
+  border-radius: var(--r-2);
+  display: flex; flex-direction: column; gap: 28px;
+}
+.lockup.light { background: #F4F2EA; color: #15171F; border-color: #E0DDD1; }
+.lockup.light .lbl { color: #6A6A60; }
+.lockup .lbl { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ash); }
+
+/* OM word lockup */
+.wordmark {
+  display: flex; align-items: center; gap: 18px;
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 80px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--ink-hi);
+}
+.wordmark .mark { width: 80px; height: 80px; }
+.wordmark .div { width: 1px; height: 56px; background: var(--rule-2); }
+.wordmark .sub {
+  font-family: var(--f-mono); font-size: 13px;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--mute);
+}
+.lockup.light .wordmark { color: #15171F; }
+.lockup.light .wordmark .div { background: #C8C5B9; }
+.lockup.light .wordmark .sub { color: #6A6A60; }
+
+/* logo construction */
+.construction {
+  margin-top: 64px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+}
+.construction .panel {
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2);
+  padding: 36px;
+}
+.construction .panel h4 { margin: 0 0 18px; font-family: var(--f-display); font-size: 18px; color: var(--ink-hi); letter-spacing: -0.01em; }
+.construction .panel .frame {
+  aspect-ratio: 16 / 10;
+  background:
+    radial-gradient(ellipse at center, rgba(232,194,107,0.04), transparent 70%),
+    var(--void-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---------- color system ---------- */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.swatch {
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2);
+  overflow: hidden;
+  background: var(--void-3);
+}
+.swatch .chip { aspect-ratio: 5 / 4; position: relative; }
+.swatch .chip::after {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1.4px);
+  background-size: 14px 14px;
+  pointer-events: none;
+}
+.swatch .meta { padding: 14px 16px 16px; }
+.swatch .meta .name { font-family: var(--f-display); font-size: 15px; color: var(--ink-hi); letter-spacing: -0.005em; }
+.swatch .meta .hex  { font-family: var(--f-mono); font-size: 11px; color: var(--mute); margin-top: 4px; letter-spacing: .04em; }
+.swatch .meta .use  { font-size: 11px; color: var(--mute); margin-top: 6px; line-height: 1.45; }
+
+/* color ramps */
+.ramp {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-top: 18px;
+}
+.ramp .label { font-family: var(--f-mono); font-size: 12px; color: var(--mute); letter-spacing: .08em; padding-top: 8px; }
+.ramp .steps { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+.ramp .steps .step {
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: flex-end; justify-content: flex-start;
+  padding: 6px;
+  font-family: var(--f-mono); font-size: 9px;
+  letter-spacing: .04em;
+  border-radius: 2px;
+}
+
+/* color usage */
+.color-usage {
+  margin-top: 64px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+}
+.bar { display: flex; height: 12px; border-radius: 2px; overflow: hidden; }
+.bar > * { display: block; height: 100%; }
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin-top: 18px; }
+.legend .l { display: flex; align-items: center; gap: 10px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .04em; color: var(--mute); }
+.legend .l .dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* light mode preview */
+.lightmode {
+  background: #F4F2EA;
+  color: #15171F;
+  border-color: #E0DDD1;
+}
+.lightmode .h-block, .lightmode .h-small, .lightmode .lede { color: #15171F; }
+.lightmode .muted { color: #6A6A60; }
+.lightmode .swatch { background: #FAF8F1; border-color: #E0DDD1; }
+.lightmode .swatch .meta .name { color: #15171F; }
+.lightmode .swatch .meta .hex, .lightmode .swatch .meta .use { color: #6A6A60; }
+
+/* ---------- typography section ---------- */
+.type-spec { display: grid; grid-template-columns: 320px 1fr; gap: 32px; padding: 36px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+.type-spec:last-child { border-bottom: 0; }
+.type-spec .meta { font-family: var(--f-mono); font-size: 11px; color: var(--mute); letter-spacing: .06em; line-height: 1.7; }
+.type-spec .meta .role { color: var(--gold-soft); text-transform: uppercase; letter-spacing: .14em; display: block; margin-bottom: 8px; }
+.type-spec .meta .face { color: var(--ink-hi); display: block; font-size: 13px; letter-spacing: 0; }
+.type-spec .sample { color: var(--ink-hi); }
+
+.face-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 48px; }
+.face-card { padding: 28px; border: 1px solid var(--rule); border-radius: var(--r-2); background: var(--void-3); }
+.face-card .name { font-family: var(--f-display); font-size: 22px; color: var(--ink-hi); letter-spacing: -0.01em; margin-bottom: 6px; }
+.face-card .desc { font-size: 12px; color: var(--mute); line-height: 1.55; margin-bottom: 22px; }
+.face-card .glyphs { font-size: 64px; line-height: 1; color: var(--ink-hi); letter-spacing: -0.02em; margin-bottom: 16px; }
+.face-card .pangram { font-size: 14px; line-height: 1.5; color: var(--ink); }
+
+/* ---------- graphic primitives ---------- */
+.motif-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.motif {
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+.motif .canvas {
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    linear-gradient(180deg, var(--void-3), var(--void-2));
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+.motif .canvas::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+.motif .meta { padding: 14px 16px 16px; }
+.motif .meta .num { font-family: var(--f-mono); font-size: 10px; color: var(--gold-soft); letter-spacing: .14em; }
+.motif .meta .name { font-family: var(--f-display); font-size: 14px; color: var(--ink-hi); margin: 4px 0 4px; letter-spacing: -0.005em; }
+.motif .meta .desc { font-size: 11px; color: var(--mute); line-height: 1.5; }
+
+/* ---------- icon system ---------- */
+.icon-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1px; border: 1px solid var(--rule); background: var(--rule); border-radius: var(--r-2); overflow: hidden; }
+.icon {
+  background: var(--void-3);
+  aspect-ratio: 1 / 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 12px;
+  gap: 8px;
+}
+.icon svg { width: 36px; height: 36px; }
+.icon .lbl { font-family: var(--f-mono); font-size: 9px; letter-spacing: .08em; color: var(--mute); text-transform: uppercase; text-align: center; line-height: 1.3; }
+
+/* ---------- UI / landing hero ---------- */
+.ui-browser {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--void-2);
+  overflow: hidden;
+  box-shadow: var(--shadow-deep);
+}
+.ui-browser .chrome {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--void-3);
+}
+.ui-browser .chrome .dots { display: flex; gap: 6px; }
+.ui-browser .chrome .dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--rule-2); display: block; }
+.ui-browser .chrome .url {
+  flex: 1;
+  font-family: var(--f-mono); font-size: 11px; color: var(--mute);
+  background: var(--void-2); border: 1px solid var(--rule); border-radius: 4px;
+  padding: 6px 12px; letter-spacing: .04em;
+}
+.ui-browser .body { padding: 0; }
+
+.ui-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 56px;
+  border-bottom: 1px solid var(--rule);
+}
+.ui-nav .left { display: flex; align-items: center; gap: 40px; }
+.ui-nav .brand { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-size: 17px; color: var(--ink-hi); letter-spacing: -0.005em; }
+.ui-nav .brand svg { width: 26px; height: 26px; }
+.ui-nav .links { display: flex; gap: 28px; font-family: var(--f-mono); font-size: 12px; color: var(--mute); letter-spacing: .08em; text-transform: uppercase; }
+.ui-nav .right { display: flex; align-items: center; gap: 14px; }
+.btn { font-family: var(--f-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 11px 18px; border-radius: 2px; border: 1px solid var(--rule-2); color: var(--ink-hi); background: transparent; cursor: default; }
+.btn.primary { background: var(--gold); border-color: var(--gold); color: var(--void); }
+.btn.ghost { color: var(--mute); border-color: transparent; }
+
+.ui-hero { padding: 96px 56px 100px; position: relative; overflow: hidden; }
+.ui-hero .bg { position: absolute; inset: 0; pointer-events: none; }
+.ui-hero .eyebrow { margin-bottom: 28px; }
+.ui-hero h1 { font-family: var(--f-display); font-weight: 500; font-size: 108px; line-height: 0.96; letter-spacing: -0.04em; color: var(--ink-hi); margin: 0 0 36px; max-width: 1000px; }
+.ui-hero h1 em { font-style: normal; color: var(--gold); }
+.ui-hero .sub { font-family: var(--f-display); font-size: 20px; line-height: 1.5; color: var(--mute); max-width: 620px; margin-bottom: 16px; }
+.ui-hero .sub.cn { color: var(--ash); font-family: var(--f-cn); }
+.ui-hero .ctas { display: flex; gap: 12px; margin-top: 40px; }
+.ui-hero .stats { position: absolute; right: 56px; bottom: 56px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.ui-hero .stats .s { display: flex; gap: 14px; align-items: baseline; font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; color: var(--mute); }
+.ui-hero .stats .s b { color: var(--ink-hi); font-weight: 500; font-size: 13px; }
+
+/* ---------- social templates ---------- */
+.social-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+.social { background: var(--void-3); border: 1px solid var(--rule); border-radius: var(--r-2); overflow: hidden; display: flex; flex-direction: column; }
+.social .frame { background: var(--void); position: relative; overflow: hidden; }
+.social .meta { padding: 12px 14px 14px; }
+.social .meta .role { font-family: var(--f-mono); font-size: 10px; color: var(--gold-soft); letter-spacing: .14em; }
+.social .meta .name { font-family: var(--f-display); font-size: 13px; color: var(--ink-hi); margin-top: 4px; }
+.social .meta .dim  { font-family: var(--f-mono); font-size: 10px; color: var(--mute); margin-top: 4px; }
+
+/* ---------- rules ---------- */
+.rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.rule-card { background: var(--void-3); border: 1px solid var(--rule); border-radius: var(--r-2); padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+.rule-card .demo { aspect-ratio: 16 / 9; background: var(--void-2); border: 1px solid var(--rule); border-radius: 4px; display: flex; align-items: center; justify-content: center; position: relative; }
+.rule-card .demo.bad { border-color: rgba(228,116,116,.35); }
+.rule-card .demo.bad::after {
+  content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(135deg, transparent 49%, rgba(228,116,116,.18) 49%, rgba(228,116,116,.18) 51%, transparent 51%);
+  background-size: 12px 12px;
+  pointer-events: none;
+}
+.rule-card .demo.good { border-color: rgba(111,211,214,.25); }
+.rule-card .label { display: flex; align-items: center; gap: 10px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.rule-card.bad .label  { color: #E47474; }
+.rule-card.good .label { color: var(--cyan); }
+.rule-card h4 { margin: 0; font-family: var(--f-display); font-size: 18px; color: var(--ink-hi); letter-spacing: -0.01em; }
+.rule-card p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--mute); }
+
+/* manifesto block */
+.manifesto {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+  padding: 56px 0;
+}
+.manifesto .stanzas { display: flex; flex-direction: column; gap: 24px; }
+.manifesto .stanza { padding-left: 24px; border-left: 1px solid var(--rule); }
+.manifesto .stanza b { color: var(--gold); font-weight: 500; }
+.manifesto .stanza .en { font-family: var(--f-display); font-size: 18px; line-height: 1.5; color: var(--ink-hi); letter-spacing: -0.005em; }
+.manifesto .stanza .cn { font-family: var(--f-cn); font-size: 15px; color: var(--mute); margin-top: 6px; }
+.manifesto .credo {
+  padding: 36px; border: 1px solid var(--rule); border-radius: var(--r-2);
+  background: linear-gradient(180deg, var(--void-3), var(--void-2));
+  display: flex; flex-direction: column; gap: 24px;
+  align-self: start;
+}
+.manifesto .credo .l { font-family: var(--f-display); font-size: 22px; color: var(--ink-hi); letter-spacing: -0.014em; line-height: 1.4; }
+.manifesto .credo .l b { color: var(--gold); font-weight: 500; }
+
+/* footer */
+.foot {
+  margin-top: 160px;
+  border-top: 1px solid var(--rule);
+  padding-top: 36px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+}
+.foot .mono { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; color: var(--mute); }
+.foot .h-small { color: var(--ink-hi); }
+
+/* utilities */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.gap-8 { gap: 8px; } .gap-16 { gap: 16px; } .gap-24 { gap: 24px; } .gap-48 { gap: 48px; }
+.mt-24 { margin-top: 24px; } .mt-48 { margin-top: 48px; } .mt-72 { margin-top: 72px; }
+
+/* big number labels */
+.dec {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: .12em;
+  color: var(--gold-soft);
+  text-transform: uppercase;
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ===================================================
+     COVER
+=================================================== -->
+<header class="cover" data-screen-label="00 Cover">
+  <div class="topbar">
+    <div class="left">
+      <div class="pair"><span class="k">Document</span><span class="v">VLS-001 · v1.0</span></div>
+      <div class="pair"><span class="k">Status</span><span class="v">Public Draft</span></div>
+      <div class="pair"><span class="k">Date</span><span class="v">2026.05.12</span></div>
+    </div>
+    <div class="right">
+      <div class="pair"><span class="k">Domain</span><span class="v">om.world</span></div>
+      <div class="pair"><span class="k">Issued by</span><span class="v">OM Council, Genesis</span></div>
+    </div>
+  </div>
+
+  <div class="glyph-wall">
+    <div>
+      <div class="eyebrow num" style="margin-bottom:32px;">OM/W · Visual Language System · v1</div>
+      <h1 class="h-hero">One Mind,<br/>One <em>World.</em></h1>
+    </div>
+    <div class="colophon">
+      <!-- Master mark: the Origin Point glyph -->
+      <svg viewBox="0 0 300 300" width="300" height="300" fill="none" stroke-linecap="round">
+        <defs>
+          <radialGradient id="seed" cx="50%" cy="50%" r="20%">
+            <stop offset="0%" stop-color="#E8C26B" stop-opacity="1"/>
+            <stop offset="60%" stop-color="#E8C26B" stop-opacity=".25"/>
+            <stop offset="100%" stop-color="#E8C26B" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- proof grid behind -->
+        <g stroke="#1F2331" stroke-width="1">
+          <line x1="0" y1="150" x2="300" y2="150"/>
+          <line x1="150" y1="0" x2="150" y2="300"/>
+        </g>
+        <!-- concentric rings (worlds emerging from the point) -->
+        <circle cx="150" cy="150" r="40"  stroke="#2A2F40" stroke-width="1"/>
+        <circle cx="150" cy="150" r="72"  stroke="#2A2F40" stroke-width="1"/>
+        <circle cx="150" cy="150" r="104" stroke="#2A2F40" stroke-width="1"/>
+        <circle cx="150" cy="150" r="136" stroke="#1F2331" stroke-width="1"/>
+        <!-- 12-tick verification ring -->
+        <g stroke="#6FD3D6" stroke-width="1.2">
+          <line x1="150" y1="14" x2="150" y2="24"/>
+          <line x1="218" y1="32.3" x2="213" y2="41"/>
+          <line x1="268" y1="82" x2="259" y2="87"/>
+          <line x1="286" y1="150" x2="276" y2="150"/>
+          <line x1="268" y1="218" x2="259" y2="213"/>
+          <line x1="218" y1="267.7" x2="213" y2="259"/>
+          <line x1="150" y1="286" x2="150" y2="276"/>
+          <line x1="82" y1="267.7" x2="87" y2="259"/>
+          <line x1="32" y1="218" x2="41" y2="213"/>
+          <line x1="14" y1="150" x2="24" y2="150"/>
+          <line x1="32" y1="82" x2="41" y2="87"/>
+          <line x1="82" y1="32.3" x2="87" y2="41"/>
+        </g>
+        <!-- agent paths -->
+        <g stroke="#E8C26B" stroke-width="1" stroke-dasharray="2 4" opacity=".55">
+          <path d="M150 150 L150 14"/>
+          <path d="M150 150 L286 150"/>
+          <path d="M150 150 L82 267.7"/>
+        </g>
+        <!-- intent seed -->
+        <circle cx="150" cy="150" r="50" fill="url(#seed)"/>
+        <circle cx="150" cy="150" r="4"  fill="#E8C26B"/>
+      </svg>
+      <div class="line">MARK · <b>OM/W · Origin Point</b></div>
+      <div class="line">GLYPH ID · <span class="mono">0x4F4D2E57</span></div>
+      <div class="line">CONSTRUCTION · 12-ring · 12-tick</div>
+    </div>
+  </div>
+
+  <div class="lower">
+    <div class="tagline">
+      A decentralized intent economy where AI executes and crypto verifies.
+      <span class="cn">一个由 AI 执行、Crypto 验证的去中心化意图世界。</span>
+    </div>
+    <div class="principles">
+      <div class="p"><span class="k">Engine</span><span class="v">AI · turns intent into action</span></div>
+      <div class="p"><span class="k">Law</span><span class="v">Crypto · makes every step verifiable</span></div>
+      <div class="p"><span class="k">Sovereignty</span><span class="v">Humanity owns its intentions</span></div>
+      <div class="p"><span class="k">Form</span><span class="v">Open protocol · not a brand</span></div>
+    </div>
+  </div>
+
+  <!-- ToC -->
+  <div class="toc">
+    <div class="row"><span class="n">01</span><span class="t">Philosophy &amp; Manifesto</span><span class="d">Principles · Voice</span><span class="p">p. 01</span></div>
+    <div class="row"><span class="n">02</span><span class="t">Logo · Three Directions</span><span class="d">A · B · C</span><span class="p">p. 02</span></div>
+    <div class="row"><span class="n">03</span><span class="t">Color System</span><span class="d">Dark · Light · Ramps</span><span class="p">p. 03</span></div>
+    <div class="row"><span class="n">04</span><span class="t">Typography</span><span class="d">EN · CN · Mono</span><span class="p">p. 04</span></div>
+    <div class="row"><span class="n">05</span><span class="t">Graphic Primitives</span><span class="d">10 motifs</span><span class="p">p. 05</span></div>
+    <div class="row"><span class="n">06</span><span class="t">Icon Family</span><span class="d">16 concepts</span><span class="p">p. 06</span></div>
+    <div class="row"><span class="n">07</span><span class="t">UI Direction · Landing</span><span class="d">Hero · Architecture</span><span class="p">p. 07</span></div>
+    <div class="row"><span class="n">08</span><span class="t">Applications</span><span class="d">Social · Paper · Token</span><span class="p">p. 08</span></div>
+    <div class="row"><span class="n">09</span><span class="t">Motion Language</span><span class="d">Rules of motion</span><span class="p">p. 09</span></div>
+    <div class="row"><span class="n">10</span><span class="t">Brand Rules</span><span class="d">Do · Don't · Safe area</span><span class="p">p. 10</span></div>
+  </div>
+</header>
+
+
+<!-- ===================================================
+     01  PHILOSOPHY & MANIFESTO
+=================================================== -->
+<section class="section" data-screen-label="01 Philosophy">
+  <div class="eyebrow num">01 — Philosophy &amp; Manifesto</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">A new world enters<br/>through a single point.</h2>
+    </div>
+    <div class="right body">
+      <p>OM World is not a product, not a company, not another Web3 launch. It is a protocol for the intent economy: a substrate where human intentions are expressed, executed, and verified — owned by the people who imagined them.</p>
+      <p class="muted cn">OM World 不是产品、公司、也不是又一个 Web3 项目。它是意图经济的底层协议：人的真实意图在这里被表达、被执行、被验证，并由表达它的人持有。</p>
+    </div>
+  </div>
+
+  <div class="manifesto">
+    <div class="stanzas">
+      <div class="stanza">
+        <div class="en">A world begins as <b>a single point of intention</b> — a seed in mind, before any action.</div>
+        <div class="cn">世界，始于<b style="color:var(--gold)">一念</b>。一个意图先于一切行动。</div>
+      </div>
+      <div class="stanza">
+        <div class="en"><b>AI is the engine.</b> It does not own the intent — it carries it across distance, language, and time, into action.</div>
+        <div class="cn"><b style="color:var(--gold)">AI 是动力源</b>。它不占有意图，它将意图带过时间和距离，化为可执行的动作。</div>
+      </div>
+      <div class="stanza">
+        <div class="en"><b>Crypto is the law.</b> Like gravity to a physical world, cryptography to ours: immutable, indifferent, and the same for every participant.</div>
+        <div class="cn"><b style="color:var(--gold)">Crypto 是法则</b>。如同物理世界的引力，密码学是这里的引力 — 不可篡改，公平作用于每一个参与者。</div>
+      </div>
+      <div class="stanza">
+        <div class="en"><b>Humanity owns its intentions.</b> Authorship is the new property; consent the new boundary; proof the new memory.</div>
+        <div class="cn"><b style="color:var(--gold)">人，拥有自己的意图</b>。作者权是新的财产，授权是新的边界，证明是新的记忆。</div>
+      </div>
+    </div>
+    <aside class="credo">
+      <div class="dec">The OM Credo · 信条</div>
+      <div class="l"><b>One mind.</b> One real intention, declared, witnessed.</div>
+      <div class="l"><b>One world.</b> One executable outcome, verifiable by anyone.</div>
+      <div class="l"><b>Open.</b> No gate-keeper. No closed runtime.</div>
+      <div class="l"><b>Verifiable.</b> If it cannot be proven, it did not happen.</div>
+      <div class="l"><b>Composable.</b> Tools, agents, capital — all interchangeable parts.</div>
+      <div class="l"><b>Slow on values.</b> Fast on execution.</div>
+    </aside>
+  </div>
+
+  <!-- voice / DON'Ts -->
+  <div class="mt-72">
+    <div class="dec">Voice &amp; Tone — Brand Personality</div>
+    <div class="grid-4 mt-24">
+      <div class="card" style="padding:24px;">
+        <div class="h-small">Cosmic, not vague</div>
+        <p class="tiny">Speaks at the scale of a world. Never lapses into mood-board mysticism.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div class="h-small">Mystical, not religious</div>
+        <p class="tiny">Carries spiritual gravity, but is bound by geometry and proof — never iconography.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div class="h-small">Technical, not cold</div>
+        <p class="tiny">Protocol-grade clarity. Each line should read like a clean spec, but feel inhabited.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div class="h-small">Decentralized, not chaotic</div>
+        <p class="tiny">Many actors, one law. A council voice — never a brand voice.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     02  LOGO
+=================================================== -->
+<section class="section" data-screen-label="02 Logo">
+  <div class="eyebrow num">02 — Logo · Three Directions</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">Three reads on the same world.</h2>
+    </div>
+    <div class="right body">
+      <p>Three logo directions, each carrying the brief's four currents — Cosmos, Consciousness, Protocol, Openness — in different proportion. <b style="color:var(--ink-hi)">Direction A · The Origin Point</b> is recommended as the master mark; B and C extend as sub-marks where their reading is stronger.</p>
+    </div>
+  </div>
+
+  <div class="logo-grid">
+
+    <!-- ============ Direction A: The Origin Point ============ -->
+    <div class="logo-card">
+      <div class="hero">
+        <svg viewBox="0 0 240 240" width="80%" height="80%" fill="none">
+          <circle cx="120" cy="120" r="36" stroke="#2A2F40" stroke-width="1"/>
+          <circle cx="120" cy="120" r="62" stroke="#2A2F40" stroke-width="1"/>
+          <circle cx="120" cy="120" r="88" stroke="#2A2F40" stroke-width="1"/>
+          <circle cx="120" cy="120" r="114" stroke="#1F2331" stroke-width="1"/>
+          <!-- 12 ticks -->
+          <g stroke="#6FD3D6" stroke-width="1.4">
+            <line x1="120" y1="2"   x2="120" y2="14"/>
+            <line x1="120" y1="226" x2="120" y2="238"/>
+            <line x1="2"   y1="120" x2="14"  y2="120"/>
+            <line x1="226" y1="120" x2="238" y2="120"/>
+            <line x1="34"  y1="34"  x2="43"  y2="43"/>
+            <line x1="197" y1="43"  x2="206" y2="34"/>
+            <line x1="34"  y1="206" x2="43"  y2="197"/>
+            <line x1="197" y1="197" x2="206" y2="206"/>
+          </g>
+          <circle cx="120" cy="120" r="40" fill="#E8C26B" fill-opacity=".14"/>
+          <circle cx="120" cy="120" r="6"  fill="#E8C26B"/>
+        </svg>
+      </div>
+      <div class="meta">
+        <div class="dir">Direction A · Recommended</div>
+        <div class="name">The Origin Point</div>
+      </div>
+      <div class="body">
+        A luminous seed at the center, three concentric worlds emerging outward, twelve cardinal ticks of verification. The mark <em>begins from one intention and proves outward</em>. Carries Cosmos + Consciousness most strongly.
+      </div>
+      <div class="variants">
+        <div class="v dark">
+          <svg viewBox="0 0 80 80" width="56" height="56" fill="none">
+            <circle cx="40" cy="40" r="12" stroke="#2A2F40"/>
+            <circle cx="40" cy="40" r="22" stroke="#2A2F40"/>
+            <circle cx="40" cy="40" r="32" stroke="#1F2331"/>
+            <g stroke="#6FD3D6" stroke-width="1.2">
+              <line x1="40" y1="2"  x2="40" y2="6"/>
+              <line x1="40" y1="74" x2="40" y2="78"/>
+              <line x1="2"  y1="40" x2="6"  y2="40"/>
+              <line x1="74" y1="40" x2="78" y2="40"/>
+            </g>
+            <circle cx="40" cy="40" r="3" fill="#E8C26B"/>
+          </svg>
+          <span class="lbl">Dark</span>
+        </div>
+        <div class="v mid">
+          <svg viewBox="0 0 80 80" width="56" height="56" fill="none">
+            <circle cx="40" cy="40" r="12" stroke="#3A3F52"/>
+            <circle cx="40" cy="40" r="22" stroke="#3A3F52"/>
+            <circle cx="40" cy="40" r="32" stroke="#2A2F40"/>
+            <circle cx="40" cy="40" r="3" fill="#E8C26B"/>
+          </svg>
+          <span class="lbl">Mono</span>
+        </div>
+        <div class="v light">
+          <svg viewBox="0 0 80 80" width="56" height="56" fill="none">
+            <circle cx="40" cy="40" r="12" stroke="#A8A29A"/>
+            <circle cx="40" cy="40" r="22" stroke="#A8A29A"/>
+            <circle cx="40" cy="40" r="32" stroke="#C8C5B9"/>
+            <g stroke="#15171F" stroke-width="1.2">
+              <line x1="40" y1="2"  x2="40" y2="6"/>
+              <line x1="40" y1="74" x2="40" y2="78"/>
+              <line x1="2"  y1="40" x2="6"  y2="40"/>
+              <line x1="74" y1="40" x2="78" y2="40"/>
+            </g>
+            <circle cx="40" cy="40" r="3" fill="#15171F"/>
+          </svg>
+          <span class="lbl">Light</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Direction B: The Verifiable World ============ -->
+    <div class="logo-card">
+      <div class="hero">
+        <svg viewBox="0 0 240 240" width="80%" height="80%" fill="none">
+          <!-- outer planet -->
+          <circle cx="120" cy="120" r="100" stroke="#E8C26B" stroke-width="1.4"/>
+          <!-- interior lattice -->
+          <g stroke="#2A2F40" stroke-width="1">
+            <line x1="20"  y1="80"  x2="220" y2="80"/>
+            <line x1="20"  y1="120" x2="220" y2="120"/>
+            <line x1="20"  y1="160" x2="220" y2="160"/>
+            <line x1="80"  y1="20"  x2="80"  y2="220"/>
+            <line x1="120" y1="20"  x2="120" y2="220"/>
+            <line x1="160" y1="20"  x2="160" y2="220"/>
+          </g>
+          <!-- clip the lattice using mask of the planet -->
+          <defs>
+            <clipPath id="planet"><circle cx="120" cy="120" r="100"/></clipPath>
+          </defs>
+          <g clip-path="url(#planet)">
+            <rect x="0" y="0" width="240" height="240" fill="transparent"/>
+            <g stroke="#2A2F40" stroke-width="1">
+              <line x1="20"  y1="80"  x2="220" y2="80"/>
+              <line x1="20"  y1="160" x2="220" y2="160"/>
+              <line x1="80"  y1="20"  x2="80"  y2="220"/>
+              <line x1="160" y1="20"  x2="160" y2="220"/>
+            </g>
+            <g fill="#6FD3D6"><circle cx="80" cy="80" r="3"/><circle cx="160" cy="160" r="3"/></g>
+            <g fill="#E8C26B"><circle cx="160" cy="80" r="3"/><circle cx="80" cy="160" r="3"/></g>
+          </g>
+          <circle cx="120" cy="120" r="5" fill="#E8C26B"/>
+        </svg>
+      </div>
+      <div class="meta">
+        <div class="dir">Direction B</div>
+        <div class="name">The Verifiable World</div>
+      </div>
+      <div class="body">
+        A planet ruled by geometry. A precise lattice of proofs runs through a circle; four nodes mark the participant types. Carries Protocol + Openness most strongly. Suited to documentation, GitHub, infra surfaces.
+      </div>
+      <div class="variants">
+        <div class="v dark">
+          <svg viewBox="0 0 80 80" width="56" height="56" fill="none">
+            <circle cx="40" cy="40" r="32" stroke="#E8C26B" stroke-width="1.4"/>
+            <line x1="8"  y1="40" x2="72" y2="40" stroke="#2A2F40"/>
+            <line x1="40" y1="8"  x2="40" y2="72" stroke="#2A2F40"/>
+            <circle cx="40" cy="40" r="3" fill="#E8C26B"/>
+          </svg>
+          <span class="lbl">Dark</span>
+        </div>
+        <div class="v mid">
+          <svg viewBox="0 0 80 80" width="56" height="56" fill="none">
+            <circle cx="40" cy="40" r="32" stroke="#E8E9F0" stroke-width="1.4"/>
+            <line x1="8"  y1="40" x2="72" y2="40" stroke="#3A3F52"/>
+            <line x1="40" y1="8"  x2="40" y2="72" stroke="#3A3F52"/>
+            <circle cx="40" cy="40" r="3" fill="#E8E9F0"/>
+          </svg>
+          <span class="lbl">Mono</span>
+        </div>
+        <div class="v light">
+          <svg viewBox="0 0 80 80" width="56" height="56" fill="none">
+            <circle cx="40" cy="40" r="32" stroke="#15171F" stroke-width="1.4"/>
+            <line x1="8"  y1="40" x2="72" y2="40" stroke="#A8A29A"/>
+            <line x1="40" y1="8"  x2="40" y2="72" stroke="#A8A29A"/>
+            <circle cx="40" cy="40" r="3" fill="#15171F"/>
+          </svg>
+          <span class="lbl">Light</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Direction C: The OM Glyph ============ -->
+    <div class="logo-card">
+      <div class="hero">
+        <svg viewBox="0 0 280 240" width="86%" height="86%" fill="none">
+          <!-- modern OM glyph: a perfect O paired with a geometric M  -->
+          <g stroke="#E8E9F0" stroke-width="10" stroke-linecap="square">
+            <!-- O -->
+            <circle cx="70" cy="120" r="58"/>
+            <!-- M built from two diagonals + verticals -->
+            <line x1="150" y1="178" x2="150" y2="62"/>
+            <line x1="262" y1="178" x2="262" y2="62"/>
+            <line x1="150" y1="62"  x2="206" y2="138"/>
+            <line x1="262" y1="62"  x2="206" y2="138"/>
+          </g>
+          <!-- intent dot inside the O -->
+          <circle cx="70" cy="120" r="6" fill="#E8C26B"/>
+          <!-- proof tick under the glyph -->
+          <line x1="0" y1="220" x2="280" y2="220" stroke="#1F2331"/>
+          <line x1="0" y1="220" x2="60" y2="220" stroke="#E8C26B" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="meta">
+        <div class="dir">Direction C</div>
+        <div class="name">The OM Glyph</div>
+      </div>
+      <div class="body">
+        A modern, secular OM wordmark. The <b style="color:var(--ink-hi)">O</b> is a closed world holding a seed of intent; the <b style="color:var(--ink-hi)">M</b> is two pillars and a descending peak — execution. The strongest read of brand name in a single mark.
+      </div>
+      <div class="variants">
+        <div class="v dark">
+          <svg viewBox="0 0 100 60" width="64" height="38" fill="none" stroke="#E8E9F0" stroke-width="4">
+            <circle cx="20" cy="30" r="16"/>
+            <line x1="44" y1="46" x2="44" y2="14"/>
+            <line x1="80" y1="46" x2="80" y2="14"/>
+            <line x1="44" y1="14" x2="62" y2="38"/>
+            <line x1="80" y1="14" x2="62" y2="38"/>
+          </svg>
+          <span class="lbl">Dark</span>
+        </div>
+        <div class="v mid">
+          <svg viewBox="0 0 100 60" width="64" height="38" fill="none" stroke="#E8E9F0" stroke-width="4">
+            <circle cx="20" cy="30" r="16"/>
+            <line x1="44" y1="46" x2="44" y2="14"/>
+            <line x1="80" y1="46" x2="80" y2="14"/>
+            <line x1="44" y1="14" x2="62" y2="38"/>
+            <line x1="80" y1="14" x2="62" y2="38"/>
+          </svg>
+          <span class="lbl">Mono</span>
+        </div>
+        <div class="v light">
+          <svg viewBox="0 0 100 60" width="64" height="38" fill="none" stroke="#15171F" stroke-width="4">
+            <circle cx="20" cy="30" r="16"/>
+            <line x1="44" y1="46" x2="44" y2="14"/>
+            <line x1="80" y1="46" x2="80" y2="14"/>
+            <line x1="44" y1="14" x2="62" y2="38"/>
+            <line x1="80" y1="14" x2="62" y2="38"/>
+          </svg>
+          <span class="lbl">Light</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Full lockups (A · recommended) ====== -->
+  <div class="lockup-grid">
+    <div class="lockup">
+      <div class="lbl">Primary Lockup · Dark</div>
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 80 80" fill="none">
+          <circle cx="40" cy="40" r="12" stroke="#2A2F40"/>
+          <circle cx="40" cy="40" r="22" stroke="#2A2F40"/>
+          <circle cx="40" cy="40" r="32" stroke="#1F2331"/>
+          <g stroke="#6FD3D6" stroke-width="1.2">
+            <line x1="40" y1="2"  x2="40" y2="6"/>
+            <line x1="40" y1="74" x2="40" y2="78"/>
+            <line x1="2"  y1="40" x2="6"  y2="40"/>
+            <line x1="74" y1="40" x2="78" y2="40"/>
+          </g>
+          <circle cx="40" cy="40" r="3" fill="#E8C26B"/>
+        </svg>
+        <span>OM World</span>
+        <span class="div"></span>
+        <span class="sub">One Mind<br/>One World</span>
+      </div>
+      <div class="tiny mono" style="color:var(--mute);">Use at 24px+ height · Min clearspace = M-cap height on all sides</div>
+    </div>
+    <div class="lockup light">
+      <div class="lbl">Primary Lockup · Light</div>
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 80 80" fill="none">
+          <circle cx="40" cy="40" r="12" stroke="#A8A29A"/>
+          <circle cx="40" cy="40" r="22" stroke="#A8A29A"/>
+          <circle cx="40" cy="40" r="32" stroke="#C8C5B9"/>
+          <g stroke="#15171F" stroke-width="1.2">
+            <line x1="40" y1="2"  x2="40" y2="6"/>
+            <line x1="40" y1="74" x2="40" y2="78"/>
+            <line x1="2"  y1="40" x2="6"  y2="40"/>
+            <line x1="74" y1="40" x2="78" y2="40"/>
+          </g>
+          <circle cx="40" cy="40" r="3" fill="#15171F"/>
+        </svg>
+        <span>OM World</span>
+        <span class="div"></span>
+        <span class="sub">One Mind<br/>One World</span>
+      </div>
+      <div class="tiny mono" style="color:#6A6A60;">Light surface uses ink black for the seed; cyan ticks fall back to black on print</div>
+    </div>
+  </div>
+
+  <!-- Construction -->
+  <div class="construction">
+    <div class="panel">
+      <h4>Construction · Direction A</h4>
+      <div class="frame">
+        <svg viewBox="0 0 360 220" width="100%" height="100%" fill="none">
+          <!-- grid -->
+          <g stroke="#1F2331">
+            <line x1="0"   y1="20"  x2="360" y2="20"/>
+            <line x1="0"   y1="200" x2="360" y2="200"/>
+            <line x1="180" y1="0"   x2="180" y2="220"/>
+            <line x1="50"  y1="0"   x2="50"  y2="220"/>
+            <line x1="310" y1="0"   x2="310" y2="220"/>
+          </g>
+          <!-- mark in center -->
+          <g transform="translate(180,110)">
+            <circle r="36" stroke="#2A2F40"/>
+            <circle r="62" stroke="#2A2F40"/>
+            <circle r="88" stroke="#1F2331"/>
+            <g stroke="#6FD3D6" stroke-width="1.2">
+              <line x1="0" y1="-100" x2="0" y2="-90"/>
+              <line x1="0" y1="100"  x2="0" y2="90"/>
+              <line x1="-100" y1="0" x2="-90" y2="0"/>
+              <line x1="100"  y1="0" x2="90"  y2="0"/>
+            </g>
+            <circle r="4" fill="#E8C26B"/>
+          </g>
+          <!-- measure callouts -->
+          <g font-family="JetBrains Mono" font-size="10" fill="#7A7F92">
+            <text x="184" y="14">r₃ = 88u</text>
+            <text x="184" y="48">r₂ = 62u</text>
+            <text x="184" y="76">r₁ = 36u</text>
+            <text x="6" y="210">1u = clearspace unit · seed = 4u</text>
+          </g>
+        </svg>
+      </div>
+      <p class="tiny muted">All radii are integer multiples of <b style="color:var(--ink-hi)">1u</b>, where 1u equals the seed diameter (4u total). The mark is always drawn fresh from geometry — never traced or scaled from raster.</p>
+    </div>
+    <div class="panel">
+      <h4>Clearspace &amp; Minimum</h4>
+      <div class="frame">
+        <svg viewBox="0 0 360 220" width="100%" height="100%" fill="none">
+          <rect x="60" y="40" width="240" height="140" stroke="#2A2F40" stroke-dasharray="3 4"/>
+          <g transform="translate(180,110)">
+            <circle r="36" stroke="#2A2F40"/>
+            <circle r="62" stroke="#2A2F40"/>
+            <circle r="88" stroke="#1F2331"/>
+            <circle r="4" fill="#E8C26B"/>
+          </g>
+          <g font-family="JetBrains Mono" font-size="10" fill="#7A7F92">
+            <text x="64" y="34">clearspace = 1× mark height</text>
+            <text x="64" y="196">never crop into the outermost ring</text>
+          </g>
+        </svg>
+      </div>
+      <p class="tiny muted">Minimum: <b style="color:var(--ink-hi)">16px</b> for favicon. Below this, drop the outer ring and keep seed + inner ring only — see token icon spec.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     03  COLOR
+=================================================== -->
+<section class="section" data-screen-label="03 Color">
+  <div class="eyebrow num">03 — Color System</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">Deep void.<br/>One signal of consciousness.</h2>
+    </div>
+    <div class="right body">
+      <p>The palette is a cosmic dark mode with a single warm signal — <b style="color:var(--gold)">Consciousness Gold</b> — and a verification accent — <b style="color:var(--cyan)">Signal Cyan</b>. Indigo is held in reserve. The system avoids the AI-SaaS purple gradient entirely.</p>
+      <p class="muted">All accents share an OKLCH lightness of ~0.78 and chroma of ~0.11; only hue varies. Light mode is a paper-warm off-white, never pure white.</p>
+    </div>
+  </div>
+
+  <!-- Primary swatches -->
+  <div class="dec" style="margin-bottom:18px;">Primary · Brand Anchors</div>
+  <div class="swatch-grid">
+    <div class="swatch">
+      <div class="chip" style="background:#06070C;"></div>
+      <div class="meta"><div class="name">Void Black</div><div class="hex">#06070C · oklch(0.10 0.01 264)</div><div class="use">Primary background. Cosmic base — warm-cool balanced, never pure black.</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background:#E8C26B;"></div>
+      <div class="meta"><div class="name">Consciousness Gold</div><div class="hex">#E8C26B · oklch(0.83 0.10 85)</div><div class="use">Brand signal. The single intent-point glow. Used sparingly.</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background:#6FD3D6;"></div>
+      <div class="meta"><div class="name">Signal Cyan</div><div class="hex">#6FD3D6 · oklch(0.81 0.07 188)</div><div class="use">Verification accent — proofs, hashes, links, "ok" states.</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background:#F4F2EA;"></div>
+      <div class="meta"><div class="name">Paper Off-White</div><div class="hex">#F4F2EA · oklch(0.96 0.01 90)</div><div class="use">Light-mode background. Paper-warm — never #FFFFFF.</div></div>
+    </div>
+  </div>
+
+  <!-- Surface ramp -->
+  <div class="dec" style="margin-top:48px; margin-bottom:18px;">Surfaces · Void Ramp (Dark Mode)</div>
+  <div class="ramp">
+    <div class="label">VOID</div>
+    <div class="steps">
+      <div class="step" style="background:#06070C;color:#7A7F92;">06070C</div>
+      <div class="step" style="background:#0B0D14;color:#7A7F92;">0B0D14</div>
+      <div class="step" style="background:#11141E;color:#7A7F92;">11141E</div>
+      <div class="step" style="background:#181B26;color:#9099AE;">181B26</div>
+      <div class="step" style="background:#1F2331;color:#9099AE;">1F2331</div>
+      <div class="step" style="background:#2A2F40;color:#B0B6C9;">2A2F40</div>
+      <div class="step" style="background:#4A4F62;color:#E8E9F0;">4A4F62</div>
+      <div class="step" style="background:#7A7F92;color:#06070C;">7A7F92</div>
+      <div class="step" style="background:#E8E9F0;color:#06070C;">E8E9F0</div>
+    </div>
+  </div>
+  <div class="ramp">
+    <div class="label">GOLD</div>
+    <div class="steps">
+      <div class="step" style="background:#1B1607;color:#6A5328;">1B1607</div>
+      <div class="step" style="background:#322712;color:#6A5328;">322712</div>
+      <div class="step" style="background:#4D3C1D;color:#BFA15A;">4D3C1D</div>
+      <div class="step" style="background:#6A5328;color:#E8C26B;">6A5328</div>
+      <div class="step" style="background:#8E7037;color:#F4DEAA;">8E7037</div>
+      <div class="step" style="background:#BFA15A;color:#1B1607;">BFA15A</div>
+      <div class="step" style="background:#E8C26B;color:#1B1607;">E8C26B</div>
+      <div class="step" style="background:#F4DEAA;color:#1B1607;">F4DEAA</div>
+      <div class="step" style="background:#FDF5E2;color:#322712;">FDF5E2</div>
+    </div>
+  </div>
+  <div class="ramp">
+    <div class="label">CYAN</div>
+    <div class="steps">
+      <div class="step" style="background:#07191A;color:#2F6A6B;">07191A</div>
+      <div class="step" style="background:#0D2A2C;color:#2F6A6B;">0D2A2C</div>
+      <div class="step" style="background:#143F41;color:#6FD3D6;">143F41</div>
+      <div class="step" style="background:#1F5C5F;color:#9FE4E6;">1F5C5F</div>
+      <div class="step" style="background:#2F6A6B;color:#C8F1F2;">2F6A6B</div>
+      <div class="step" style="background:#4DA0A3;color:#07191A;">4DA0A3</div>
+      <div class="step" style="background:#6FD3D6;color:#07191A;">6FD3D6</div>
+      <div class="step" style="background:#9FE4E6;color:#07191A;">9FE4E6</div>
+      <div class="step" style="background:#D6F4F4;color:#143F41;">D6F4F4</div>
+    </div>
+  </div>
+  <div class="ramp">
+    <div class="label">INDIGO <span style="color:var(--ash);">· reserved</span></div>
+    <div class="steps">
+      <div class="step" style="background:#070818;color:#3744A8;">070818</div>
+      <div class="step" style="background:#10133D;color:#4A5BFF;">10133D</div>
+      <div class="step" style="background:#1B2280;color:#A8B0FF;">1B2280</div>
+      <div class="step" style="background:#2A33C0;color:#D6DBFF;">2A33C0</div>
+      <div class="step" style="background:#3744E0;color:#FFFFFF;">3744E0</div>
+      <div class="step" style="background:#4A5BFF;color:#070818;">4A5BFF</div>
+      <div class="step" style="background:#6F7CFF;color:#070818;">6F7CFF</div>
+      <div class="step" style="background:#A8B0FF;color:#070818;">A8B0FF</div>
+      <div class="step" style="background:#DCDFFF;color:#10133D;">DCDFFF</div>
+    </div>
+  </div>
+
+  <!-- Usage -->
+  <div class="color-usage">
+    <div class="card" style="padding:32px;">
+      <div class="h-small">Usage Ratio · Dark mode (default)</div>
+      <p class="tiny muted">Cosmic dark holds the world. Gold appears as one luminous point per composition. Cyan carries proofs. Text reads in soft white.</p>
+      <div class="bar" style="margin-top:24px;">
+        <span style="background:#06070C; flex:62;"></span>
+        <span style="background:#11141E; flex:14;"></span>
+        <span style="background:#1F2331; flex:8;"></span>
+        <span style="background:#E8E9F0; flex:10;"></span>
+        <span style="background:#6FD3D6; flex:4;"></span>
+        <span style="background:#E8C26B; flex:2;"></span>
+      </div>
+      <div class="legend">
+        <div class="l"><span class="dot" style="background:#06070C;border:1px solid var(--rule);"></span>Void · 62%</div>
+        <div class="l"><span class="dot" style="background:#11141E;"></span>Surface · 14%</div>
+        <div class="l"><span class="dot" style="background:#1F2331;"></span>Rule · 8%</div>
+        <div class="l"><span class="dot" style="background:#E8E9F0;"></span>Ink · 10%</div>
+        <div class="l"><span class="dot" style="background:#6FD3D6;"></span>Cyan · 4%</div>
+        <div class="l"><span class="dot" style="background:#E8C26B;"></span>Gold · 2%</div>
+      </div>
+    </div>
+    <div class="card lightmode" style="padding:32px;">
+      <div class="h-small">Usage Ratio · Light mode (paper)</div>
+      <p class="tiny" style="color:#6A6A60;">Light mode is a paper-warm off-white. The seed inverts to ink. Gold and cyan keep their roles but are deepened for contrast.</p>
+      <div class="bar" style="margin-top:24px;">
+        <span style="background:#F4F2EA; flex:64;border:1px solid #E0DDD1;"></span>
+        <span style="background:#E8E4D6; flex:14;"></span>
+        <span style="background:#15171F; flex:14;"></span>
+        <span style="background:#2F6A6B; flex:4;"></span>
+        <span style="background:#8E7037; flex:4;"></span>
+      </div>
+      <div class="legend">
+        <div class="l" style="color:#6A6A60;"><span class="dot" style="background:#F4F2EA;border:1px solid #C8C5B9;"></span>Paper · 64%</div>
+        <div class="l" style="color:#6A6A60;"><span class="dot" style="background:#E8E4D6;border:1px solid #C8C5B9;"></span>Tone · 14%</div>
+        <div class="l" style="color:#6A6A60;"><span class="dot" style="background:#15171F;"></span>Ink · 14%</div>
+        <div class="l" style="color:#6A6A60;"><span class="dot" style="background:#2F6A6B;"></span>Cyan deep · 4%</div>
+        <div class="l" style="color:#6A6A60;"><span class="dot" style="background:#8E7037;"></span>Gold deep · 4%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gradients (subtle, only for atmospheric backgrounds) -->
+  <div class="dec" style="margin-top:48px; margin-bottom:18px;">Atmospheric Fields · ambient backgrounds only, never on type</div>
+  <div class="grid-3">
+    <div class="card" style="overflow:hidden;">
+      <div style="aspect-ratio:16/9; background: radial-gradient(ellipse at 30% 50%, rgba(232,194,107,.18), transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(111,211,214,.10), transparent 60%), #06070C;"></div>
+      <div style="padding:14px 18px;"><div class="h-small">Genesis Field</div><div class="tiny muted">Used behind hero or manifesto. One warm point, one cool point — same world.</div></div>
+    </div>
+    <div class="card" style="overflow:hidden;">
+      <div style="aspect-ratio:16/9; background:
+        radial-gradient(circle at 50% 100%, rgba(232,194,107,.22), transparent 50%),
+        #06070C;"></div>
+      <div style="padding:14px 18px;"><div class="h-small">Horizon Rise</div><div class="tiny muted">Dawn over a verifiable horizon. Section headers, paper covers.</div></div>
+    </div>
+    <div class="card" style="overflow:hidden;">
+      <div style="aspect-ratio:16/9; background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 40px),
+        repeating-linear-gradient(0deg,  rgba(255,255,255,.03) 0 1px, transparent 1px 40px),
+        #06070C;"></div>
+      <div style="padding:14px 18px;"><div class="h-small">Law Grid</div><div class="tiny muted">Used behind protocol diagrams. The geometry of the verifiable world.</div></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     04  TYPOGRAPHY
+=================================================== -->
+<section class="section" data-screen-label="04 Type">
+  <div class="eyebrow num">04 — Typography</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">A protocol speaks plainly.</h2>
+    </div>
+    <div class="right body">
+      <p>One geometric humanist for English (<b style="color:var(--ink-hi)">Space Grotesk</b>), one neutral sans for Chinese (<b style="color:var(--ink-hi)">Noto Sans SC</b>), and one engineering mono (<b style="color:var(--ink-hi)">JetBrains Mono</b>) for code, hashes, labels, and timestamps. Three faces, no exceptions. Avoids overused Inter/Roboto entirely.</p>
+    </div>
+  </div>
+
+  <div class="face-grid">
+    <div class="face-card">
+      <div class="name">Space Grotesk</div>
+      <div class="desc">Display + Body · English / Latin. Wide aperture, geometric. Reads quiet at body sizes and confident at hero scale.</div>
+      <div class="glyphs">Aa Mm 0123</div>
+      <div class="pangram">The verifiable world begins at a single point of intention.</div>
+    </div>
+    <div class="face-card">
+      <div class="name">Noto Sans SC</div>
+      <div class="desc">Body · 中文 / Hanzi. Calm, modern, infrastructure-grade. Never write OM in calligraphic or temple form.</div>
+      <div class="glyphs" style="font-family:var(--f-cn); font-weight:500;">汉字 一念 世界</div>
+      <div class="pangram cn">一念之间，世界生成 — AI 执行，Crypto 验证。</div>
+    </div>
+    <div class="face-card">
+      <div class="name">JetBrains Mono</div>
+      <div class="desc">Mono · Code, hashes, labels, eyebrows. Carries the "this is a protocol" tone in body copy.</div>
+      <div class="glyphs mono" style="font-size:48px;">0x4F4D</div>
+      <div class="pangram mono" style="font-size:13px;">intent.hash = 0x4F4D2E57…CA9B · proof: ok · ts: 2026-05-12T08:00Z</div>
+    </div>
+  </div>
+
+  <!-- hierarchy -->
+  <div class="mt-72">
+    <div class="dec">Type Scale &amp; Hierarchy</div>
+    <div class="type-spec">
+      <div class="meta">
+        <span class="role">Hero Title</span>
+        <span class="face">Space Grotesk · Medium · 132 / 0.92 / -0.045em</span>
+        Used once per page. Always paired with a 1-line lede.
+      </div>
+      <div class="sample" style="font-family:var(--f-display);font-weight:500;font-size:96px;line-height:0.94;letter-spacing:-0.045em;">One Mind, One World.</div>
+    </div>
+    <div class="type-spec">
+      <div class="meta">
+        <span class="role">Section Title</span>
+        <span class="face">Space Grotesk · Medium · 64 / 1.0 / -0.035em</span>
+        Two-line max. Never bold.
+      </div>
+      <div class="sample" style="font-family:var(--f-display);font-weight:500;font-size:52px;line-height:1.0;letter-spacing:-0.035em;">Crypto is the law.<br/>AI is the engine.</div>
+    </div>
+    <div class="type-spec">
+      <div class="meta">
+        <span class="role">Manifesto / Quote</span>
+        <span class="face">Space Grotesk · Regular · 26 / 1.42 / -0.014em</span>
+        For declarations and credos. Indented from a left rule.
+      </div>
+      <div class="sample" style="font-family:var(--f-display);font-size:24px;line-height:1.4;letter-spacing:-0.014em;color:var(--ink-hi);border-left:1px solid var(--rule);padding-left:18px;">If it cannot be proven, <em style="color:var(--gold);font-style:normal;">it did not happen.</em></div>
+    </div>
+    <div class="type-spec">
+      <div class="meta">
+        <span class="role">Body</span>
+        <span class="face">Space Grotesk · Regular · 15 / 1.62 / 0</span>
+        Default running text. Sits at ~70 char measure.
+      </div>
+      <div class="sample body" style="max-width:520px;">OM World is a decentralized intent economy protocol. AI carries human intention into action; cryptography makes every authorization, decision, and outcome verifiable by anyone.</div>
+    </div>
+    <div class="type-spec">
+      <div class="meta">
+        <span class="role">Body · 中文</span>
+        <span class="face">Noto Sans SC · Regular · 15 / 1.7</span>
+        Hanzi paragraph. Slightly looser leading than Latin.
+      </div>
+      <div class="sample cn" style="font-size:15px;line-height:1.75;max-width:520px;color:var(--ink);">OM World 是一个去中心化的意图经济协议。AI 将人的意图带过时间与距离，密码学让每一次授权、决策与结果都可被任何人验证。</div>
+    </div>
+    <div class="type-spec">
+      <div class="meta">
+        <span class="role">Protocol / Code</span>
+        <span class="face">JetBrains Mono · Regular · 13 / 1.55 / +0.02em</span>
+        Hashes, addresses, timestamps, code.
+      </div>
+      <div class="sample mono" style="font-size:13px;line-height:1.7;color:var(--cyan);">
+        intent_id  : <span style="color:var(--ink-hi);">0x4F4D2E57·CA9B·…·1A07</span><br/>
+        mandate    : <span style="color:var(--ink-hi);">M-2026-05-12T08:00Z/RW</span><br/>
+        verifier   : <span style="color:var(--gold);">node://council.07</span><br/>
+        proof      : <span style="color:var(--ink-hi);">attested</span>
+      </div>
+    </div>
+    <div class="type-spec">
+      <div class="meta">
+        <span class="role">Eyebrow · Label</span>
+        <span class="face">JetBrains Mono · Medium · 11 / 1.0 / +0.14em / UPPER</span>
+        Sits above section titles, on cards, in nav.
+      </div>
+      <div class="sample">
+        <div class="eyebrow num">02 — Logo · Three Directions</div>
+      </div>
+    </div>
+    <div class="type-spec">
+      <div class="meta">
+        <span class="role">Button / CTA</span>
+        <span class="face">JetBrains Mono · Medium · 12 / +0.1em / UPPER</span>
+        Buttons read like commands. Never use sentence case for the primary CTA.
+      </div>
+      <div class="sample" style="display:flex; gap:10px;">
+        <span class="btn primary">Read the manifesto</span>
+        <span class="btn">Explore the protocol</span>
+        <span class="btn ghost">Join the builders →</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     05  GRAPHIC PRIMITIVES
+=================================================== -->
+<section class="section" data-screen-label="05 Primitives">
+  <div class="eyebrow num">05 — Graphic Primitives</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">Ten shapes.<br/>One grammar.</h2>
+    </div>
+    <div class="right body">
+      <p>Every brand surface — posters, slides, paper covers, social cards — composes from this small vocabulary. All forms are built on the same geometric grid as the master mark and use the same line weight. <b style="color:var(--ink-hi)">Never invent a new ornament.</b></p>
+    </div>
+  </div>
+
+  <div class="motif-grid">
+
+    <!-- 01 Intent Point -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="78%" height="78%" fill="none">
+          <circle cx="80" cy="80" r="40" fill="#E8C26B" fill-opacity=".09"/>
+          <circle cx="80" cy="80" r="24" fill="#E8C26B" fill-opacity=".18"/>
+          <circle cx="80" cy="80" r="6"  fill="#E8C26B"/>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-01</div><div class="name">Intent Point</div><div class="desc">The seed. Used to mark the origin of any composition.</div></div>
+    </div>
+
+    <!-- 02 World Field -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="84%" height="84%" fill="none">
+          <circle cx="80" cy="80" r="14" stroke="#E8C26B"/>
+          <circle cx="80" cy="80" r="30" stroke="#2A2F40"/>
+          <circle cx="80" cy="80" r="50" stroke="#2A2F40"/>
+          <circle cx="80" cy="80" r="70" stroke="#1F2331"/>
+          <circle cx="80" cy="80" r="3"  fill="#E8C26B"/>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-02</div><div class="name">World Field</div><div class="desc">Concentric worlds. Section backgrounds, paper covers.</div></div>
+    </div>
+
+    <!-- 03 Proof Ring -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="80%" height="80%" fill="none">
+          <circle cx="80" cy="80" r="56" stroke="#2A2F40"/>
+          <g stroke="#6FD3D6" stroke-width="1.4">
+            <line x1="80" y1="18" x2="80" y2="28"/>
+            <line x1="80" y1="132" x2="80" y2="142"/>
+            <line x1="18" y1="80" x2="28" y2="80"/>
+            <line x1="132" y1="80" x2="142" y2="80"/>
+            <line x1="36" y1="36" x2="43" y2="43"/>
+            <line x1="117" y1="43" x2="124" y2="36"/>
+            <line x1="36" y1="124" x2="43" y2="117"/>
+            <line x1="117" y1="117" x2="124" y2="124"/>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-03</div><div class="name">Proof Ring</div><div class="desc">Verification halo. Twelve ticks, one per proof epoch.</div></div>
+    </div>
+
+    <!-- 04 Agent Path -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="86%" height="86%" fill="none">
+          <circle cx="30" cy="120" r="4" fill="#E8C26B"/>
+          <circle cx="130" cy="40" r="4" fill="#6FD3D6"/>
+          <path d="M30 120 C 60 120, 60 80, 90 80 S 130 60, 130 40" stroke="#E8C26B" stroke-dasharray="3 4"/>
+          <circle cx="60" cy="100" r="2" fill="#E8E9F0"/>
+          <circle cx="90" cy="80" r="2" fill="#E8E9F0"/>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-04</div><div class="name">Agent Path</div><div class="desc">Intent flowing through tools. Dashed = uncommitted; solid = proven.</div></div>
+    </div>
+
+    <!-- 05 Node Constellation -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="86%" height="86%" fill="none">
+          <g stroke="#2A2F40">
+            <line x1="40" y1="40" x2="120" y2="60"/>
+            <line x1="120" y1="60" x2="110" y2="120"/>
+            <line x1="40" y1="40" x2="60" y2="100"/>
+            <line x1="60" y1="100" x2="110" y2="120"/>
+            <line x1="60" y1="100" x2="120" y2="60"/>
+          </g>
+          <g fill="#E8E9F0">
+            <circle cx="40" cy="40" r="3"/>
+            <circle cx="120" cy="60" r="3"/>
+            <circle cx="60" cy="100" r="3"/>
+            <circle cx="110" cy="120" r="3"/>
+          </g>
+          <circle cx="60" cy="100" r="6" fill="none" stroke="#E8C26B"/>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-05</div><div class="name">Node Constellation</div><div class="desc">Open ecosystem map. No center. Highlighted node = active role.</div></div>
+    </div>
+
+    <!-- 06 Hash Trace -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="88%" height="88%" fill="none">
+          <g stroke="#2A2F40">
+            <line x1="20" y1="80" x2="140" y2="80"/>
+          </g>
+          <g stroke="#6FD3D6" stroke-width="2">
+            <line x1="20" y1="74" x2="20" y2="86"/>
+            <line x1="48" y1="76" x2="48" y2="84"/>
+            <line x1="76" y1="70" x2="76" y2="90"/>
+            <line x1="104" y1="76" x2="104" y2="84"/>
+            <line x1="140" y1="74" x2="140" y2="86"/>
+          </g>
+          <g font-family="JetBrains Mono" font-size="8" fill="#7A7F92">
+            <text x="20" y="108">0x4F</text>
+            <text x="68" y="108">2E57</text>
+            <text x="124" y="108">CA9B</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-06</div><div class="name">Hash Trace</div><div class="desc">A timeline of proofs. Used in protocol diagrams and timestamps.</div></div>
+    </div>
+
+    <!-- 07 Mandate Seal -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="78%" height="78%" fill="none">
+          <circle cx="80" cy="80" r="46" stroke="#E8C26B"/>
+          <circle cx="80" cy="80" r="36" stroke="#2A2F40"/>
+          <g stroke="#E8C26B" stroke-width="1.4">
+            <line x1="56" y1="80" x2="76" y2="92"/>
+            <line x1="76" y1="92" x2="104" y2="64"/>
+          </g>
+          <g font-family="JetBrains Mono" font-size="8" fill="#7A7F92">
+            <text x="32" y="138">MANDATE · GRANTED</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-07</div><div class="name">Mandate Seal</div><div class="desc">Authorization stamp. Replaces signatures on consent surfaces.</div></div>
+    </div>
+
+    <!-- 08 Tool Module -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="84%" height="84%" fill="none">
+          <rect x="30" y="40" width="100" height="80" stroke="#2A2F40"/>
+          <line x1="30" y1="60" x2="130" y2="60" stroke="#2A2F40"/>
+          <circle cx="44" cy="50" r="2" fill="#E8C26B"/>
+          <line x1="56" y1="50" x2="92" y2="50" stroke="#7A7F92"/>
+          <g stroke="#6FD3D6">
+            <line x1="44" y1="78" x2="116" y2="78"/>
+            <line x1="44" y1="94" x2="92"  y2="94"/>
+            <line x1="44" y1="110" x2="104" y2="110"/>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-08</div><div class="name">Tool Module</div><div class="desc">An interchangeable unit of capability. Cards in UI follow this geometry.</div></div>
+    </div>
+
+    <!-- 09 Execution Flow -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="90%" height="90%" fill="none">
+          <g stroke="#2A2F40">
+            <rect x="14" y="68" width="28" height="24"/>
+            <rect x="66" y="68" width="28" height="24"/>
+            <rect x="118" y="68" width="28" height="24"/>
+          </g>
+          <g stroke="#E8C26B" stroke-dasharray="3 4">
+            <line x1="42" y1="80" x2="66" y2="80"/>
+            <line x1="94" y1="80" x2="118" y2="80"/>
+          </g>
+          <g fill="#E8C26B"><polygon points="64,76 70,80 64,84"/><polygon points="116,76 122,80 116,84"/></g>
+          <g font-family="JetBrains Mono" font-size="8" fill="#7A7F92">
+            <text x="14" y="62">INTENT</text>
+            <text x="66" y="62">AGENT</text>
+            <text x="116" y="62">PROOF</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-09</div><div class="name">Execution Flow</div><div class="desc">Intent → agent → proof. The narrative spine of every explainer.</div></div>
+    </div>
+
+    <!-- 10 Governance Orbit -->
+    <div class="motif">
+      <div class="canvas">
+        <svg viewBox="0 0 160 160" width="88%" height="88%" fill="none">
+          <ellipse cx="80" cy="80" rx="60" ry="20" stroke="#2A2F40"/>
+          <ellipse cx="80" cy="80" rx="60" ry="20" stroke="#2A2F40" transform="rotate(60 80 80)"/>
+          <ellipse cx="80" cy="80" rx="60" ry="20" stroke="#2A2F40" transform="rotate(120 80 80)"/>
+          <circle cx="80" cy="80" r="4" fill="#E8C26B"/>
+          <circle cx="140" cy="80" r="3" fill="#E8E9F0"/>
+          <circle cx="50" cy="48" r="3" fill="#E8E9F0"/>
+          <circle cx="50" cy="112" r="3" fill="#E8E9F0"/>
+        </svg>
+      </div>
+      <div class="meta"><div class="num">M-10</div><div class="name">Governance Orbit</div><div class="desc">Roles orbiting one shared rule. DAO + council visuals.</div></div>
+    </div>
+  </div>
+
+  <p class="tiny muted mt-24" style="max-width:720px;">All ten primitives share a 1.2pt stroke, a 1u/4u radius grid, and the same three-color palette (ink white, gold, cyan). They may combine but never deform — no perspective, no skew, no drop-shadow.</p>
+</section>
+
+
+<!-- ===================================================
+     06  ICONS
+=================================================== -->
+<section class="section" data-screen-label="06 Icons">
+  <div class="eyebrow num">06 — Icon Family</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">Sixteen concepts.<br/>One geometry.</h2>
+    </div>
+    <div class="right body">
+      <p>Linear, 24px grid, 1.5px stroke. Shapes drawn from the same primitives as the master mark. No fills except a single dot for "intent." Sized for 24 / 32 / 64px without redraw.</p>
+    </div>
+  </div>
+
+  <div class="icon-grid">
+    <!-- helper: all icons 24px viewBox -->
+    <!-- 1 Intent -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9"/>
+        <circle cx="12" cy="12" r="2.2" fill="#E8C26B" stroke="none"/>
+      </svg>
+      <span class="lbl">Intent</span>
+    </div>
+    <!-- 2 AI Agent -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="9" r="4"/>
+        <path d="M5 21 C 6 16 18 16 19 21"/>
+        <line x1="12" y1="2" x2="12" y2="5"/>
+      </svg>
+      <span class="lbl">Agent</span>
+    </div>
+    <!-- 3 Tool Creator -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <rect x="4" y="4" width="16" height="16"/>
+        <line x1="4" y1="10" x2="20" y2="10"/>
+        <circle cx="8" cy="7" r="0.8" fill="#E8E9F0"/>
+      </svg>
+      <span class="lbl">Tool Creator</span>
+    </div>
+    <!-- 4 Compute -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <rect x="4" y="6" width="16" height="4"/>
+        <rect x="4" y="14" width="16" height="4"/>
+        <line x1="7" y1="8" x2="7" y2="8"/>
+        <line x1="7" y1="16" x2="7" y2="16"/>
+      </svg>
+      <span class="lbl">Compute</span>
+    </div>
+    <!-- 5 Verifier -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <path d="M12 2 L20 6 V12 C 20 16 16 20 12 22 C 8 20 4 16 4 12 V6 Z"/>
+        <polyline points="9,12 11,14 15,10" stroke="#6FD3D6"/>
+      </svg>
+      <span class="lbl">Verifier</span>
+    </div>
+    <!-- 6 Capital -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <ellipse cx="12" cy="12" rx="4" ry="9"/>
+      </svg>
+      <span class="lbl">Capital</span>
+    </div>
+    <!-- 7 Smart contract -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <path d="M5 4 H15 L19 8 V20 H5 Z"/>
+        <line x1="8" y1="11" x2="16" y2="11"/>
+        <line x1="8" y1="15" x2="13" y2="15"/>
+      </svg>
+      <span class="lbl">Contract</span>
+    </div>
+    <!-- 8 Intent hash -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <line x1="9" y1="3"  x2="6" y2="21"/>
+        <line x1="18" y1="3" x2="15" y2="21"/>
+        <line x1="3" y1="9"  x2="21" y2="9"/>
+        <line x1="3" y1="15" x2="21" y2="15"/>
+      </svg>
+      <span class="lbl">Hash</span>
+    </div>
+    <!-- 9 Consent ledger -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <rect x="4" y="3" width="16" height="18"/>
+        <line x1="7" y1="8"  x2="17" y2="8"/>
+        <line x1="7" y1="12" x2="17" y2="12"/>
+        <line x1="7" y1="16" x2="14" y2="16"/>
+      </svg>
+      <span class="lbl">Consent</span>
+    </div>
+    <!-- 10 Execution proof -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <rect x="3" y="6" width="18" height="12"/>
+        <polyline points="7,12 11,15 17,9" stroke="#6FD3D6"/>
+      </svg>
+      <span class="lbl">Proof</span>
+    </div>
+    <!-- 11 DAO -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="6" cy="6" r="2.5"/>
+        <circle cx="18" cy="6" r="2.5"/>
+        <circle cx="12" cy="18" r="2.5"/>
+        <line x1="8" y1="7"  x2="16" y2="7"/>
+        <line x1="7" y1="9"  x2="11" y2="16"/>
+        <line x1="17" y1="9" x2="13" y2="16"/>
+      </svg>
+      <span class="lbl">DAO</span>
+    </div>
+    <!-- 12 Payment -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <rect x="3" y="7" width="18" height="12"/>
+        <line x1="3" y1="11" x2="21" y2="11"/>
+        <circle cx="17" cy="15.5" r="1" fill="#E8C26B" stroke="none"/>
+      </svg>
+      <span class="lbl">Payment</span>
+    </div>
+    <!-- 13 Reputation -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="10" r="6"/>
+        <polyline points="9,18 8,22 12,20 16,22 15,18"/>
+      </svg>
+      <span class="lbl">Reputation</span>
+    </div>
+    <!-- 14 Dispute -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <line x1="12" y1="3" x2="12" y2="14"/>
+        <line x1="6" y1="14" x2="18" y2="14"/>
+        <path d="M4 18 L8 12"/>
+        <path d="M20 18 L16 12"/>
+      </svg>
+      <span class="lbl">Dispute</span>
+    </div>
+    <!-- 15 Open protocol -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9"/>
+        <circle cx="12" cy="12" r="4"/>
+        <line x1="12" y1="3" x2="12" y2="8"/>
+        <line x1="12" y1="16" x2="12" y2="21"/>
+        <line x1="3"  y1="12" x2="8" y2="12"/>
+        <line x1="16" y1="12" x2="21" y2="12"/>
+      </svg>
+      <span class="lbl">Open Protocol</span>
+    </div>
+    <!-- 16 Sovereignty -->
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8E9F0" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 5 V12 L17 14"/>
+        <circle cx="12" cy="12" r="1.6" fill="#E8C26B" stroke="none"/>
+      </svg>
+      <span class="lbl">Sovereignty</span>
+    </div>
+  </div>
+
+  <div class="grid-3 mt-48">
+    <div class="card" style="padding:24px;">
+      <div class="h-small">Stroke</div>
+      <p class="tiny muted">1.5px @ 24, scales as percentage of viewBox. Rounded caps. Sharp joins.</p>
+    </div>
+    <div class="card" style="padding:24px;">
+      <div class="h-small">Color</div>
+      <p class="tiny muted">Ink white default. <span style="color:var(--gold);">Gold</span> reserved for "intent" markers. <span style="color:var(--cyan);">Cyan</span> for proof states.</p>
+    </div>
+    <div class="card" style="padding:24px;">
+      <div class="h-small">Padding</div>
+      <p class="tiny muted">2px optical padding inside the 24px box. Visual weight equalized across the set, not pixel-aligned.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     07  UI / LANDING
+=================================================== -->
+<section class="section" data-screen-label="07 UI">
+  <div class="eyebrow num">07 — UI Direction · Landing</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">The first surface<br/>a builder will see.</h2>
+    </div>
+    <div class="right body">
+      <p>A protocol page, not a marketing page. The hero is a single declaration with one luminous point. Below the fold, architecture diagrams using only the ten primitives. Dark mode is default; light mode mirrors it on paper-warm.</p>
+    </div>
+  </div>
+
+  <!-- Browser mock -->
+  <div class="ui-browser">
+    <div class="chrome">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="url">om.world / one-mind-one-world</div>
+      <div class="tiny mono" style="color:var(--mute);">v0.1.0-genesis</div>
+    </div>
+    <div class="body">
+      <!-- nav -->
+      <div class="ui-nav">
+        <div class="left">
+          <div class="brand">
+            <svg viewBox="0 0 80 80" fill="none">
+              <circle cx="40" cy="40" r="12" stroke="#2A2F40"/>
+              <circle cx="40" cy="40" r="22" stroke="#2A2F40"/>
+              <circle cx="40" cy="40" r="32" stroke="#1F2331"/>
+              <g stroke="#6FD3D6" stroke-width="1.2">
+                <line x1="40" y1="2" x2="40" y2="6"/>
+                <line x1="40" y1="74" x2="40" y2="78"/>
+                <line x1="2" y1="40" x2="6" y2="40"/>
+                <line x1="74" y1="40" x2="78" y2="40"/>
+              </g>
+              <circle cx="40" cy="40" r="3" fill="#E8C26B"/>
+            </svg>
+            OM World
+          </div>
+          <div class="links">
+            <span>Protocol</span><span>Manifesto</span><span>Builders</span><span>Explorer</span><span>Council</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="btn ghost">EN / 中文</span>
+          <span class="btn primary">Join the Builders</span>
+        </div>
+      </div>
+
+      <!-- hero -->
+      <div class="ui-hero">
+        <svg class="bg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="heroSeed" cx="78%" cy="44%" r="32%">
+              <stop offset="0%" stop-color="#E8C26B" stop-opacity=".30"/>
+              <stop offset="55%" stop-color="#E8C26B" stop-opacity=".05"/>
+              <stop offset="100%" stop-color="#E8C26B" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="1280" height="720" fill="url(#heroSeed)"/>
+          <!-- rings -->
+          <g transform="translate(1000,320)" fill="none" stroke-width="1">
+            <circle r="80"  stroke="#2A2F40"/>
+            <circle r="150" stroke="#1F2331"/>
+            <circle r="220" stroke="#1F2331" stroke-opacity=".6"/>
+            <circle r="290" stroke="#1F2331" stroke-opacity=".3"/>
+            <g stroke="#6FD3D6" stroke-width="1.2">
+              <line x1="0" y1="-300" x2="0" y2="-290"/>
+              <line x1="0" y1="290"  x2="0" y2="300"/>
+              <line x1="-300" y1="0" x2="-290" y2="0"/>
+              <line x1="290"  y1="0" x2="300"  y2="0"/>
+              <line x1="-212" y1="-212" x2="-205" y2="-205"/>
+              <line x1="205"  y1="-212" x2="212"  y2="-205"/>
+            </g>
+            <circle r="6" fill="#E8C26B"/>
+          </g>
+          <!-- faint constellation -->
+          <g stroke="#1F2331">
+            <line x1="60"  y1="600" x2="220" y2="540"/>
+            <line x1="220" y1="540" x2="360" y2="620"/>
+          </g>
+          <g fill="#7A7F92">
+            <circle cx="60"  cy="600" r="2"/>
+            <circle cx="220" cy="540" r="2"/>
+            <circle cx="360" cy="620" r="2"/>
+          </g>
+        </svg>
+        <div class="eyebrow num">OM/W · Genesis Document</div>
+        <h1>One Mind,<br/>One <em>World.</em></h1>
+        <div class="sub">A decentralized intent economy where AI executes and crypto verifies.</div>
+        <div class="sub cn">一个由 AI 执行、Crypto 验证的去中心化意图世界。</div>
+        <div class="ctas">
+          <span class="btn primary">Read the manifesto</span>
+          <span class="btn">Explore the protocol</span>
+          <span class="btn ghost">Join the builders →</span>
+        </div>
+        <div class="stats">
+          <div class="s"><span>Active mandates</span><b>14,208</b></div>
+          <div class="s"><span>Proofs anchored</span><b>1.2M / day</b></div>
+          <div class="s"><span>Open tool repos</span><b>372</b></div>
+          <div class="s"><span>Council seats</span><b>21 / 21</b></div>
+        </div>
+      </div>
+
+      <!-- below the fold: architecture -->
+      <div style="border-top:1px solid var(--rule); padding:64px 56px;">
+        <div class="eyebrow num" style="margin-bottom:16px;">§ Protocol · Intent Lifecycle</div>
+        <h3 style="font-family:var(--f-display); font-size:38px; font-weight:500; letter-spacing:-0.02em; color:var(--ink-hi); margin:0 0 36px; max-width:720px;">From a single point of intention<br/>to a verifiable outcome.</h3>
+
+        <!-- 5-stage flow -->
+        <svg viewBox="0 0 1280 320" width="100%" height="auto">
+          <defs>
+            <marker id="arr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="8" markerHeight="8" orient="auto">
+              <polygon points="0,0 8,4 0,8" fill="#E8C26B"/>
+            </marker>
+          </defs>
+          <!-- baseline -->
+          <line x1="60" y1="160" x2="1220" y2="160" stroke="#1F2331"/>
+          <!-- 5 nodes -->
+          <g font-family="JetBrains Mono" font-size="10" fill="#7A7F92" letter-spacing="1.2">
+            <!-- 1 -->
+            <g transform="translate(120,160)">
+              <circle r="34" stroke="#2A2F40" fill="#0B0D14"/>
+              <circle r="4"  fill="#E8C26B"/>
+              <text text-anchor="middle" y="-50">01 · DECLARE</text>
+              <text text-anchor="middle" y="60" fill="#E8E9F0" font-family="Space Grotesk" font-size="14">Intent</text>
+              <text text-anchor="middle" y="80">user signs intent</text>
+            </g>
+            <!-- 2 -->
+            <g transform="translate(360,160)">
+              <circle r="34" stroke="#2A2F40" fill="#0B0D14"/>
+              <circle r="20" stroke="#6FD3D6"/>
+              <text text-anchor="middle" y="-50">02 · BIND</text>
+              <text text-anchor="middle" y="60" fill="#E8E9F0" font-family="Space Grotesk" font-size="14">Mandate</text>
+              <text text-anchor="middle" y="80">consent → contract</text>
+            </g>
+            <!-- 3 -->
+            <g transform="translate(620,160)">
+              <circle r="34" stroke="#2A2F40" fill="#0B0D14"/>
+              <g stroke="#E8E9F0" stroke-width="1.2">
+                <line x1="-14" y1="0" x2="14" y2="0"/>
+                <line x1="0" y1="-14" x2="0" y2="14"/>
+              </g>
+              <text text-anchor="middle" y="-50">03 · ROUTE</text>
+              <text text-anchor="middle" y="60" fill="#E8E9F0" font-family="Space Grotesk" font-size="14">Agent + Tools</text>
+              <text text-anchor="middle" y="80">AI selects, executes</text>
+            </g>
+            <!-- 4 -->
+            <g transform="translate(880,160)">
+              <circle r="34" stroke="#2A2F40" fill="#0B0D14"/>
+              <g stroke="#6FD3D6" stroke-width="1.4">
+                <line x1="-10" y1="0" x2="-4" y2="6"/>
+                <line x1="-4" y1="6" x2="10" y2="-8"/>
+              </g>
+              <text text-anchor="middle" y="-50">04 · PROVE</text>
+              <text text-anchor="middle" y="60" fill="#E8E9F0" font-family="Space Grotesk" font-size="14">Verification</text>
+              <text text-anchor="middle" y="80">verifiers attest</text>
+            </g>
+            <!-- 5 -->
+            <g transform="translate(1140,160)">
+              <circle r="34" stroke="#E8C26B"/>
+              <circle r="14" stroke="#2A2F40"/>
+              <circle r="3"  fill="#E8C26B"/>
+              <text text-anchor="middle" y="-50">05 · SETTLE</text>
+              <text text-anchor="middle" y="60" fill="#E8E9F0" font-family="Space Grotesk" font-size="14">Outcome</text>
+              <text text-anchor="middle" y="80">payment + record</text>
+            </g>
+          </g>
+          <!-- arrows -->
+          <g stroke="#E8C26B" stroke-dasharray="3 5">
+            <line x1="156" y1="160" x2="324" y2="160" marker-end="url(#arr)"/>
+            <line x1="396" y1="160" x2="584" y2="160" marker-end="url(#arr)"/>
+            <line x1="656" y1="160" x2="844" y2="160" marker-end="url(#arr)"/>
+            <line x1="916" y1="160" x2="1104" y2="160" marker-end="url(#arr)"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card grid: ecosystem roles -->
+  <div class="mt-72">
+    <div class="eyebrow num" style="margin-bottom:14px;">§ Ecosystem Roles · seven seats at one table</div>
+    <div class="grid-4">
+      <div class="card" style="padding:24px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E8E9F0" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2" fill="#E8C26B" stroke="none"/></svg>
+        <div class="h-small mt-24" style="margin-top:14px;">Intent Originator</div>
+        <p class="tiny muted">Any person or organization that declares a real intention and stakes it on chain.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E8E9F0" stroke-width="1.5"><circle cx="12" cy="9" r="4"/><path d="M5 21 C 6 16 18 16 19 21"/></svg>
+        <div class="h-small" style="margin-top:14px;">AI Agent</div>
+        <p class="tiny muted">Software that turns a mandate into a sequence of executable actions, signed at every step.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E8E9F0" stroke-width="1.5"><rect x="4" y="4" width="16" height="16"/><line x1="4" y1="10" x2="20" y2="10"/></svg>
+        <div class="h-small" style="margin-top:14px;">Tool Creator</div>
+        <p class="tiny muted">Builds capabilities — search, payment, compute primitives — and registers them in the open registry.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E8E9F0" stroke-width="1.5"><rect x="4" y="6" width="16" height="4"/><rect x="4" y="14" width="16" height="4"/></svg>
+        <div class="h-small" style="margin-top:14px;">Compute Provider</div>
+        <p class="tiny muted">Supplies the inference and execution power. Earns from every action proven complete.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E8E9F0" stroke-width="1.5"><path d="M12 2 L20 6 V12 C 20 16 16 20 12 22 C 8 20 4 16 4 12 V6 Z"/><polyline points="9,12 11,14 15,10" stroke="#6FD3D6"/></svg>
+        <div class="h-small" style="margin-top:14px;">Verifier</div>
+        <p class="tiny muted">Attests that an execution did what it claimed. Slashing on dishonesty.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E8E9F0" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/></svg>
+        <div class="h-small" style="margin-top:14px;">Capital Provider</div>
+        <p class="tiny muted">Funds intents that need upfront resources; earns yield only on proven outcomes.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E8E9F0" stroke-width="1.5"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><line x1="8" y1="7"  x2="16" y2="7"/><line x1="7" y1="9"  x2="11" y2="16"/><line x1="17" y1="9" x2="13" y2="16"/></svg>
+        <div class="h-small" style="margin-top:14px;">Council / DAO</div>
+        <p class="tiny muted">Stewards the protocol parameters. Can be voted out by any participant class.</p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E8E9F0" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 5 V12 L17 14"/></svg>
+        <div class="h-small" style="margin-top:14px;">Sovereign User</div>
+        <p class="tiny muted">The default state. Every participant remains the owner of their own intentions and history.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     08  APPLICATIONS — social, paper, token
+=================================================== -->
+<section class="section" data-screen-label="08 Applications">
+  <div class="eyebrow num">08 — Applications</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">One geometry,<br/>every surface.</h2>
+    </div>
+    <div class="right body">
+      <p>Twelve template families. Every surface reads at thumbnail size, every surface uses the same ten primitives, and every surface carries one — only one — luminous point.</p>
+    </div>
+  </div>
+
+  <!-- Row 1: avatars + banner -->
+  <div class="social-grid">
+    <!-- X avatar -->
+    <div class="social" style="grid-column: span 3;">
+      <div class="frame" style="aspect-ratio:1/1;">
+        <svg viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="400" fill="#06070C"/>
+          <g transform="translate(200,200)">
+            <circle r="60"  stroke="#2A2F40" fill="none"/>
+            <circle r="100" stroke="#2A2F40" fill="none"/>
+            <circle r="140" stroke="#1F2331" fill="none"/>
+            <g stroke="#6FD3D6" stroke-width="2">
+              <line x1="0" y1="-160" x2="0" y2="-140"/>
+              <line x1="0" y1="140"  x2="0" y2="160"/>
+              <line x1="-160" y1="0" x2="-140" y2="0"/>
+              <line x1="140"  y1="0" x2="160"  y2="0"/>
+            </g>
+            <circle r="10" fill="#E8C26B"/>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-01 · X / Twitter</div><div class="name">Profile Avatar</div><div class="dim">400 × 400 · 1:1</div></div>
+    </div>
+    <!-- GitHub avatar -->
+    <div class="social" style="grid-column: span 3;">
+      <div class="frame" style="aspect-ratio:1/1;">
+        <svg viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="400" fill="#06070C"/>
+          <g transform="translate(200,200)">
+            <circle r="120" stroke="#E8C26B" stroke-width="3" fill="none"/>
+            <line x1="-130" y1="0" x2="130" y2="0" stroke="#1F2331"/>
+            <line x1="0" y1="-130" x2="0" y2="130" stroke="#1F2331"/>
+            <line x1="-100" y1="-60" x2="100" y2="-60" stroke="#1F2331"/>
+            <line x1="-100" y1="60"  x2="100" y2="60"  stroke="#1F2331"/>
+            <circle r="10" fill="#E8C26B"/>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-02 · GitHub</div><div class="name">Organization Avatar</div><div class="dim">400 × 400 · 1:1</div></div>
+    </div>
+    <!-- X banner -->
+    <div class="social" style="grid-column: span 6;">
+      <div class="frame" style="aspect-ratio:3/1;">
+        <svg viewBox="0 0 900 300" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="bnSeed" cx="80%" cy="50%" r="40%">
+              <stop offset="0%" stop-color="#E8C26B" stop-opacity=".35"/>
+              <stop offset="100%" stop-color="#E8C26B" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="900" height="300" fill="#06070C"/>
+          <rect width="900" height="300" fill="url(#bnSeed)"/>
+          <g transform="translate(740,150)" fill="none" stroke-width="1">
+            <circle r="50" stroke="#2A2F40"/>
+            <circle r="90" stroke="#1F2331"/>
+            <circle r="130" stroke="#1F2331" stroke-opacity=".5"/>
+            <g stroke="#6FD3D6" stroke-width="1.4">
+              <line x1="0" y1="-140" x2="0" y2="-130"/>
+              <line x1="0" y1="130"  x2="0" y2="140"/>
+              <line x1="-140" y1="0" x2="-130" y2="0"/>
+              <line x1="130"  y1="0" x2="140"  y2="0"/>
+            </g>
+            <circle r="5" fill="#E8C26B"/>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-weight="500">
+            <text x="60" y="130" font-size="48" letter-spacing="-1.5">One Mind, One World.</text>
+            <text x="60" y="172" font-size="14" fill="#7A7F92" letter-spacing="1.4">A DECENTRALIZED INTENT ECONOMY — AI EXECUTES, CRYPTO VERIFIES</text>
+            <text x="60" y="232" font-size="11" fill="#6FD3D6" font-family="JetBrains Mono" letter-spacing="2">OM.WORLD  /  GENESIS  /  v0.1</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-03 · X / Twitter</div><div class="name">Profile Banner</div><div class="dim">1500 × 500 · 3:1</div></div>
+    </div>
+
+    <!-- Manifesto quote card -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:4/5;">
+        <svg viewBox="0 0 400 500" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="500" fill="#06070C"/>
+          <g stroke="#1F2331"><line x1="0" y1="80"  x2="400" y2="80"/><line x1="0" y1="420" x2="400" y2="420"/></g>
+          <g fill="#7A7F92" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="32" y="56">OM/W · CREDO · 04 / 06</text>
+            <text x="32" y="448">— THE OM COUNCIL · GENESIS</text>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-weight="500">
+            <text x="32" y="210" font-size="42" letter-spacing="-1.5">If it cannot</text>
+            <text x="32" y="252" font-size="42" letter-spacing="-1.5">be proven,</text>
+            <text x="32" y="294" font-size="42" letter-spacing="-1.5" fill="#E8C26B">it did not</text>
+            <text x="32" y="336" font-size="42" letter-spacing="-1.5" fill="#E8C26B">happen.</text>
+          </g>
+          <g transform="translate(360,460)"><circle r="6" fill="#E8C26B"/></g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-04</div><div class="name">Manifesto Quote Card</div><div class="dim">1080 × 1350 · 4:5</div></div>
+    </div>
+
+    <!-- Thread cover -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:4/5;">
+        <svg viewBox="0 0 400 500" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="500" fill="#0B0D14"/>
+          <g fill="#7A7F92" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="32" y="48">OM/W · THREAD · 0011</text>
+            <text x="32" y="468">↓  9 PARTS  ·  6 MIN READ</text>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-weight="500">
+            <text x="32" y="180" font-size="34" letter-spacing="-1.2">Why intent</text>
+            <text x="32" y="218" font-size="34" letter-spacing="-1.2">must be</text>
+            <text x="32" y="256" font-size="34" letter-spacing="-1.2" fill="#E8C26B">decentralized.</text>
+            <text x="32" y="300" font-size="14" fill="#7A7F92" font-family="Space Grotesk">A short manifesto for builders considering OM World.</text>
+          </g>
+          <g transform="translate(200,400)">
+            <circle r="48" stroke="#2A2F40" fill="none"/>
+            <circle r="28" stroke="#1F2331" fill="none"/>
+            <circle r="4" fill="#E8C26B"/>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-05</div><div class="name">Thread Cover</div><div class="dim">1080 × 1350 · 4:5</div></div>
+    </div>
+
+    <!-- Builder recruitment -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:4/5;">
+        <svg viewBox="0 0 400 500" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="500" fill="#06070C"/>
+          <g stroke="#1F2331">
+            <line x1="0" y1="100" x2="400" y2="100"/>
+            <line x1="0" y1="200" x2="400" y2="200"/>
+            <line x1="0" y1="300" x2="400" y2="300"/>
+            <line x1="0" y1="400" x2="400" y2="400"/>
+          </g>
+          <g fill="#7A7F92" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="32" y="56">OM/W · BUILDERS · CALL 003</text>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-weight="500">
+            <text x="32" y="160" font-size="38" letter-spacing="-1.4">Build a tool</text>
+            <text x="32" y="202" font-size="38" letter-spacing="-1.4">the world will</text>
+            <text x="32" y="244" font-size="38" letter-spacing="-1.4" fill="#E8C26B">execute.</text>
+          </g>
+          <g font-family="JetBrains Mono" font-size="11" fill="#6FD3D6" letter-spacing="1.5">
+            <text x="32" y="328">▸ TOOL REGISTRY · OPEN</text>
+            <text x="32" y="352">▸ 25 SEATS · 90 DAYS</text>
+            <text x="32" y="376">▸ APPLY · OM.WORLD/BUILDERS</text>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-size="13">
+            <text x="32" y="460">Tool Creator · Cohort 003 · open call</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-06</div><div class="name">Builder Recruitment</div><div class="dim">1080 × 1350 · 4:5</div></div>
+    </div>
+
+    <!-- Whitepaper cover -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:3/4;">
+        <svg viewBox="0 0 360 480" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="360" height="480" fill="#06070C"/>
+          <!-- centered seed -->
+          <g transform="translate(180,200)" fill="none">
+            <circle r="40"  stroke="#2A2F40"/>
+            <circle r="70"  stroke="#2A2F40"/>
+            <circle r="100" stroke="#1F2331"/>
+            <g stroke="#6FD3D6" stroke-width="1.4">
+              <line x1="0" y1="-110" x2="0" y2="-100"/>
+              <line x1="0" y1="100"  x2="0" y2="110"/>
+              <line x1="-110" y1="0" x2="-100" y2="0"/>
+              <line x1="100"  y1="0" x2="110"  y2="0"/>
+            </g>
+            <circle r="5" fill="#E8C26B"/>
+          </g>
+          <g fill="#7A7F92" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="32" y="48">OM WORLD · LITEPAPER</text>
+            <text x="32" y="68">v0.1 · GENESIS · 2026</text>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-weight="500">
+            <text x="32" y="384" font-size="32" letter-spacing="-1.2">A protocol</text>
+            <text x="32" y="416" font-size="32" letter-spacing="-1.2">for the intent</text>
+            <text x="32" y="448" font-size="32" letter-spacing="-1.2" fill="#E8C26B">economy.</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-07</div><div class="name">Litepaper Cover</div><div class="dim">A4 portrait</div></div>
+    </div>
+
+    <!-- Announcement card -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:1/1;">
+        <svg viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="400" fill="#06070C"/>
+          <g stroke="#1F2331">
+            <line x1="0" y1="80"  x2="400" y2="80"/>
+            <line x1="0" y1="320" x2="400" y2="320"/>
+          </g>
+          <g fill="#7A7F92" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="28" y="56">OM/W · ANNOUNCEMENT · 2026-05-12</text>
+            <text x="28" y="348">▸ READ · OM.WORLD/COUNCIL/021</text>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-weight="500">
+            <text x="28" y="172" font-size="32" letter-spacing="-1.1">Council Seat 21</text>
+            <text x="28" y="208" font-size="32" letter-spacing="-1.1" fill="#E8C26B">elected.</text>
+            <text x="28" y="252" font-size="13" fill="#7A7F92" font-family="Space Grotesk">First Verifier-class seat filled by community vote · 64,128 weighted votes</text>
+          </g>
+          <g transform="translate(330,360)"><circle r="6" fill="#E8C26B"/></g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-08</div><div class="name">Announcement Card</div><div class="dim">1080 × 1080 · 1:1</div></div>
+    </div>
+
+    <!-- Discord banner -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:1/1;">
+        <svg viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="400" fill="#06070C"/>
+          <!-- constellation -->
+          <g stroke="#1F2331">
+            <line x1="60"  y1="120" x2="180" y2="160"/>
+            <line x1="180" y1="160" x2="120" y2="240"/>
+            <line x1="180" y1="160" x2="300" y2="180"/>
+            <line x1="300" y1="180" x2="260" y2="300"/>
+            <line x1="120" y1="240" x2="260" y2="300"/>
+          </g>
+          <g fill="#E8E9F0"><circle cx="60" cy="120" r="3"/><circle cx="120" cy="240" r="3"/><circle cx="260" cy="300" r="3"/><circle cx="300" cy="180" r="3"/></g>
+          <circle cx="180" cy="160" r="5" fill="#E8C26B"/>
+          <g fill="#7A7F92" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="24" y="48">OM/W · DISCORD</text>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-weight="500">
+            <text x="24" y="372" font-size="28" letter-spacing="-1">A council of builders.</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-09</div><div class="name">Discord Banner</div><div class="dim">960 × 540 (shown 1:1)</div></div>
+    </div>
+
+    <!-- Token icon -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:1/1;">
+        <svg viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="400" fill="#06070C"/>
+          <g transform="translate(200,200)">
+            <circle r="120" fill="#11141E" stroke="#E8C26B" stroke-width="3"/>
+            <circle r="50"  stroke="#2A2F40" fill="none"/>
+            <circle r="80"  stroke="#1F2331" fill="none"/>
+            <circle r="12"  fill="#E8C26B"/>
+          </g>
+          <g fill="#7A7F92" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="24" y="48">OM/W · TOKEN</text>
+            <text x="24" y="372">$OMW · UTILITY · SIMPLIFIED MARK</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-10</div><div class="name">Token Icon</div><div class="dim">favicon · 16 → 1024 px</div></div>
+    </div>
+
+    <!-- AMA poster -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:1/1;">
+        <svg viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="400" fill="#06070C"/>
+          <g fill="#7A7F92" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="28" y="56">OM/W · AMA · 005</text>
+            <text x="28" y="372">2026-05-19 · 20:00 UTC · X SPACES</text>
+          </g>
+          <g fill="#E8E9F0" font-family="Space Grotesk" font-weight="500">
+            <text x="28" y="180" font-size="38" letter-spacing="-1.4">Ask</text>
+            <text x="28" y="222" font-size="38" letter-spacing="-1.4">the council</text>
+            <text x="28" y="264" font-size="38" letter-spacing="-1.4" fill="#E8C26B">anything.</text>
+          </g>
+          <g transform="translate(330,330)">
+            <circle r="34" stroke="#E8C26B" fill="none"/>
+            <circle r="18" stroke="#1F2331" fill="none"/>
+            <circle r="3"  fill="#E8C26B"/>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-11</div><div class="name">AMA Poster</div><div class="dim">1080 × 1080</div></div>
+    </div>
+
+    <!-- Community Q card -->
+    <div class="social" style="grid-column: span 4;">
+      <div class="frame" style="aspect-ratio:1/1;">
+        <svg viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="400" fill="#F4F2EA"/>
+          <g stroke="#C8C5B9"><line x1="0" y1="80" x2="400" y2="80"/><line x1="0" y1="320" x2="400" y2="320"/></g>
+          <g fill="#6A6A60" font-family="JetBrains Mono" font-size="10" letter-spacing="2">
+            <text x="28" y="56">OM/W · QUESTION FROM THE COMMUNITY</text>
+            <text x="28" y="348">— @builder.0xC7 · MIRROR</text>
+          </g>
+          <g fill="#15171F" font-family="Space Grotesk" font-weight="500">
+            <text x="28" y="170" font-size="30" letter-spacing="-1.1">"Can a protocol</text>
+            <text x="28" y="206" font-size="30" letter-spacing="-1.1">remember everyone</text>
+            <text x="28" y="242" font-size="30" letter-spacing="-1.1" fill="#8E7037">it serves?"</text>
+          </g>
+        </svg>
+      </div>
+      <div class="meta"><div class="role">A-12 · light</div><div class="name">Community Question (Light)</div><div class="dim">1080 × 1080</div></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     09  MOTION
+=================================================== -->
+<section class="section" data-screen-label="09 Motion">
+  <div class="eyebrow num">09 — Motion Language</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">Motion is law,<br/>not decoration.</h2>
+    </div>
+    <div class="right body">
+      <p>Movement always follows the lifecycle of intent: a point activates, a wave proves outward, a node responds, a path traces, a world settles. Slow, certain, regular. Easings are <span class="mono">cubic-bezier(0.2, 0.7, 0, 1)</span> by default. Nothing strobes, nothing bounces.</p>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card" style="padding:24px;">
+      <div class="dec">M-01 · Ignition</div>
+      <div class="h-block">A point activates</div>
+      <div style="aspect-ratio:16/9;background:var(--void-2);border:1px solid var(--rule);border-radius:4px;display:flex;align-items:center;justify-content:center;margin:14px 0;">
+        <svg viewBox="0 0 160 90" width="100%" height="100%">
+          <circle cx="40" cy="45" r="3" fill="#E8C26B" opacity=".25"/>
+          <circle cx="80" cy="45" r="3" fill="#E8C26B" opacity=".55"/>
+          <circle cx="120" cy="45" r="3" fill="#E8C26B" opacity="1"/>
+          <g stroke="#7A7F92" font-family="JetBrains Mono" font-size="8" fill="#7A7F92">
+            <text x="20" y="78">0ms</text>
+            <text x="60" y="78">300ms</text>
+            <text x="104" y="78">600ms</text>
+          </g>
+        </svg>
+      </div>
+      <p class="tiny muted">0 → 600ms. The intent dot fades in over a slow, weighted curve. Used once per page on entry.</p>
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <div class="dec">M-02 · Resonance</div>
+      <div class="h-block">A proof wave</div>
+      <div style="aspect-ratio:16/9;background:var(--void-2);border:1px solid var(--rule);border-radius:4px;display:flex;align-items:center;justify-content:center;margin:14px 0;">
+        <svg viewBox="0 0 160 90" width="100%" height="100%" fill="none" stroke-width="1.2">
+          <circle cx="80" cy="45" r="6"  stroke="#E8C26B"/>
+          <circle cx="80" cy="45" r="18" stroke="#6FD3D6" opacity=".7"/>
+          <circle cx="80" cy="45" r="32" stroke="#6FD3D6" opacity=".35"/>
+          <circle cx="80" cy="45" r="46" stroke="#6FD3D6" opacity=".15"/>
+        </svg>
+      </div>
+      <p class="tiny muted">Rings expand outward from the intent. Each ring is one verifier attestation arriving.</p>
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <div class="dec">M-03 · Trace</div>
+      <div class="h-block">An agent path draws</div>
+      <div style="aspect-ratio:16/9;background:var(--void-2);border:1px solid var(--rule);border-radius:4px;display:flex;align-items:center;justify-content:center;margin:14px 0;">
+        <svg viewBox="0 0 160 90" width="100%" height="100%" fill="none">
+          <path d="M20 70 C 40 70 60 30 100 30 S 140 50 140 30" stroke="#E8C26B" stroke-dasharray="3 4" stroke-dashoffset="0"/>
+          <circle cx="20" cy="70" r="3" fill="#E8C26B"/>
+          <circle cx="140" cy="30" r="3" fill="#6FD3D6"/>
+        </svg>
+      </div>
+      <p class="tiny muted">Dashed line draws from intent point to the resolved outcome over 1.2s. Then solidifies once proven.</p>
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <div class="dec">M-04 · Settle</div>
+      <div class="h-block">The world locks</div>
+      <div style="aspect-ratio:16/9;background:var(--void-2);border:1px solid var(--rule);border-radius:4px;display:flex;align-items:center;justify-content:center;margin:14px 0;">
+        <svg viewBox="0 0 160 90" width="100%" height="100%" fill="none">
+          <circle cx="80" cy="45" r="24" stroke="#E8C26B"/>
+          <circle cx="80" cy="45" r="14" stroke="#2A2F40"/>
+          <circle cx="80" cy="45" r="3"  fill="#E8C26B"/>
+        </svg>
+      </div>
+      <p class="tiny muted">All motion resolves into the master mark. The page is now a verifiable record, no longer animating.</p>
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <div class="dec">Cadence</div>
+      <div class="h-block">Slow, certain</div>
+      <p class="tiny muted">Durations: 300 / 600 / 1200ms — short for state change, long for narrative. Avoid anything &lt; 200ms.</p>
+      <p class="tiny mono" style="color:var(--mute);margin-top:14px;">--ease: cubic-bezier(0.2, 0.7, 0, 1)<br/>--ease-out: cubic-bezier(0.16, 1, 0.3, 1)</p>
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <div class="dec">Forbidden</div>
+      <div class="h-block">No spectacle</div>
+      <p class="tiny muted">No glow strobes. No "matrix" cascades. No parallax. No micro-bounces on hover. No screen-wipe transitions. Motion is the law executing — not an ad.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     10  BRAND RULES
+=================================================== -->
+<section class="section" data-screen-label="10 Rules">
+  <div class="eyebrow num">10 — Brand Rules · Do &amp; Don't</div>
+  <div class="section-head">
+    <div class="left">
+      <h2 class="h-section">What this brand<br/>refuses to be.</h2>
+    </div>
+    <div class="right body">
+      <p>The brief is explicit about traps to avoid: blue-purple AI gradients, cheap crypto metals, religious iconography, cyberpunk neon, busy network spaghetti. The rules below are the operational form of those refusals.</p>
+    </div>
+  </div>
+
+  <div class="rules-grid">
+
+    <!-- Good 1: One gold point -->
+    <div class="rule-card good">
+      <div class="label">✓ Do · One luminous point per surface</div>
+      <div class="demo good">
+        <svg viewBox="0 0 320 180" width="84%" height="84%" fill="none">
+          <g transform="translate(160,90)">
+            <circle r="40" stroke="#2A2F40"/>
+            <circle r="70" stroke="#1F2331"/>
+            <circle r="4"  fill="#E8C26B"/>
+          </g>
+        </svg>
+      </div>
+      <h4>One point of intention</h4>
+      <p>Gold appears once per composition. It is the single point of intent. A second gold element dilutes the metaphor.</p>
+    </div>
+
+    <!-- Bad 1: gradient soup -->
+    <div class="rule-card bad">
+      <div class="label">✗ Don't · Generic blue-purple gradient</div>
+      <div class="demo bad">
+        <div style="width:84%;height:78%;background:linear-gradient(135deg,#5B6BFF,#B95BFF,#FF5BBA);border-radius:8px;"></div>
+      </div>
+      <h4>The AI-SaaS purple haze</h4>
+      <p>The single most overused gesture in AI/Web3 branding. OM World is dark, focused, geometric — never atmospheric purple.</p>
+    </div>
+
+    <!-- Good 2: geometric mark -->
+    <div class="rule-card good">
+      <div class="label">✓ Do · Geometric, drawn fresh</div>
+      <div class="demo good">
+        <svg viewBox="0 0 320 180" width="78%" height="78%" fill="none" stroke-width="1.4">
+          <circle cx="160" cy="90" r="60" stroke="#E8C26B"/>
+          <line x1="100" y1="90" x2="220" y2="90" stroke="#2A2F40"/>
+          <line x1="160" y1="30" x2="160" y2="150" stroke="#2A2F40"/>
+          <circle cx="160" cy="90" r="4" fill="#E8C26B"/>
+        </svg>
+      </div>
+      <h4>Mark is geometry</h4>
+      <p>The logo is always reconstructed from circle + grid + tick. Never traced from a raster. Never wrapped in chrome or bevel.</p>
+    </div>
+
+    <!-- Bad 2: religious OM -->
+    <div class="rule-card bad">
+      <div class="label">✗ Don't · Religious or mystical OM</div>
+      <div class="demo bad">
+        <svg viewBox="0 0 320 180" width="60%" height="60%" fill="none" stroke="#E8C26B" stroke-width="3">
+          <!-- placeholder "spiritual" glyph: never use -->
+          <path d="M120 60 C 80 60 80 120 120 120 C 160 120 160 80 140 80 C 120 80 130 100 140 110"/>
+          <circle cx="200" cy="70" r="6"/>
+          <path d="M170 130 Q 200 110 230 130"/>
+        </svg>
+      </div>
+      <h4>No sacred glyphs</h4>
+      <p>OM is the brand name and a metaphor for an origin sound — never a religious mark. No Sanskrit Aum, no halos, no temple ornament.</p>
+    </div>
+
+    <!-- Good 3: typographic restraint -->
+    <div class="rule-card good">
+      <div class="label">✓ Do · Quiet typography</div>
+      <div class="demo good">
+        <div style="font-family:var(--f-display);font-size:42px;color:var(--ink-hi);letter-spacing:-0.04em;">One Mind, <span style="color:var(--gold);">One World.</span></div>
+      </div>
+      <h4>Voice of a council</h4>
+      <p>Headlines are statements of law. Medium weight, tight tracking, sentence case, period at the end. Never marketing-tone.</p>
+    </div>
+
+    <!-- Bad 3: hype -->
+    <div class="rule-card bad">
+      <div class="label">✗ Don't · Hype / pump tone</div>
+      <div class="demo bad">
+        <div style="font-family:var(--f-display);font-size:36px;color:#FF3B70;letter-spacing:-0.02em;font-weight:700;text-shadow:0 0 14px rgba(255,59,112,.5);text-transform:uppercase;">🚀 OM TO THE MOON!! 🌙</div>
+      </div>
+      <h4>No rockets, no shouting</h4>
+      <p>OM World does not "moon," "ape," "send it," or address holders. It addresses the people who declared an intent. Same for visuals.</p>
+    </div>
+
+    <!-- Good 4: clear network -->
+    <div class="rule-card good">
+      <div class="label">✓ Do · Sparse, legible network</div>
+      <div class="demo good">
+        <svg viewBox="0 0 320 180" width="86%" height="86%" fill="none">
+          <g stroke="#2A2F40">
+            <line x1="80" y1="120" x2="160" y2="70"/>
+            <line x1="160" y1="70" x2="240" y2="110"/>
+            <line x1="80" y1="120" x2="240" y2="110"/>
+          </g>
+          <g fill="#E8E9F0">
+            <circle cx="80" cy="120" r="3"/>
+            <circle cx="240" cy="110" r="3"/>
+          </g>
+          <circle cx="160" cy="70" r="5" fill="#E8C26B"/>
+        </svg>
+      </div>
+      <h4>Three nodes, one law</h4>
+      <p>Network diagrams use the minimum nodes needed to express the relationship. Anything more is decoration.</p>
+    </div>
+
+    <!-- Bad 4: spaghetti -->
+    <div class="rule-card bad">
+      <div class="label">✗ Don't · Neural-network spaghetti</div>
+      <div class="demo bad">
+        <svg viewBox="0 0 320 180" width="88%" height="88%" fill="none">
+          <g stroke="#5B6BFF" stroke-opacity=".5">
+            <line x1="40" y1="40" x2="280" y2="60"/>
+            <line x1="40" y1="60" x2="280" y2="40"/>
+            <line x1="40" y1="80" x2="280" y2="140"/>
+            <line x1="40" y1="100" x2="280" y2="80"/>
+            <line x1="40" y1="120" x2="280" y2="100"/>
+            <line x1="40" y1="140" x2="280" y2="40"/>
+            <line x1="40" y1="40" x2="280" y2="140"/>
+            <line x1="40" y1="100" x2="280" y2="140"/>
+          </g>
+          <g fill="#B95BFF">
+            <circle cx="40" cy="40" r="3"/><circle cx="40" cy="60" r="3"/><circle cx="40" cy="80" r="3"/>
+            <circle cx="40" cy="100" r="3"/><circle cx="40" cy="120" r="3"/><circle cx="40" cy="140" r="3"/>
+            <circle cx="280" cy="40" r="3"/><circle cx="280" cy="60" r="3"/><circle cx="280" cy="80" r="3"/>
+            <circle cx="280" cy="100" r="3"/><circle cx="280" cy="140" r="3"/>
+          </g>
+        </svg>
+      </div>
+      <h4>Not a neural-network stock graphic</h4>
+      <p>Avoid the generic "many lines, many dots" AI illustration. Our networks have semantics — every line is a relationship that can be named.</p>
+    </div>
+  </div>
+
+  <!-- final principle block -->
+  <div class="mt-72" style="padding:48px; border:1px solid var(--rule); border-radius:14px; background: linear-gradient(180deg,var(--void-3),var(--void-2)); display:grid; grid-template-columns: 1fr 1fr; gap:48px; align-items:center;">
+    <div>
+      <div class="dec">Final Test</div>
+      <div class="h-block mt-24" style="margin-top:14px;">Ten questions every artifact must pass.</div>
+      <ol class="body" style="padding-left:20px; line-height:1.85; margin-top:14px;">
+        <li>Does it feel like a <b style="color:var(--ink-hi);">world-grade protocol</b>, not an app?</li>
+        <li>Does it carry <b style="color:var(--ink-hi);">AI · Crypto · Intent · World</b> in equal measure?</li>
+        <li>Is it simple enough to live <b style="color:var(--ink-hi);">for ten years</b>?</li>
+        <li>Is there gravity without religion?</li>
+        <li>Is there technical credibility without coldness?</li>
+        <li>Does it travel <b style="color:var(--ink-hi);">across cultures</b>?</li>
+        <li>Will it be read by a developer, an investor, and a poet alike?</li>
+        <li>Does it work in favicon · token · X · paper · UI?</li>
+        <li>Does it look unlike any standard AI or Web3 project?</li>
+        <li>Does it support the line: <em style="color:var(--gold);font-style:normal;">One Mind, One World</em>?</li>
+      </ol>
+    </div>
+    <aside>
+      <svg viewBox="0 0 360 360" width="100%" height="auto" fill="none">
+        <g transform="translate(180,180)">
+          <circle r="40"  stroke="#2A2F40"/>
+          <circle r="80"  stroke="#2A2F40"/>
+          <circle r="120" stroke="#1F2331"/>
+          <circle r="160" stroke="#1F2331" stroke-opacity=".5"/>
+          <g stroke="#6FD3D6" stroke-width="1.4">
+            <line x1="0" y1="-170" x2="0" y2="-160"/>
+            <line x1="0" y1="160" x2="0" y2="170"/>
+            <line x1="-170" y1="0" x2="-160" y2="0"/>
+            <line x1="160" y1="0" x2="170" y2="0"/>
+            <line x1="-120" y1="-120" x2="-113" y2="-113"/>
+            <line x1="113" y1="-120" x2="120" y2="-113"/>
+            <line x1="-120" y1="120" x2="-113" y2="113"/>
+            <line x1="113" y1="120" x2="120" y2="113"/>
+          </g>
+          <circle r="5" fill="#E8C26B"/>
+        </g>
+      </svg>
+    </aside>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     FOOTER
+=================================================== -->
+<footer class="foot">
+  <div>
+    <div class="h-small">OM World · Visual Language System</div>
+    <div class="mono" style="margin-top:6px;">VLS-001 · v1.0 · Public Draft</div>
+    <div class="mono" style="margin-top:6px;">Issued by the OM Council · Genesis · 2026.05.12</div>
+  </div>
+  <div>
+    <div class="h-small">Specimens</div>
+    <div class="mono" style="margin-top:6px;">Type — Space Grotesk · Noto Sans SC · JetBrains Mono</div>
+    <div class="mono" style="margin-top:6px;">Mark — Origin Point · 12-ring · 12-tick</div>
+    <div class="mono" style="margin-top:6px;">Palette — Void · Gold · Cyan · Paper</div>
+  </div>
+  <div>
+    <div class="h-small">License</div>
+    <div class="mono" style="margin-top:6px;">CC-BY-SA 4.0 · protocol assets are public goods</div>
+    <div class="mono" style="margin-top:6px;">om.world / brand</div>
+    <div class="mono" style="margin-top:6px;">— One Mind, One World —</div>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>
