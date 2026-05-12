@@ -1,5 +1,7 @@
 # OM World Litepaper v0.1
 
+> 📄 [Download PDF version](assets/litepaper/OM-World-Litepaper-v0.1-Genesis-Draft.pdf)
+
 ## Status
 
 This document is a public draft.
