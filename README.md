@@ -83,4 +83,9 @@ We are looking for:
 
 If you believe human intention should be sovereign, verifiable, and executable in an open world, you are invited to help build OM World.
 
+## Genesis Issues
+
+The first OM World Genesis issues are now open.  
+Builders, researchers, designers, writers, and protocol contributors are invited to join.
+
 **One Mind, One World.**# om-world
