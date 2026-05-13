@@ -1,0 +1,1852 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OM World — One Mind, One World.</title>
+<meta name="viewport" content="width=1440" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   OM World · Genesis Protocol Landing Page
+   ========================================================= */
+:root {
+  --void:        #06070C;
+  --void-2:      #0B0D14;
+  --void-3:      #11141E;
+  --void-4:      #181B26;
+  --rule:        #1F2331;
+  --rule-2:      #2A2F40;
+  --ash:         #4A4F62;
+  --mute:        #7A7F92;
+  --ink:         #E8E9F0;
+  --ink-hi:      #F5F6FB;
+  --gold:        #E8C26B;
+  --gold-soft:   #BFA15A;
+  --gold-deep:   #6A5328;
+  --cyan:        #6FD3D6;
+  --cyan-deep:   #2F6A6B;
+  --paper:       #EFEAE0;
+
+  --f-display:   "Space Grotesk", "Noto Sans SC", system-ui, sans-serif;
+  --f-body:      "Inter", "Noto Sans SC", system-ui, sans-serif;
+  --f-cn:        "Noto Sans SC", "Inter", system-ui, sans-serif;
+  --f-mono:      "JetBrains Mono", ui-monospace, "Menlo", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--void); color: var(--ink); }
+body {
+  font-family: var(--f-body);
+  font-weight: 400;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  background-image:
+    radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1.4px),
+    radial-gradient(rgba(255,255,255,0.012) 1px, transparent 1.4px);
+  background-size: 80px 80px, 130px 130px;
+  background-position: 0 0, 40px 60px;
+}
+::selection { background: var(--gold); color: var(--void); }
+a { color: inherit; text-decoration: none; }
+
+.wrap {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 72px;
+}
+
+/* ---------- nav ---------- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(6,7,12,0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--rule);
+}
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+.brand {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: -0.005em;
+  color: var(--ink-hi);
+}
+.brand svg { width: 28px; height: 28px; }
+.nav-links {
+  display: flex; gap: 32px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.nav-links a { position: relative; padding: 4px 0; transition: color .2s ease; }
+.nav-links a:hover { color: var(--ink-hi); }
+.nav-cta { display: flex; align-items: center; gap: 14px; }
+.handle { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--mute); }
+
+/* ---------- buttons ---------- */
+.btn {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  border-radius: 2px;
+  border: 1px solid var(--rule-2);
+  color: var(--ink-hi);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color .2s ease, color .2s ease, background .2s ease;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn.primary { background: var(--gold); border-color: var(--gold); color: var(--void); }
+.btn.primary:hover { background: transparent; color: var(--gold); border-color: var(--gold); }
+.btn.ghost { border-color: transparent; color: var(--mute); padding-left: 0; padding-right: 0; }
+.btn.ghost:hover { color: var(--ink-hi); border-color: transparent; }
+.btn .arr { font-family: var(--f-mono); font-size: 13px; }
+
+/* ---------- shared section chrome ---------- */
+.section { padding: 140px 0; position: relative; }
+.section + .section { border-top: 1px solid var(--rule); }
+.section-eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-bottom: 28px;
+}
+.section-eyebrow::before {
+  content: "";
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: inline-block;
+}
+.h-section {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 60px;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  color: var(--ink-hi);
+  margin: 0 0 24px;
+  max-width: 880px;
+}
+.h-section em { font-style: normal; color: var(--gold); }
+.h-section .cyan { color: var(--cyan); }
+.section-lede {
+  font-family: var(--f-display);
+  font-size: 22px;
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+  color: var(--mute);
+  max-width: 720px;
+}
+.body { font-size: 15px; line-height: 1.65; color: var(--ink); }
+.muted { color: var(--mute); }
+.tiny { font-size: 12px; line-height: 1.5; color: var(--mute); }
+.mono { font-family: var(--f-mono); letter-spacing: 0; }
+.cn { font-family: var(--f-cn); }
+
+/* =========================================================
+   SECTION 1 — HERO
+========================================================= */
+.hero {
+  position: relative;
+  min-height: 880px;
+  display: flex;
+  flex-direction: column;
+  padding-top: 56px;
+  padding-bottom: 120px;
+  overflow: hidden;
+}
+.hero-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--mute);
+  text-transform: uppercase;
+}
+.hero-statusbar .k { color: var(--ash); margin-right: 8px; }
+.hero-statusbar .v { color: var(--ink); }
+.hero-statusbar .seg { display: inline-flex; align-items: center; gap: 6px; }
+.hero-statusbar .pulse {
+  width: 7px; height: 7px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 10px var(--gold);
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1.0; }
+}
+
+.hero-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  align-items: center;
+  gap: 64px;
+  padding-top: 56px;
+}
+.hero-text { position: relative; z-index: 2; }
+.hero-eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-bottom: 36px;
+}
+.hero-eyebrow::before {
+  content: "";
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 10px var(--gold);
+}
+.hero h1 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 124px;
+  line-height: 0.93;
+  letter-spacing: -0.046em;
+  color: var(--ink-hi);
+  margin: 0 0 36px;
+  max-width: 920px;
+}
+.hero h1 em { font-style: normal; color: var(--gold); }
+.hero .sub {
+  font-family: var(--f-display);
+  font-size: 22px;
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  max-width: 580px;
+  margin-bottom: 14px;
+}
+.hero .sub.muted { color: var(--mute); }
+.hero .ctas {
+  display: flex;
+  gap: 12px;
+  margin-top: 40px;
+}
+.hero-art {
+  position: relative;
+  width: 480px;
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-art svg {
+  width: 100%; height: 100%;
+  animation: rotate-slow 120s linear infinite;
+  transform-origin: 50% 50%;
+}
+.hero-art .seed {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,194,107,0.35), rgba(232,194,107,0.05) 55%, transparent 75%);
+  animation: breathe 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes rotate-slow { to { transform: rotate(360deg); } }
+@keyframes breathe {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50%      { opacity: 1.0;  transform: scale(1.06); }
+}
+.hero-trio {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  margin-top: 88px;
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+.hero-trio .t {
+  padding: 0 32px;
+  border-left: 1px solid var(--rule);
+}
+.hero-trio .t:first-child { padding-left: 0; border-left: 0; }
+.hero-trio .t .k {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--gold-soft);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+.hero-trio .t .v {
+  font-family: var(--f-display);
+  font-size: 20px;
+  letter-spacing: -0.012em;
+  color: var(--ink-hi);
+  display: block;
+}
+.hero-trio .t .v em { font-style: normal; color: var(--gold); }
+.hero-trio .t .v .cyan { color: var(--cyan); }
+
+/* =========================================================
+   SECTION 2 — WHAT IS OM WORLD
+========================================================= */
+.what-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+  margin-bottom: 72px;
+}
+.what-grid .body p { margin: 0 0 1em; font-size: 16px; line-height: 1.65; }
+.what-grid .body p:last-child { margin-bottom: 0; }
+
+.cards-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+.card {
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: border-color .25s ease, transform .25s ease;
+  min-height: 320px;
+}
+.card:hover { border-color: var(--rule-2); }
+.card .num {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--gold-soft);
+}
+.card .head {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  color: var(--ink-hi);
+}
+.card .head em { font-style: normal; color: var(--gold); }
+.card .head .cyan { color: var(--cyan); }
+.card .desc { font-size: 13.5px; line-height: 1.6; color: var(--ink); margin: 0; }
+.card .icon { height: 96px; display: flex; align-items: flex-end; }
+.card .icon svg { width: 96px; height: 96px; }
+
+/* =========================================================
+   SECTION 3 — WHY INTENT MUST BE DECENTRALIZED
+========================================================= */
+.why-head { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-bottom: 64px; }
+.why-head .body p { font-size: 17px; line-height: 1.6; margin: 0 0 1em; }
+.why-head .body p:last-child { margin: 0; color: var(--ink-hi); }
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr;
+  gap: 0;
+  background: var(--void-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 56px;
+}
+.compare .col {
+  padding: 40px 36px 44px;
+}
+.compare .col.attn { color: var(--mute); background: linear-gradient(180deg, var(--void-2), var(--void)); }
+.compare .col.intent { background: linear-gradient(180deg, var(--void-3), var(--void-2)); }
+.compare .col .label {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.compare .col.attn .label { color: var(--ash); }
+.compare .col.intent .label { color: var(--gold-soft); }
+.compare .col h3 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 28px;
+  letter-spacing: -0.022em;
+  margin: 0 0 24px;
+}
+.compare .col.attn h3 { color: var(--ash); }
+.compare .col.intent h3 { color: var(--ink-hi); }
+.compare ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+.compare li { display: flex; align-items: center; gap: 12px; }
+.compare li::before {
+  content: "";
+  width: 6px; height: 6px;
+  border: 1px solid currentColor;
+  display: inline-block;
+}
+.compare .col.intent li::before {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.compare .gate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--rule);
+  border-right: 1px solid var(--rule);
+}
+.compare .gate svg { width: 100%; height: 100%; }
+
+.pull-quote {
+  padding: 56px 0 0;
+  border-top: 1px solid var(--rule);
+}
+.pull-quote .q {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 44px;
+  line-height: 1.18;
+  letter-spacing: -0.028em;
+  color: var(--ink-hi);
+  max-width: 1100px;
+  margin: 0;
+}
+.pull-quote .q em { font-style: normal; color: var(--gold); }
+.pull-quote .attr {
+  margin-top: 28px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* =========================================================
+   SECTION 4 — THREE PRINCIPLES
+========================================================= */
+.principles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+.principle {
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 40px 32px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-height: 440px;
+  position: relative;
+  overflow: hidden;
+}
+.principle .pnum {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--gold-soft);
+}
+.principle .pnum b { color: var(--gold); font-weight: 500; }
+.principle .visual {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.principle .visual svg { width: 120px; height: 120px; }
+.principle h3 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--ink-hi);
+  margin: 0;
+}
+.principle h3 em { font-style: normal; color: var(--gold); }
+.principle h3 .cyan { color: var(--cyan); }
+.principle p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* =========================================================
+   SECTION 5 — INTENT LIFECYCLE
+========================================================= */
+.lifecycle {
+  background: var(--void-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 56px 48px 48px;
+  position: relative;
+}
+.lifecycle-flow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  position: relative;
+}
+.lifecycle-flow .step {
+  position: relative;
+  padding: 0 14px;
+  border-right: 1px solid var(--rule);
+}
+.lifecycle-flow .step:last-child { border-right: 0; }
+.lifecycle-flow .step .marker {
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.lifecycle-flow .step .marker::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -50%;
+  right: 50%;
+  height: 1px;
+  border-top: 1px dashed var(--rule-2);
+}
+.lifecycle-flow .step:first-child .marker::before { display: none; }
+.lifecycle-flow .step .n {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--gold-soft);
+  margin-top: 18px;
+}
+.lifecycle-flow .step h4 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.018em;
+  color: var(--ink-hi);
+  margin: 8px 0 10px;
+}
+.lifecycle-flow .step p {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--mute);
+  margin: 0;
+}
+
+/* =========================================================
+   SECTION 6 — PROTOCOL ARCHITECTURE (STACK)
+========================================================= */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.layer {
+  display: grid;
+  grid-template-columns: 80px 240px 1fr 88px;
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+  min-height: 84px;
+  transition: border-color .25s ease;
+}
+.layer:hover { border-color: var(--rule-2); }
+.layer .ln {
+  background: var(--void-4);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  color: var(--mute);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--rule);
+}
+.layer .lname {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border-right: 1px solid var(--rule);
+}
+.layer .lname h4 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 19px;
+  letter-spacing: -0.012em;
+  color: var(--ink-hi);
+  margin: 0;
+}
+.layer .lname .role {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  color: var(--mute);
+  text-transform: uppercase;
+}
+.layer .components {
+  padding: 18px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink);
+}
+.layer .components span { position: relative; }
+.layer .components span::after {
+  content: "·";
+  color: var(--ash);
+  margin-left: 14px;
+}
+.layer .components span:last-child::after { content: ""; }
+.layer .marker {
+  border-left: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.layer.gold { background: linear-gradient(90deg, rgba(232,194,107,0.06), transparent 50%); }
+.layer.gold .ln { color: var(--gold); }
+.layer.cyan { background: linear-gradient(90deg, rgba(111,211,214,0.05), transparent 50%); }
+.layer.cyan .ln { color: var(--cyan); }
+.stack-legend {
+  display: flex;
+  justify-content: flex-end;
+  gap: 32px;
+  margin-top: 28px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--mute);
+}
+.stack-legend .l { display: flex; align-items: center; gap: 8px; }
+.stack-legend .l .d { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+/* =========================================================
+   SECTION 7 — ECOSYSTEM ROLES
+========================================================= */
+.roles-grid {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 56px;
+  align-items: start;
+}
+.orbit {
+  position: relative;
+  width: 460px; height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.orbit svg { width: 100%; height: 100%; }
+
+.role-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.role-card {
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color .25s ease;
+}
+.role-card:hover { border-color: var(--rule-2); }
+.role-card .rk {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  color: var(--gold-soft);
+}
+.role-card.cyan-key .rk { color: var(--cyan); }
+.role-card h4 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: -0.012em;
+  color: var(--ink-hi);
+  margin: 0;
+}
+.role-card p {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--mute);
+  margin: 0;
+}
+
+/* =========================================================
+   SECTION 8 — GENESIS DOCUMENTS
+========================================================= */
+.doc-head { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: end; margin-bottom: 48px; }
+.docs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.doc {
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 220px;
+  transition: border-color .25s ease;
+}
+.doc:hover { border-color: var(--rule-2); }
+.doc .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--mute);
+  text-transform: uppercase;
+}
+.doc .row .lbl { color: var(--gold-soft); }
+.doc h4 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 24px;
+  letter-spacing: -0.018em;
+  color: var(--ink-hi);
+  margin: 0;
+}
+.doc p {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--mute);
+  margin: 0;
+  flex: 1;
+}
+.doc .cta {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: gap .2s ease, color .2s ease;
+}
+.doc .cta:hover { gap: 14px; color: var(--gold); }
+
+/* =========================================================
+   SECTION 9 — OPEN QUESTIONS
+========================================================= */
+.q-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid var(--rule);
+}
+.q-cell {
+  padding: 32px 36px 32px 0;
+  border-bottom: 1px solid var(--rule);
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+.q-cell:nth-child(odd)  { padding-right: 48px; border-right: 1px solid var(--rule); }
+.q-cell:nth-child(even) { padding-left: 48px;  padding-right: 0; }
+.q-cell:nth-last-child(-n+2) { border-bottom: 0; }
+.q-cell .qn {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--gold-soft);
+  padding-top: 4px;
+}
+.q-cell .qt {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: -0.016em;
+  color: var(--ink-hi);
+}
+.q-actions {
+  margin-top: 48px;
+  display: flex;
+  gap: 12px;
+}
+
+/* =========================================================
+   SECTION 10 — JOIN THE GENESIS
+========================================================= */
+.join {
+  position: relative;
+  overflow: hidden;
+}
+.join .top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  margin-bottom: 64px;
+  align-items: end;
+}
+.join .copy {
+  font-family: var(--f-display);
+  font-size: 22px;
+  line-height: 1.5;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  max-width: 540px;
+}
+.join .copy em { font-style: normal; color: var(--gold); }
+.join .copy p { margin: 0 0 1em; }
+.join .copy p:last-child { margin: 0; color: var(--ink-hi); }
+
+.tracks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 64px;
+}
+.track {
+  background: var(--void-3);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: border-color .25s ease;
+  min-height: 80px;
+}
+.track:hover { border-color: var(--cyan); }
+.track .left { display: flex; flex-direction: column; gap: 4px; }
+.track .tn {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  color: var(--gold-soft);
+}
+.track h4 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--ink-hi);
+  margin: 0;
+}
+.track .arr {
+  font-family: var(--f-mono);
+  font-size: 14px;
+  color: var(--mute);
+  transition: transform .25s ease, color .25s ease;
+}
+.track:hover .arr { transform: translateX(4px); color: var(--cyan); }
+
+.join-cta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* big background mark on join section */
+.join-bg {
+  position: absolute;
+  right: -160px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 720px; height: 720px;
+  pointer-events: none;
+  opacity: 0.55;
+  animation: rotate-slow 240s linear infinite;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+.foot {
+  background: var(--void-2);
+  border-top: 1px solid var(--rule);
+  padding: 96px 0 56px;
+}
+.foot-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 72px;
+}
+.foot-brand .b {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 28px;
+  letter-spacing: -0.022em;
+  color: var(--ink-hi);
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 18px;
+}
+.foot-brand .b svg { width: 36px; height: 36px; }
+.foot-brand .tagline {
+  font-family: var(--f-display);
+  font-size: 17px;
+  letter-spacing: -0.012em;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+.foot-brand p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--mute);
+  max-width: 320px;
+}
+.foot-col h5 {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--gold-soft);
+  margin: 0 0 18px;
+  text-transform: uppercase;
+}
+.foot-col ul {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.foot-col a {
+  font-family: var(--f-body);
+  font-size: 14px;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  transition: color .2s ease;
+}
+.foot-col a:hover { color: var(--gold); }
+
+.foot-legal {
+  border-top: 1px solid var(--rule);
+  padding-top: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 48px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  line-height: 1.6;
+}
+.foot-legal p { margin: 0; max-width: 720px; }
+.foot-legal .right { text-align: right; }
+.foot-legal .right b { color: var(--ink-hi); font-weight: 500; }
+
+/* =========================================================
+   ENTRY ANIMATIONS — quiet, intentional
+========================================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .9s cubic-bezier(0.2,0.7,0,1), transform .9s cubic-bezier(0.2,0.7,0,1);
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal.d1 { transition-delay: .08s; }
+.reveal.d2 { transition-delay: .16s; }
+.reveal.d3 { transition-delay: .24s; }
+.reveal.d4 { transition-delay: .32s; }
+.reveal.d5 { transition-delay: .40s; }
+.reveal.d6 { transition-delay: .48s; }
+.reveal.d7 { transition-delay: .56s; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal.in { opacity: 1; transform: none; transition: none; }
+  .hero-art svg, .hero-art .seed, .join-bg { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     NAV
+========================================================= -->
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <svg viewBox="-50 -50 100 100" fill="none">
+        <circle r="44" stroke="#2A2F40" stroke-width="1.4"/>
+        <circle r="28" stroke="#1F2331" stroke-width="1.4"/>
+        <g stroke="#6FD3D6" stroke-width="2">
+          <line x1="0" y1="-46" x2="0" y2="-38"/>
+          <line x1="0" y1="46"  x2="0" y2="38"/>
+          <line x1="-46" y1="0" x2="-38" y2="0"/>
+          <line x1="46"  y1="0" x2="38"  y2="0"/>
+        </g>
+        <circle r="5" fill="#E8C26B"/>
+      </svg>
+      OM World
+    </a>
+    <div class="nav-links">
+      <a href="#manifesto">Manifesto</a>
+      <a href="#protocol">Protocol</a>
+      <a href="#documents">Documents</a>
+      <a href="#builders">Builders</a>
+      <a href="#github">GitHub</a>
+    </div>
+    <div class="nav-cta">
+      <span class="handle">@OMWorldProtocol</span>
+      <a class="btn primary" href="#join">Join the Builders</a>
+    </div>
+  </div>
+</nav>
+
+<!-- =========================================================
+     SECTION 1 — HERO
+========================================================= -->
+<section id="top" class="hero wrap">
+  <div class="hero-statusbar">
+    <span class="seg"><span class="pulse"></span><span class="k">Document</span><span class="v">LITEPAPER-001</span></span>
+    <span class="seg"><span class="k">Status</span><span class="v">v0.1 / Genesis</span></span>
+    <span class="seg"><span class="k">Issued by</span><span class="v">OM Council</span></span>
+    <span class="seg"><span class="k">Network</span><span class="v">om.world / open protocol</span></span>
+  </div>
+
+  <div class="hero-main">
+    <div class="hero-text">
+      <div class="hero-eyebrow reveal in">Genesis Protocol Gateway · v0.1</div>
+      <h1 class="reveal in d1">One Mind,<br/>One <em>World.</em></h1>
+      <p class="sub reveal in d2">A decentralized intent economy where AI executes and crypto verifies.</p>
+      <p class="sub muted reveal in d3">OM World is an open protocol for expressing, executing, verifying, and settling human intentions.</p>
+      <div class="ctas reveal in d4">
+        <a class="btn primary" href="#documents">Read the Litepaper <span class="arr">→</span></a>
+        <a class="btn" href="#join">Join the Builders</a>
+        <a class="btn ghost" href="#github">View GitHub <span class="arr">↗</span></a>
+      </div>
+    </div>
+
+    <div class="hero-art" aria-hidden="true">
+      <div class="seed"></div>
+      <svg viewBox="-260 -260 520 520" fill="none">
+        <!-- concentric world rings -->
+        <circle r="80"  stroke="#2A2F40" stroke-width="1"/>
+        <circle r="130" stroke="#2A2F40" stroke-width="1"/>
+        <circle r="190" stroke="#1F2331" stroke-width="1"/>
+        <circle r="240" stroke="#1F2331" stroke-width="1" opacity=".6"/>
+        <!-- 12 proof ticks -->
+        <g stroke="#6FD3D6" stroke-width="1.6" stroke-linecap="round">
+          <line x1="0" y1="-250" x2="0" y2="-230"/>
+          <line x1="0" y1="250"  x2="0" y2="230"/>
+          <line x1="-250" y1="0" x2="-230" y2="0"/>
+          <line x1="250"  y1="0" x2="230"  y2="0"/>
+          <line x1="176.8" y1="-176.8" x2="162.6" y2="-162.6"/>
+          <line x1="-176.8" y1="176.8" x2="-162.6" y2="162.6"/>
+          <line x1="176.8" y1="176.8" x2="162.6" y2="162.6"/>
+          <line x1="-176.8" y1="-176.8" x2="-162.6" y2="-162.6"/>
+          <line x1="125" y1="-216.5" x2="115" y2="-199.2"/>
+          <line x1="-125" y1="216.5" x2="-115" y2="199.2"/>
+          <line x1="-125" y1="-216.5" x2="-115" y2="-199.2"/>
+          <line x1="125" y1="216.5" x2="115" y2="199.2"/>
+        </g>
+        <!-- agent paths -->
+        <g stroke="#E8C26B" stroke-width="1.4" stroke-dasharray="4 8" opacity=".55" stroke-linecap="round">
+          <line x1="0" y1="0" x2="0" y2="-230"/>
+          <line x1="0" y1="0" x2="230" y2="0"/>
+          <line x1="0" y1="0" x2="-162.6" y2="162.6"/>
+        </g>
+        <!-- center seed mark -->
+        <circle r="9" fill="#E8C26B"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="hero-trio">
+    <div class="t reveal d1"><span class="k">Engine</span><span class="v"><em>AI</em> executes intent.</span></div>
+    <div class="t reveal d2"><span class="k">Law</span><span class="v">Crypto <span class="cyan">verifies</span> every step.</span></div>
+    <div class="t reveal d3"><span class="k">Sovereignty</span><span class="v">Humanity owns its <em>intentions</em>.</span></div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 2 — WHAT IS OM WORLD
+========================================================= -->
+<section id="manifesto" class="section wrap">
+  <div class="what-grid">
+    <div class="reveal">
+      <span class="section-eyebrow">§ 01 — What is OM World?</span>
+      <h2 class="h-section">A protocol for the<br/><em>intent economy.</em></h2>
+    </div>
+    <div class="body reveal d1">
+      <p><b style="color:var(--ink-hi);font-weight:500;">OM World is a decentralized intent economy protocol.</b></p>
+      <p>It enables human intentions to be expressed, transformed into executable actions by AI agents, verified through cryptographic mechanisms, and settled through open economic rules.</p>
+      <p class="cn muted">OM World 是一个去中心化意图经济协议。AI 将人的意图转化为可执行行动，Crypto 让每一次授权、决策、支付与结果都可验证、可追溯、可共享。</p>
+    </div>
+  </div>
+
+  <div class="cards-3">
+    <div class="card reveal d1">
+      <div class="num">01 · EXPRESS</div>
+      <div class="icon">
+        <svg viewBox="-50 -50 100 100" fill="none">
+          <circle r="46" stroke="#2A2F40" stroke-width="1.2"/>
+          <circle r="28" stroke="#1F2331" stroke-width="1.2"/>
+          <circle r="14" stroke="#1F2331" stroke-width="1.2"/>
+          <circle r="5"  fill="#E8C26B"/>
+        </svg>
+      </div>
+      <div class="head"><em>Express.</em></div>
+      <p class="desc">Users declare real intentions in natural language or structured form.</p>
+    </div>
+    <div class="card reveal d2">
+      <div class="num">02 · EXECUTE</div>
+      <div class="icon">
+        <svg viewBox="0 0 100 100" fill="none">
+          <circle cx="14" cy="78" r="5" fill="#E8C26B"/>
+          <circle cx="86" cy="22" r="5" fill="#6FD3D6"/>
+          <path d="M14 78 C 32 78, 40 52, 60 52 S 80 36, 86 22" stroke="#E8C26B" stroke-width="1.4" stroke-dasharray="3 6"/>
+          <circle cx="46" cy="64" r="2" fill="#E8E9F0"/>
+          <circle cx="68" cy="46" r="2" fill="#E8E9F0"/>
+        </svg>
+      </div>
+      <div class="head">Execute.</div>
+      <p class="desc">AI agents route intents through tools, compute, and services under explicit mandates.</p>
+    </div>
+    <div class="card reveal d3">
+      <div class="num">03 · VERIFY</div>
+      <div class="icon">
+        <svg viewBox="-50 -50 100 100" fill="none">
+          <circle r="44" stroke="#2A2F40" stroke-width="1.2"/>
+          <g stroke="#6FD3D6" stroke-width="1.8" stroke-linecap="round">
+            <line x1="0"  y1="-46" x2="0"  y2="-38"/>
+            <line x1="0"  y1="46"  x2="0"  y2="38"/>
+            <line x1="-46" y1="0"  x2="-38" y2="0"/>
+            <line x1="46"  y1="0"  x2="38"  y2="0"/>
+            <line x1="32.5" y1="-32.5" x2="27" y2="-27"/>
+            <line x1="-32.5" y1="32.5" x2="-27" y2="27"/>
+            <line x1="32.5" y1="32.5" x2="27" y2="27"/>
+            <line x1="-32.5" y1="-32.5" x2="-27" y2="-27"/>
+          </g>
+          <circle r="4" fill="#E8C26B"/>
+        </svg>
+      </div>
+      <div class="head"><span class="cyan">Verify.</span></div>
+      <p class="desc">Crypto records authorization, execution, proof, settlement, and reputation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 3 — WHY INTENT MUST BE DECENTRALIZED
+========================================================= -->
+<section class="section wrap">
+  <div class="why-head">
+    <div class="reveal">
+      <span class="section-eyebrow">§ 02 — Why intent must be decentralized</span>
+      <h2 class="h-section">The next internet<br/>will route <em>intent.</em></h2>
+    </div>
+    <div class="body reveal d1">
+      <p>The previous internet auctioned attention. The next internet will route intent.</p>
+      <p class="muted">If the intent layer is captured by centralized AI platforms, human intention becomes platform inventory, agent decisions become black-box recommendations, and execution paths become hidden auctions.</p>
+    </div>
+  </div>
+
+  <div class="compare reveal d1">
+    <div class="col attn">
+      <div class="label">— Until now</div>
+      <h3>The Attention Economy</h3>
+      <ul>
+        <li>clicks</li>
+        <li>views</li>
+        <li>likes</li>
+        <li>impressions</li>
+        <li>ads</li>
+        <li>engagement metrics</li>
+        <li>closed recommendations</li>
+      </ul>
+    </div>
+    <div class="gate" aria-hidden="true">
+      <svg viewBox="0 0 80 360" preserveAspectRatio="none">
+        <line x1="0"  y1="180" x2="20" y2="180" stroke="#2A2F40"/>
+        <polygon points="20,164 50,180 20,196 30,180" fill="none" stroke="#6FD3D6" stroke-width="1.4"/>
+        <line x1="60" y1="180" x2="80" y2="180" stroke="#2A2F40"/>
+      </svg>
+    </div>
+    <div class="col intent">
+      <div class="label">— Beginning now</div>
+      <h3>The Intent Economy</h3>
+      <ul>
+        <li>intents</li>
+        <li>mandates</li>
+        <li>agents</li>
+        <li>tools</li>
+        <li>execution proofs</li>
+        <li>settlement events</li>
+        <li>reputation history</li>
+        <li>open protocol routing</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pull-quote reveal d2">
+    <blockquote class="q">Human intention should not be <em>owned by platforms</em>, auctioned by advertisers, or executed by <em>black boxes.</em></blockquote>
+    <div class="attr">— THE OM COUNCIL · GENESIS DRAFT</div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 4 — THREE PRINCIPLES
+========================================================= -->
+<section class="section wrap">
+  <div class="reveal">
+    <span class="section-eyebrow">§ 03 — Three principles</span>
+    <h2 class="h-section">Three principles.<br/>One protocol.</h2>
+    <p class="section-lede">Three commitments to users, agents, and the world they act in. None novel alone — together, a contract.</p>
+  </div>
+
+  <div class="principles" style="margin-top: 64px;">
+    <div class="principle reveal d1">
+      <div class="pnum"><b>Principle I</b> · 01 / 03</div>
+      <div class="visual">
+        <svg viewBox="0 0 120 120" fill="none">
+          <circle cx="14" cy="100" r="4" fill="#E8C26B"/>
+          <path d="M14 100 C 40 100 40 60 70 60 S 100 40 106 16" stroke="#E8C26B" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cx="106" cy="16" r="4" fill="#E8E9F0"/>
+          <circle cx="58" cy="78" r="2.5" fill="#E8E9F0"/>
+          <circle cx="86" cy="44" r="2.5" fill="#E8E9F0"/>
+        </svg>
+      </div>
+      <h3><em>AI</em> is the engine.</h3>
+      <p>AI provides reasoning, planning, generation, coordination, and execution capacity. It is power, not purpose.</p>
+    </div>
+
+    <div class="principle reveal d2">
+      <div class="pnum"><b>Principle II</b> · 02 / 03</div>
+      <div class="visual">
+        <svg viewBox="-60 -60 120 120" fill="none">
+          <circle r="48" stroke="#2A2F40" stroke-width="1.2"/>
+          <g stroke="#6FD3D6" stroke-width="2" stroke-linecap="round">
+            <line x1="0" y1="-50" x2="0" y2="-42"/>
+            <line x1="0" y1="50"  x2="0" y2="42"/>
+            <line x1="-50" y1="0" x2="-42" y2="0"/>
+            <line x1="50"  y1="0" x2="42"  y2="0"/>
+            <line x1="35.4" y1="-35.4" x2="29.7" y2="-29.7"/>
+            <line x1="-35.4" y1="35.4" x2="-29.7" y2="29.7"/>
+            <line x1="35.4" y1="35.4" x2="29.7" y2="29.7"/>
+            <line x1="-35.4" y1="-35.4" x2="-29.7" y2="-29.7"/>
+          </g>
+          <circle r="3" fill="#E8C26B"/>
+        </svg>
+      </div>
+      <h3>Crypto is the <span class="cyan">law.</span></h3>
+      <p>Signatures, hashes, attestations, smart contracts, and settlement rules make execution verifiable.</p>
+    </div>
+
+    <div class="principle reveal d3">
+      <div class="pnum"><b>Principle III</b> · 03 / 03</div>
+      <div class="visual">
+        <svg viewBox="-60 -60 120 120" fill="none">
+          <circle r="50" stroke="#2A2F40" stroke-width="1.2"/>
+          <circle r="32" stroke="#1F2331" stroke-width="1.2"/>
+          <circle r="16" stroke="#1F2331" stroke-width="1.2"/>
+          <circle r="6"  fill="#E8C26B"/>
+          <circle r="14" fill="none" stroke="#E8C26B" stroke-width="0.6" opacity="0.6"/>
+        </svg>
+      </div>
+      <h3>Humanity owns its <em>intentions.</em></h3>
+      <p>The originator of an intent remains its sovereign owner. Agents act under mandate, not ownership.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 5 — INTENT LIFECYCLE
+========================================================= -->
+<section id="protocol" class="section wrap">
+  <div class="reveal">
+    <span class="section-eyebrow">§ 04 — Intent Lifecycle</span>
+    <h2 class="h-section">From intention<br/>to <em>verifiable outcome.</em></h2>
+    <p class="section-lede">Declare. Bind. Route. Execute. Prove. Settle. Remember. Seven stations — each consuming and producing structured evidence.</p>
+  </div>
+
+  <div class="lifecycle reveal d1" style="margin-top: 64px;">
+    <div class="lifecycle-flow">
+      <div class="step">
+        <div class="marker">
+          <svg viewBox="-30 -30 60 60" width="60" height="60" fill="none">
+            <circle r="22" stroke="#E8C26B" stroke-width="1.4"/>
+            <circle r="14" stroke="#1F2331" stroke-width="1"/>
+            <circle r="5" fill="#E8C26B"/>
+          </svg>
+        </div>
+        <div class="n">01 · DECLARE</div>
+        <h4>Declare.</h4>
+        <p>A user expresses an intention.</p>
+      </div>
+      <div class="step">
+        <div class="marker">
+          <svg viewBox="-30 -30 60 60" width="60" height="60" fill="none">
+            <circle r="22" stroke="#2A2F40" stroke-width="1.4"/>
+            <path d="M -10 0 L -3 7 L 12 -8" stroke="#E8C26B" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="n">02 · BIND</div>
+        <h4>Bind.</h4>
+        <p>The intention becomes a signed mandate.</p>
+      </div>
+      <div class="step">
+        <div class="marker">
+          <svg viewBox="-30 -30 60 60" width="60" height="60" fill="none">
+            <circle r="22" stroke="#2A2F40" stroke-width="1.4"/>
+            <g stroke="#E8E9F0" stroke-width="1.4">
+              <line x1="-14" y1="0" x2="14" y2="0"/>
+              <line x1="0" y1="-14" x2="0" y2="14"/>
+            </g>
+          </svg>
+        </div>
+        <div class="n">03 · ROUTE</div>
+        <h4>Route.</h4>
+        <p>Agents select tools, compute, and execution paths.</p>
+      </div>
+      <div class="step">
+        <div class="marker">
+          <svg viewBox="-30 -30 60 60" width="60" height="60" fill="none">
+            <rect x="-16" y="-16" width="32" height="32" stroke="#E8E9F0" stroke-width="1.4"/>
+            <line x1="-16" y1="-6" x2="16" y2="-6" stroke="#2A2F40"/>
+            <line x1="-10" y1="2"  x2="10" y2="2" stroke="#6FD3D6" stroke-width="1.2"/>
+            <line x1="-10" y1="8"  x2="6"  y2="8" stroke="#6FD3D6" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="n">04 · EXECUTE</div>
+        <h4>Execute.</h4>
+        <p>Tools and agents perform the required actions.</p>
+      </div>
+      <div class="step">
+        <div class="marker">
+          <svg viewBox="-30 -30 60 60" width="60" height="60" fill="none">
+            <circle r="22" stroke="#6FD3D6" stroke-width="1.6"/>
+            <g stroke="#6FD3D6" stroke-width="1.8" stroke-linecap="round">
+              <line x1="-8" y1="0" x2="-1" y2="7"/>
+              <line x1="-1" y1="7" x2="11" y2="-9"/>
+            </g>
+          </svg>
+        </div>
+        <div class="n">05 · PROVE</div>
+        <h4>Prove.</h4>
+        <p>Results are verified through proofs, logs, hashes, or attestations.</p>
+      </div>
+      <div class="step">
+        <div class="marker">
+          <svg viewBox="-30 -30 60 60" width="60" height="60" fill="none">
+            <circle r="22" stroke="#2A2F40" stroke-width="1.4"/>
+            <circle r="6" fill="#E8C26B"/>
+            <circle r="12" stroke="#E8C26B" stroke-width="1" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="n">06 · SETTLE</div>
+        <h4>Settle.</h4>
+        <p>Payments, rewards, refunds, and reputation are finalized.</p>
+      </div>
+      <div class="step">
+        <div class="marker">
+          <svg viewBox="-30 -30 60 60" width="60" height="60" fill="none">
+            <circle r="24" stroke="#E8C26B" stroke-width="1.4"/>
+            <circle r="16" stroke="#2A2F40" stroke-width="1"/>
+            <circle r="9"  stroke="#2A2F40" stroke-width="1"/>
+            <circle r="4" fill="#E8C26B"/>
+          </svg>
+        </div>
+        <div class="n">07 · REMEMBER</div>
+        <h4>Remember.</h4>
+        <p>The intent becomes part of the originator's owned history.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 6 — PROTOCOL ARCHITECTURE
+========================================================= -->
+<section class="section wrap">
+  <div class="reveal">
+    <span class="section-eyebrow">§ 05 — Protocol Architecture</span>
+    <h2 class="h-section">A seven-layer<br/>protocol stack.</h2>
+    <p class="section-lede">Top layer is human intention. Bottom layer is protocol governance. Between them, agents interpret, tools execute, compute powers, and proof records everything that matters.</p>
+  </div>
+
+  <div class="stack reveal d1" style="margin-top: 64px;">
+    <div class="layer gold">
+      <div class="ln">L1</div>
+      <div class="lname">
+        <h4>Intent Layer</h4>
+        <span class="role">Origination · Consent</span>
+      </div>
+      <div class="components">
+        <span>expression</span><span>constraints</span><span>consent</span><span>signature</span><span>intent hash</span>
+      </div>
+      <div class="marker">
+        <svg viewBox="-20 -20 40 40" width="40" height="40" fill="none">
+          <circle r="16" stroke="#E8C26B" stroke-width="1"/>
+          <circle r="9"  stroke="#1F2331" stroke-width="1"/>
+          <circle r="3" fill="#E8C26B"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="ln">L2</div>
+      <div class="lname">
+        <h4>Agent Layer</h4>
+        <span class="role">Reasoning · Routing</span>
+      </div>
+      <div class="components">
+        <span>planning</span><span>routing</span><span>policy check</span><span>mandate interpreter</span>
+      </div>
+      <div class="marker"><span class="mono" style="font-size:11px;color:var(--mute);letter-spacing:.12em;">AGT</span></div>
+    </div>
+
+    <div class="layer">
+      <div class="ln">L3</div>
+      <div class="lname">
+        <h4>Tool Layer</h4>
+        <span class="role">Capability · Registry</span>
+      </div>
+      <div class="components">
+        <span>open registry</span><span>capabilities</span><span>pricing</span><span>permissions</span><span>I/O schema</span>
+      </div>
+      <div class="marker"><span class="mono" style="font-size:11px;color:var(--mute);letter-spacing:.12em;">TLR</span></div>
+    </div>
+
+    <div class="layer">
+      <div class="ln">L4</div>
+      <div class="lname">
+        <h4>Compute Layer</h4>
+        <span class="role">Inference · Execution</span>
+      </div>
+      <div class="components">
+        <span>inference</span><span>execution</span><span>storage</span><span>performance accounting</span>
+      </div>
+      <div class="marker"><span class="mono" style="font-size:11px;color:var(--mute);letter-spacing:.12em;">CPU</span></div>
+    </div>
+
+    <div class="layer cyan">
+      <div class="ln">L5</div>
+      <div class="lname">
+        <h4>Verification Layer</h4>
+        <span class="role">Proof · Attestation</span>
+      </div>
+      <div class="components">
+        <span>proof hashes</span><span>attestations</span><span>logs</span><span>oracle inputs</span><span>reproducibility</span>
+      </div>
+      <div class="marker">
+        <svg viewBox="-20 -20 40 40" width="40" height="40" fill="none">
+          <circle r="16" stroke="#6FD3D6" stroke-width="1.2"/>
+          <path d="M-7 0 L-1 6 L 8 -6" stroke="#6FD3D6" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="ln">L6</div>
+      <div class="lname">
+        <h4>Settlement Layer</h4>
+        <span class="role">Payment · Reputation</span>
+      </div>
+      <div class="components">
+        <span>escrow</span><span>payments</span><span>rewards</span><span>slashing</span><span>disputes</span><span>reputation</span>
+      </div>
+      <div class="marker"><span class="mono" style="font-size:11px;color:var(--mute);letter-spacing:.12em;">STL</span></div>
+    </div>
+
+    <div class="layer">
+      <div class="ln">L7</div>
+      <div class="lname">
+        <h4>Governance Layer</h4>
+        <span class="role">Evolution · Standards</span>
+      </div>
+      <div class="components">
+        <span>standards</span><span>registries</span><span>grants</span><span>upgrades</span><span>protocol evolution</span>
+      </div>
+      <div class="marker"><span class="mono" style="font-size:11px;color:var(--mute);letter-spacing:.12em;">GOV</span></div>
+    </div>
+  </div>
+
+  <div class="stack-legend">
+    <div class="l"><span class="d" style="background:var(--gold);"></span>Human intent originates here</div>
+    <div class="l"><span class="d" style="background:var(--cyan);"></span>Verification proves here</div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 7 — ECOSYSTEM ROLES
+========================================================= -->
+<section class="section wrap">
+  <div class="reveal">
+    <span class="section-eyebrow">§ 06 — Ecosystem Roles</span>
+    <h2 class="h-section">A world is built<br/>by <em>many roles.</em></h2>
+    <p class="section-lede">OM World is not a company. It is a constellation of roles — eight seats around a shared protocol, each indispensable, none dominant.</p>
+  </div>
+
+  <div class="roles-grid" style="margin-top: 64px;">
+    <div class="orbit reveal d1" aria-hidden="true">
+      <!-- SVG holds geometry only; HTML overlay holds searchable text labels -->
+      <div style="position:relative; width:460px; height:460px; font-family:var(--f-mono); font-size:10px; letter-spacing:0.12em; color:var(--mute); text-transform:uppercase;">
+        <svg viewBox="-230 -230 460 460" fill="none" stroke="#2A2F40" stroke-width="1" style="position:absolute; inset:0;">
+          <!-- orbit rings -->
+          <circle r="180" opacity="0.7"/>
+          <circle r="120" stroke="#1F2331"/>
+          <!-- spokes -->
+          <g opacity="0.45" stroke-width="0.6">
+            <line x1="0" y1="0" x2="0" y2="-180"/>
+            <line x1="0" y1="0" x2="127.3" y2="-127.3"/>
+            <line x1="0" y1="0" x2="180" y2="0"/>
+            <line x1="0" y1="0" x2="127.3" y2="127.3"/>
+            <line x1="0" y1="0" x2="0" y2="180"/>
+            <line x1="0" y1="0" x2="-127.3" y2="127.3"/>
+            <line x1="0" y1="0" x2="-180" y2="0"/>
+            <line x1="0" y1="0" x2="-127.3" y2="-127.3"/>
+          </g>
+          <!-- center disc -->
+          <circle r="44" fill="#11141E" stroke="#2A2F40"/>
+          <!-- 8 seats: gold for originators (N), cyan for verifiers (S) -->
+          <circle cx="0"      cy="-180"   r="10" fill="#E8C26B" stroke="none"/>
+          <circle cx="127.3"  cy="-127.3" r="7"  fill="#E8E9F0" stroke="none"/>
+          <circle cx="180"    cy="0"      r="7"  fill="#E8E9F0" stroke="none"/>
+          <circle cx="127.3"  cy="127.3"  r="7"  fill="#E8E9F0" stroke="none"/>
+          <circle cx="0"      cy="180"    r="10" fill="#6FD3D6" stroke="none"/>
+          <circle cx="-127.3" cy="127.3"  r="7"  fill="#E8E9F0" stroke="none"/>
+          <circle cx="-180"   cy="0"      r="7"  fill="#E8E9F0" stroke="none"/>
+          <circle cx="-127.3" cy="-127.3" r="7"  fill="#E8E9F0" stroke="none"/>
+        </svg>
+        <!-- HTML label overlay — clean text layer -->
+        <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:var(--ink-hi); font-family:var(--f-display); font-size:14px; letter-spacing:-0.005em; text-transform:none;">Protocol</div>
+
+        <div style="position:absolute; left:50%; top:22px;  transform:translate(-50%,0); color:var(--gold);">Originators</div>
+        <div style="position:absolute; left:340px; top:78px; white-space:nowrap;">Agent Builders</div>
+        <div style="position:absolute; left:368px; top:220px; white-space:nowrap;">Tool Creators</div>
+        <div style="position:absolute; left:340px; top:360px; white-space:nowrap;">Compute</div>
+        <div style="position:absolute; left:50%; bottom:22px; transform:translate(-50%,0); color:var(--cyan);">Verifiers</div>
+        <div style="position:absolute; right:340px; top:360px; text-align:right; white-space:nowrap;">Capital</div>
+        <div style="position:absolute; right:368px; top:220px; text-align:right; white-space:nowrap;">Interfaces</div>
+        <div style="position:absolute; right:340px; top:78px;  text-align:right; white-space:nowrap;">Governance</div>
+      </div>
+    </div>
+
+    <div class="role-list">
+      <div class="role-card reveal d1">
+        <span class="rk">01 · ORIGIN</span>
+        <h4>Intent Originators</h4>
+        <p>Declare intentions and define mandates.</p>
+      </div>
+      <div class="role-card reveal d2">
+        <span class="rk">02 · BUILD</span>
+        <h4>AI Agent Builders</h4>
+        <p>Build agents that plan, route, and execute workflows.</p>
+      </div>
+      <div class="role-card reveal d3">
+        <span class="rk">03 · CREATE</span>
+        <h4>Tool Creators</h4>
+        <p>Create capabilities that fulfill intents.</p>
+      </div>
+      <div class="role-card reveal d4">
+        <span class="rk">04 · POWER</span>
+        <h4>Compute Providers</h4>
+        <p>Supply inference and execution resources.</p>
+      </div>
+      <div class="role-card cyan-key reveal d5">
+        <span class="rk">05 · PROVE</span>
+        <h4>Verifiers</h4>
+        <p>Attest that outcomes match declared requirements.</p>
+      </div>
+      <div class="role-card reveal d6">
+        <span class="rk">06 · FUND</span>
+        <h4>Capital Providers</h4>
+        <p>Fund intents that require upfront resources.</p>
+      </div>
+      <div class="role-card reveal d7">
+        <span class="rk">07 · SURFACE</span>
+        <h4>Interface Builders</h4>
+        <p>Build wallets, explorers, dashboards, and marketplaces.</p>
+      </div>
+      <div class="role-card reveal d7">
+        <span class="rk">08 · STEWARD</span>
+        <h4>Governance Participants</h4>
+        <p>Steward standards, grants, disputes, and upgrades.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 8 — GENESIS DOCUMENTS
+========================================================= -->
+<section id="documents" class="section wrap">
+  <div class="doc-head">
+    <div class="reveal">
+      <span class="section-eyebrow">§ 07 — Genesis Documents</span>
+      <h2 class="h-section">Genesis documents<br/>are <em>public.</em></h2>
+    </div>
+    <p class="section-lede reveal d1">OM World begins in public. The first documents are open for review, critique, translation, and contribution.</p>
+  </div>
+
+  <div class="docs">
+    <div class="doc reveal d1">
+      <div class="row"><span class="lbl">DOC · 01</span><span>STABLE</span></div>
+      <h4>Manifesto</h4>
+      <p>The first principles. Why intent must be decentralized.</p>
+      <a class="cta" href="#">Read Manifesto <span class="arr">→</span></a>
+    </div>
+    <div class="doc reveal d2">
+      <div class="row"><span class="lbl">DOC · 02</span><span>v0.1 · GENESIS</span></div>
+      <h4>Litepaper</h4>
+      <p>Architecture, lifecycle, economics, governance — 33 pages.</p>
+      <a class="cta" href="#">Read Litepaper <span class="arr">→</span></a>
+    </div>
+    <div class="doc reveal d3">
+      <div class="row"><span class="lbl">DOC · 03</span><span>DRAFT</span></div>
+      <h4>Governance</h4>
+      <p>From Genesis to DAO — a five-stage ladder.</p>
+      <a class="cta" href="#">View Governance <span class="arr">→</span></a>
+    </div>
+    <div class="doc reveal d4">
+      <div class="row"><span class="lbl">DOC · 04</span><span>v0.1</span></div>
+      <h4>Roadmap</h4>
+      <p>Five phases. Each with deliverables and exit criteria.</p>
+      <a class="cta" href="#">View Roadmap <span class="arr">→</span></a>
+    </div>
+    <div class="doc reveal d5">
+      <div class="row"><span class="lbl">DOC · 05</span><span>v1.0</span></div>
+      <h4>Brand System</h4>
+      <p>Visual language: Origin Point, Proof Ring, Agent Path.</p>
+      <a class="cta" href="#">View Brand <span class="arr">→</span></a>
+    </div>
+    <div class="doc reveal d6">
+      <div class="row"><span class="lbl">DOC · 06</span><span>LIVE</span></div>
+      <h4>GitHub Issues</h4>
+      <p>Open specifications. Open questions. Open contributions.</p>
+      <a class="cta" href="#">View GitHub <span class="arr">↗</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 9 — OPEN QUESTIONS
+========================================================= -->
+<section class="section wrap">
+  <div class="reveal">
+    <span class="section-eyebrow">§ 08 — Open Questions</span>
+    <h2 class="h-section">Open questions<br/>for <em>builders.</em></h2>
+    <p class="section-lede">OM World is early. These questions are not weaknesses — they are invitations.</p>
+  </div>
+
+  <div class="q-grid reveal d1" style="margin-top: 64px;">
+    <div class="q-cell">
+      <span class="qn">Q.01</span>
+      <p class="qt">How should intents be structured without limiting human expression?</p>
+    </div>
+    <div class="q-cell">
+      <span class="qn">Q.02</span>
+      <p class="qt">Which parts of execution should be on‑chain, off‑chain, private, or public?</p>
+    </div>
+    <div class="q-cell">
+      <span class="qn">Q.03</span>
+      <p class="qt">How should subjective outcomes be verified?</p>
+    </div>
+    <div class="q-cell">
+      <span class="qn">Q.04</span>
+      <p class="qt">How can agent decisions be explainable without exposing sensitive data?</p>
+    </div>
+    <div class="q-cell">
+      <span class="qn">Q.05</span>
+      <p class="qt">How should tool creators be rewarded and bad tools penalized?</p>
+    </div>
+    <div class="q-cell">
+      <span class="qn">Q.06</span>
+      <p class="qt">How can governance avoid capture?</p>
+    </div>
+  </div>
+
+  <div class="q-actions reveal d2">
+    <a class="btn primary" href="#">Open an Issue <span class="arr">↗</span></a>
+    <a class="btn" href="#">Join the Discussion</a>
+  </div>
+</section>
+
+<!-- =========================================================
+     SECTION 10 — JOIN THE GENESIS
+========================================================= -->
+<section id="builders" class="section wrap join">
+  <svg class="join-bg" viewBox="-260 -260 520 520" fill="none" aria-hidden="true">
+    <circle r="80"  stroke="#1F2331" stroke-width="0.8"/>
+    <circle r="130" stroke="#1F2331" stroke-width="0.8"/>
+    <circle r="190" stroke="#1F2331" stroke-width="0.8" opacity="0.6"/>
+    <circle r="240" stroke="#1F2331" stroke-width="0.8" opacity="0.3"/>
+    <circle r="5" fill="#E8C26B"/>
+  </svg>
+
+  <div class="top">
+    <div class="reveal">
+      <span class="section-eyebrow">§ 09 — Join the Genesis</span>
+      <h2 class="h-section">Join the<br/><em>Genesis.</em></h2>
+    </div>
+    <div class="copy reveal d1">
+      <p>OM World is looking for builders, researchers, designers, writers, protocol engineers, AI agent developers, smart contract developers, verifiers, and community contributors.</p>
+      <p>A world is not built by one founder. A protocol is not made real by one document.</p>
+    </div>
+  </div>
+
+  <div class="tracks">
+    <a class="track reveal d1" href="#"><div class="left"><span class="tn">TRACK · 01</span><h4>Protocol Research</h4></div><span class="arr">→</span></a>
+    <a class="track reveal d2" href="#"><div class="left"><span class="tn">TRACK · 02</span><h4>AI Agent Development</h4></div><span class="arr">→</span></a>
+    <a class="track reveal d3" href="#"><div class="left"><span class="tn">TRACK · 03</span><h4>Smart Contracts</h4></div><span class="arr">→</span></a>
+    <a class="track reveal d1" href="#"><div class="left"><span class="tn">TRACK · 04</span><h4>Verification</h4></div><span class="arr">→</span></a>
+    <a class="track reveal d2" href="#"><div class="left"><span class="tn">TRACK · 05</span><h4>Tool Creation</h4></div><span class="arr">→</span></a>
+    <a class="track reveal d3" href="#"><div class="left"><span class="tn">TRACK · 06</span><h4>Governance</h4></div><span class="arr">→</span></a>
+    <a class="track reveal d1" href="#"><div class="left"><span class="tn">TRACK · 07</span><h4>Design</h4></div><span class="arr">→</span></a>
+    <a class="track reveal d2" href="#"><div class="left"><span class="tn">TRACK · 08</span><h4>Writing &amp; Translation</h4></div><span class="arr">→</span></a>
+    <a class="track reveal d3" href="#"><div class="left"><span class="tn">TRACK · 09</span><h4>Community</h4></div><span class="arr">→</span></a>
+  </div>
+
+  <div id="join" class="join-cta reveal d4">
+    <a class="btn primary" href="#">View Good First Issues <span class="arr">↗</span></a>
+    <a class="btn" href="#">Join Discord</a>
+    <a class="btn ghost" href="#">Follow X / @OMWorldProtocol →</a>
+  </div>
+</section>
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer id="github" class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="b">
+          <svg viewBox="-50 -50 100 100" fill="none">
+            <circle r="44" stroke="#2A2F40" stroke-width="1.4"/>
+            <circle r="28" stroke="#1F2331" stroke-width="1.4"/>
+            <g stroke="#6FD3D6" stroke-width="2">
+              <line x1="0" y1="-46" x2="0" y2="-38"/>
+              <line x1="0" y1="46"  x2="0" y2="38"/>
+              <line x1="-46" y1="0" x2="-38" y2="0"/>
+              <line x1="46"  y1="0" x2="38"  y2="0"/>
+            </g>
+            <circle r="5" fill="#E8C26B"/>
+          </svg>
+          OM World
+        </div>
+        <div class="tagline">One Mind, One World.</div>
+        <p>A decentralized intent economy where AI executes and crypto verifies.</p>
+      </div>
+
+      <div class="foot-col">
+        <h5>Protocol</h5>
+        <ul>
+          <li><a href="#manifesto">Manifesto</a></li>
+          <li><a href="#documents">Litepaper</a></li>
+          <li><a href="#documents">Governance</a></li>
+          <li><a href="#protocol">Architecture</a></li>
+        </ul>
+      </div>
+
+      <div class="foot-col">
+        <h5>Build</h5>
+        <ul>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#builders">Good First Issues</a></li>
+          <li><a href="#documents">Brand System</a></li>
+          <li><a href="#documents">Roadmap</a></li>
+        </ul>
+      </div>
+
+      <div class="foot-col">
+        <h5>Community</h5>
+        <ul>
+          <li><a href="#">X / @OMWorldProtocol</a></li>
+          <li><a href="#">Discord</a></li>
+          <li><a href="#">Forum</a></li>
+          <li><a href="#">Mirror</a></li>
+        </ul>
+      </div>
+
+      <div class="foot-col">
+        <h5>Index</h5>
+        <ul>
+          <li><a href="#documents">Genesis Documents</a></li>
+          <li><a href="#">Council</a></li>
+          <li><a href="#">Contributors</a></li>
+          <li><a href="#">Press &amp; Quotes</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot-legal">
+      <p>OM World is in Genesis. No token design is finalized. Nothing on this site constitutes legal, financial, investment, or token‑sale advice.</p>
+      <div class="right">
+        <b>LITEPAPER-001 · v0.1</b><br/>
+        2026 · Genesis Draft<br/>
+        <span class="mono" style="color:var(--ink-hi);">om.world</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Intersection-observer driven reveal — runs once per element
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+
+</body>
+</html>
