@@ -4,3 +4,8 @@
 .idea/
 .vscode/
 node_modules/
+
+# Local-only notes (deployment playbooks, scratch, secrets) — never pushed
+*.local.md
+*.local.txt
+.private/
