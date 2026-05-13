@@ -57,15 +57,32 @@ DEFAULT_RECENT_DAYS = 60
 DEFAULT_LIMIT = 20
 
 
-def gh(*args):
-    r = subprocess.run(["gh"] + list(args), capture_output=True, text=True)
-    if r.returncode != 0:
-        raise RuntimeError(f"gh failed: {' '.join(args)}\n{r.stderr.strip()}")
-    return json.loads(r.stdout) if r.stdout.strip() else None
+def gh(*args, timeout=30, retries=3):
+    """Run gh CLI with per-call timeout + retries on transient failures."""
+    last_err = None
+    for attempt in range(retries):
+        try:
+            r = subprocess.run(
+                ["gh"] + list(args),
+                capture_output=True, text=True, timeout=timeout,
+            )
+            if r.returncode != 0:
+                # 422 / 404 / etc. are real errors; don't retry
+                if "rate limit" in r.stderr.lower() or "timeout" in r.stderr.lower():
+                    last_err = r.stderr.strip()
+                    import time as _t; _t.sleep(2 ** attempt)
+                    continue
+                raise RuntimeError(f"gh failed: {' '.join(args)}\n{r.stderr.strip()}")
+            return json.loads(r.stdout) if r.stdout.strip() else None
+        except subprocess.TimeoutExpired:
+            last_err = f"timeout after {timeout}s"
+            continue
+    raise RuntimeError(f"gh exhausted retries: {' '.join(args)}\n{last_err}")
 
 
 def search_repos(topic, recent_cutoff, per_page=30):
-    query = f"topic:{topic} pushed:>{recent_cutoff}"
+    # GitHub topics use hyphens but the query needs URL-encoded spaces in "pushed:>" clause
+    query = f"topic:{topic}+pushed:>{recent_cutoff}"
     try:
         items = gh(
             "api",
@@ -74,7 +91,7 @@ def search_repos(topic, recent_cutoff, per_page=30):
         )
         return items or []
     except RuntimeError as e:
-        print(f"  [warn] search failed for topic:{topic} — {e}", file=sys.stderr)
+        log(f"  [warn] search failed for topic:{topic} — {str(e)[:120]}")
         return []
 
 
