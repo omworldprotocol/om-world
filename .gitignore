@@ -9,3 +9,6 @@ node_modules/
 *.local.md
 *.local.txt
 .private/
+
+# Operational data (real candidate names, DM drafts, CRM) — never pushed
+outreach/
