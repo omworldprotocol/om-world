@@ -27,8 +27,23 @@ ExecutionProof {
 | `tool_id` | Registered tool identifier |
 | `input_hash` | Hash of canonicalized input |
 | `output_hash` | Hash of returned output |
+| `context_hash` | Hash of the tool's stateful context at call time (required for stateful tools; see below) |
 | `attestation` | Tool-provided signature or TEE quote (when available) |
 | `timestamp` | When the call returned |
+
+### context_hash — stateful tool attestation
+
+For stateless tools (HTTP APIs, deterministic functions), `context_hash` may be omitted: the same `input_hash` always produces the same `output_hash`, so any verifier can reproduce the call.
+
+For **stateful tools** — primarily memory stores — the same query against a different store state produces a different result. To enable dispute-grade replay, the step must include:
+
+- `input_hash` — hash of (query embedding + similarity threshold used).
+- `output_hash` — hash of (ranked result set with scores, in canonical order).
+- `context_hash` — snapshot hash of the memory store at the moment the query executed, taken *before* any consolidation runs on that snapshot.
+
+A verifier holding the snapshot can independently reproduce the retrieval and verify that the agent saw exactly the results claimed. Without `context_hash`, memory retrieval steps are unverifiable if the store has since been consolidated or modified.
+
+**Rule:** Any step invoking a tool with `operation_class: read` against a stateful backend (as declared in the Tool Registry) MUST include `context_hash`. Steps missing `context_hash` for stateful tool calls are treated as unattested.
 
 ## Verifier responsibilities
 
@@ -58,3 +73,4 @@ Proofs may include sealed fields decryptable only by the principal. Public verif
 
 - Zero-knowledge proofs for sensitive tool inputs.
 - Cross-domain attestation (off-chain APIs without native signing): zkTLS covers HTTP response proofs; TEE covers agent execution proofs. A hybrid (`attestation.type: multi`) likely covers most cases — formalize the combination rules.
+- Memory snapshot distribution: who is responsible for storing and serving the snapshot that `context_hash` commits to? Options: the memory tool provider, a dedicated snapshot oracle, or the agent itself (with provider co-signature).
