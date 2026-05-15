@@ -44,10 +44,10 @@ Binds an authorized agent identity to the intent, so that execution proofs can b
 | `commitment` | Agent's own signature over `intent_id + agent_id`, proving it accepted responsibility |
 
 **Binding models:**
-- *Creation-time binding* — the principal pre-selects which agent identity will execute. Simpler, but breaks if that agent goes offline.
-- *Activation-time binding* — the agent signs its own identity into the intent before submitting to a solver. More composable; requires a second signature step.
+- *Creation-time binding* — the principal pre-selects which agent identity will execute. Simpler, but couples the intent to a known agent before the solver matches, which defeats permissionless solver networks.
+- *Activation-time binding* (recommended) — `executor` is absent or null at creation. At claim time the winning agent signs its ERC-8004 identity into the fulfillment bundle submitted by the solver. Proof chain: `principal constraints → solver match → agent activation → execution proof`. The extra signature step is negligible latency (<1 s off-chain ECDSA) and preserves solver permissionlessness.
 
-If `executor` is omitted, any agent holding a valid mandate may execute. When present, the mandate and execution proof must originate from the same identity.
+If `executor` is omitted, any agent holding a valid mandate may execute. When present (creation-time) or once filled in (activation-time), the mandate and execution proof must originate from the same identity.
 
 ## attestation
 
@@ -67,9 +67,19 @@ Declares the proof format the principal considers acceptable evidence of settlem
 | `scheme` | Specific implementation: `tlsn-v1`, `nitro-enclave`, `sp1`, … |
 | `verifier` | Address or URL of the contract or endpoint that validates this proof type |
 
-`type: multi` carries an array of acceptable types; the agent must satisfy at least one.
+`type: multi` carries an array of types; the agent must satisfy **ALL** listed types, but each type covers a distinct *attestation dimension* — not redundant coverage of the same claim.
 
-> **Note:** zkTLS proves external data state (e.g., an API response at a point in time). TEE proves agent execution correctness. For intents requiring both — e.g., a financial execution that needs an oracle price proof (zkTLS) and an agent execution trace (TEE) — use `type: multi`.
+```json
+"attestation": {
+  "type": ["zktls", "tee"],
+  "scheme": "hybrid",
+  "verifier": "0x..."
+}
+```
+
+> **Attestation dimensions:** zkTLS proves external data state (e.g., an API response at a point in time). TEE proves agent execution correctness (code ran as declared inside a trusted environment). A financial execution requiring both an oracle price proof (zkTLS) and an agent execution trace (TEE) uses `type: ["zktls", "tee"]` — two proofs, each covering a different dimension. Requiring the same dimension twice (e.g., two zkTLS proofs for the same price check) is an anti-pattern.
+>
+> **Open question:** Should `verifier` remain a single routing-contract address (which internally routes each dimension's proof to the appropriate verifier), or become a per-dimension map `{"zktls": "0x...", "tee": "0x..."}`? The routing-contract approach keeps the schema simpler; the per-dimension map makes verifier delegation explicit.
 
 ## on_expire
 
@@ -129,5 +139,6 @@ TBD — describe the deterministic serialization used for hashing.
 
 - How to express partial fulfillment?
 - How to bind to non-fungible context (e.g., a specific email thread)?
-- Activation-time vs creation-time executor binding: which should be the default?
-- Should `attestation.type: multi` require ALL types or satisfy ANY one?
+- ~~Activation-time vs creation-time executor binding: which should be the default?~~ **Resolved:** activation-time binding is recommended. Creation-time binding couples the intent to a specific agent before solver matching, defeating permissionless solver networks. See `executor` §Binding models above.
+- ~~Should `attestation.type: multi` require ALL types or satisfy ANY one?~~ **Resolved:** ALL, structured as a fallback chain by attestation dimension (zkTLS for external data, TEE for agent execution). Not redundant parallel coverage. See `attestation` §type: multi above.
+- Should `attestation.verifier` be a single routing-contract address or a per-dimension map? (open)
