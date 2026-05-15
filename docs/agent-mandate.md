@@ -11,13 +11,19 @@ A mandate is a signed commitment from an Agent to attempt fulfillment of a speci
 | Field | Type | Description |
 |---|---|---|
 | `intent_id` | uuid | The Intent being accepted |
-| `agent` | address | Agent identity |
+| `agent` | address | Agent identity (must match `intent.executor.agent_id` when that field is set) |
 | `plan_hash` | hash | Commitment to a plan (revealed on proof) |
 | `bond` | amount | Slashable stake |
 | `fee_quote` | amount | Maximum charge to principal on success |
 | `tools_declared` | array | Tools the agent reserves the right to use |
 | `deadline` | timestamp | Self-imposed completion target |
 | `signature` | sig | Over the canonical hash |
+
+## Executor constraint
+
+If the intent carries an `executor` field, the mandate's `agent` address must correspond to the same on-chain identity (`executor.agent_id` under the declared `executor.id_scheme`). A mandate posted by a different agent identity is invalid and must be rejected by verifiers and solvers.
+
+When `intent.executor` is absent, any credentialed agent may post a mandate.
 
 ## Bonding
 

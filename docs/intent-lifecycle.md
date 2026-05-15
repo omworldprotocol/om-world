@@ -25,7 +25,21 @@ DRAFT → ISSUED → MATCHED → IN_FLIGHT → PROVEN → SETTLED
 
 ## Timeouts
 
-TBD — default windows per state.
+Default windows per state (all overridable by `intent.on_expire` and `mandate.deadline`):
+
+| State | Default window | On expiry |
+|---|---|---|
+| ISSUED | Until `intent.expires_at` | → EXPIRED; matched agents release mandate |
+| MATCHED | Until `intent.expires_at` | → EXPIRED; mandate released; partial bond forfeited |
+| IN_FLIGHT | Until `intent.expires_at` | → EXPIRED; treated as failed attempt; full bond slashable |
+| PROVEN | 48 h dispute window | → SETTLED automatically if no challenge raised |
+| DISPUTED | 7 days | → RESOLVED by council/contract; unresolved → re-opens dispute |
+
+When `intent.on_expire` is set, that rule takes precedence over the default for ISSUED / MATCHED / IN_FLIGHT transitions:
+
+- `"cancel"` — move to CANCELLED (not EXPIRED), release mandate, partial bond forfeiture.
+- `"revert"` — as cancel, plus trigger rollback artifacts if any were declared in the execution proof.
+- `"escalate"` — notify the address in `on_expire.notify`; state pauses at MATCHED or IN_FLIGHT until a human acknowledges, then follows the default path.
 
 ## Replay & double-fulfillment
 

@@ -34,8 +34,10 @@ ExecutionProof {
 
 1. Re-check the plan hash matches the mandate's commitment.
 2. Validate each step's attestation against the tool registry.
-3. Evaluate `success_claim` against the intent's `success_criteria`.
-4. Emit verdict event.
+3. If `intent.executor` is set, verify that the proof's `signature` originates from the same agent identity (`executor.agent_id`). A proof signed by a different agent identity than the one committed in the intent must be rejected.
+4. If `intent.attestation` is set, verify that the proof's attestation type and scheme match what the principal declared. A proof using an attestation type not listed in `intent.attestation` must be rejected.
+5. Evaluate `success_claim` against the intent's `success_criteria`.
+6. Emit verdict event.
 
 ## Disputes
 
@@ -55,4 +57,4 @@ Proofs may include sealed fields decryptable only by the principal. Public verif
 ## Open questions
 
 - Zero-knowledge proofs for sensitive tool inputs.
-- Cross-domain attestation (off-chain APIs without native signing).
+- Cross-domain attestation (off-chain APIs without native signing): zkTLS covers HTTP response proofs; TEE covers agent execution proofs. A hybrid (`attestation.type: multi`) likely covers most cases — formalize the combination rules.
