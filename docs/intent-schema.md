@@ -53,6 +53,8 @@ If `executor` is omitted, any agent holding a valid mandate may execute. When pr
 
 Declares the proof format the principal considers acceptable evidence of settlement. Without this field the solver chooses the proof format; with it, the principal defines the verification standard up front.
 
+Single attestation type:
+
 ```json
 "attestation": {
   "type": "zktls",
@@ -61,25 +63,30 @@ Declares the proof format the principal considers acceptable evidence of settlem
 }
 ```
 
-| Sub-field | Description |
-|---|---|
-| `type` | `zktls` \| `tee` \| `onchain_tx` \| `signed_log` \| `multi` |
-| `scheme` | Specific implementation: `tlsn-v1`, `nitro-enclave`, `sp1`, … |
-| `verifier` | Address or URL of the contract or endpoint that validates this proof type |
-
-`type: multi` carries an array of types; the agent must satisfy **ALL** listed types, but each type covers a distinct *attestation dimension* — not redundant coverage of the same claim.
+Multi-type attestation:
 
 ```json
 "attestation": {
   "type": ["zktls", "tee"],
   "scheme": "hybrid",
-  "verifier": "0x..."
+  "verifier": {
+    "zktls": "0x TLSNotary verifier address",
+    "tee": "0x SGX quote verifier address"
+  }
 }
 ```
 
-> **Attestation dimensions:** zkTLS proves external data state (e.g., an API response at a point in time). TEE proves agent execution correctness (code ran as declared inside a trusted environment). A financial execution requiring both an oracle price proof (zkTLS) and an agent execution trace (TEE) uses `type: ["zktls", "tee"]` — two proofs, each covering a different dimension. Requiring the same dimension twice (e.g., two zkTLS proofs for the same price check) is an anti-pattern.
+| Sub-field | Description |
+|---|---|
+| `type` | `zktls` \| `tee` \| `onchain_tx` \| `signed_log`, or an array for multi-type |
+| `scheme` | Specific implementation: `tlsn-v1`, `nitro-enclave`, `sp1`, … |
+| `verifier` | Single address (when `type` is a string) or per-dimension map (when `type` is an array) |
+
+When `type` is an array, the agent must satisfy **ALL** listed types. Each type covers a distinct *attestation dimension* — not redundant coverage of the same claim.
+
+> **Attestation dimensions:** zkTLS proves external data state (e.g., an API response at a point in time). TEE proves agent execution correctness (code ran as declared inside a trusted environment). A financial execution requiring both an oracle price proof (zkTLS) and an agent execution trace (TEE) uses two types, each covering a different dimension. Requiring the same dimension twice is an anti-pattern.
 >
-> **Open question:** Should `verifier` remain a single routing-contract address (which internally routes each dimension's proof to the appropriate verifier), or become a per-dimension map `{"zktls": "0x...", "tee": "0x..."}`? The routing-contract approach keeps the schema simpler; the per-dimension map makes verifier delegation explicit.
+> **Why per-dimension verifier map:** The intent must be self-describing so that any party — including dispute challengers and independent auditors — can verify any single dimension without querying external router state. A routing contract that wraps this schema internally is a valid gas optimization at the deployment layer, but the schema itself must surface individual verifier addresses. The one exception is cross-chain proof routing, which is an infrastructure concern below the schema layer.
 
 ## on_expire
 
@@ -123,9 +130,12 @@ TBD — describe the deterministic serialization used for hashing.
     "commitment": "0xsig…"
   },
   "attestation": {
-    "type": "zktls",
-    "scheme": "tlsn-v1",
-    "verifier": "0xverif…"
+    "type": ["zktls", "tee"],
+    "scheme": "hybrid",
+    "verifier": {
+      "zktls": "0xverif-tlsn…",
+      "tee": "0xverif-sgx…"
+    }
   },
   "on_expire": "cancel",
   "nonce": 1,
@@ -141,4 +151,4 @@ TBD — describe the deterministic serialization used for hashing.
 - How to bind to non-fungible context (e.g., a specific email thread)?
 - ~~Activation-time vs creation-time executor binding: which should be the default?~~ **Resolved:** activation-time binding is recommended. Creation-time binding couples the intent to a specific agent before solver matching, defeating permissionless solver networks. See `executor` §Binding models above.
 - ~~Should `attestation.type: multi` require ALL types or satisfy ANY one?~~ **Resolved:** ALL, structured as a fallback chain by attestation dimension (zkTLS for external data, TEE for agent execution). Not redundant parallel coverage. See `attestation` §type: multi above.
-- Should `attestation.verifier` be a single routing-contract address or a per-dimension map? (open)
+- ~~Should `attestation.verifier` be a single routing-contract address or a per-dimension map?~~ **Resolved:** per-dimension map is the schema default (self-describing, dispute-ready); routing contracts are a valid deployment-layer optimization. See `attestation` above.
