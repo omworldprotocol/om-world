@@ -87,6 +87,12 @@ When `type` is an array, the agent must satisfy **ALL** listed types. Each type 
 > **Attestation dimensions:** zkTLS proves external data state (e.g., an API response at a point in time). TEE proves agent execution correctness (code ran as declared inside a trusted environment). A financial execution requiring both an oracle price proof (zkTLS) and an agent execution trace (TEE) uses two types, each covering a different dimension. Requiring the same dimension twice is an anti-pattern.
 >
 > **Why per-dimension verifier map:** The intent must be self-describing so that any party — including dispute challengers and independent auditors — can verify any single dimension without querying external router state. A routing contract that wraps this schema internally is a valid gas optimization at the deployment layer, but the schema itself must surface individual verifier addresses. The one exception is cross-chain proof routing, which is an infrastructure concern below the schema layer.
+>
+> **Verifier pinning:** The `attestation.verifier` map is hashed into `intent.id` at signing time and is therefore immutable. A solver cannot substitute a different verifier than the one declared by the principal. This guarantees deterministic knowledge of which verifier contract validates which dimension for every party — solver, challenger, auditor — without querying external state.
+>
+> **Deployment responsibility:** When a verifier contract is upgraded, old intents remain bound to the verifier address they declared. The prior verifier contract must stay operational until all intents referencing it have reached SETTLED or EXPIRED. The 48-hour dispute window on PROVEN state (see [intent-lifecycle.md](intent-lifecycle.md)) bounds this obligation.
+>
+> **Cross-chain extension (v1):** When verifiers live on different chains, per-dimension entries may be extended with a `chain` field: `{"chain": "base", "address": "0x..."}`. This is deferred to v1; v0 assumes all verifiers are reachable from the same execution context.
 
 ## on_expire
 

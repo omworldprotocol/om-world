@@ -10,6 +10,7 @@ Make execution legible to verifiers and disputable by anyone, without forcing th
 
 ```
 ExecutionProof {
+  spec_version  // e.g. "0" — verifiers must reject unknown versions, not downgrade
   intent_id
   mandate_id
   plan          // revealing the pre-committed plan_hash
@@ -30,6 +31,7 @@ ExecutionProof {
 | `context_hash` | Hash of the tool's stateful context at call time (required for stateful tools; see below) |
 | `attestation` | Tool-provided signature or TEE quote (when available) |
 | `timestamp` | When the call returned |
+| `prev_hash` | Hash of the preceding step's canonical record (optional; required in chained proof mode — see below) |
 
 ### context_hash — stateful tool attestation
 
@@ -44,6 +46,25 @@ For **stateful tools** — primarily memory stores — the same query against a 
 A verifier holding the snapshot can independently reproduce the retrieval and verify that the agent saw exactly the results claimed. Without `context_hash`, memory retrieval steps are unverifiable if the store has since been consolidated or modified.
 
 **Rule:** Any step invoking a tool with `operation_class: read` against a stateful backend (as declared in the Tool Registry) MUST include `context_hash`. Steps missing `context_hash` for stateful tool calls are treated as unattested.
+
+### prev_hash — chained proof mode
+
+By default, steps form a flat sequence: all steps must be replayed to dispute any one. When per-step dispute localization is needed, steps may be linked via `prev_hash`:
+
+- Each step's canonical record includes the prior step's full step hash as `prev_hash`.
+- The first step sets `prev_hash` to the mandate's `plan_hash`, anchoring the chain to the pre-committed plan.
+- Any verifier holding step N and step N-1 can verify the link independently, without replaying the full trace.
+- A challenger may dispute step N specifically by submitting only steps N-1 and N as evidence.
+
+`prev_hash` is optional but recommended for multi-step pipelines where localized disputes are expected. When present in any step, all subsequent steps in the same proof MUST also include `prev_hash` (partial chaining is not valid).
+
+### Spec version handling
+
+Verifiers MUST read `spec_version` before evaluating any proof. If the version is unknown:
+
+- Reject with `UNSUPPORTED_SPEC_VERSION` — do not silently downgrade to an older verification formula.
+- Silent downgrade is a security anti-pattern: a tampered proof could claim an older `spec_version` to be evaluated against looser or preimage-vulnerable logic.
+- Pattern: read `spec_version` → route to a version-specific verifier module → surface the error explicitly if no module exists.
 
 ## Verifier responsibilities
 
