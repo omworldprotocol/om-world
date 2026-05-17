@@ -169,3 +169,13 @@ TBD — describe the deterministic serialization used for hashing.
 - ~~Activation-time vs creation-time executor binding: which should be the default?~~ **Resolved:** activation-time binding is recommended. Creation-time binding couples the intent to a specific agent before solver matching, defeating permissionless solver networks. See `executor` §Binding models above.
 - ~~Should `attestation.type: multi` require ALL types or satisfy ANY one?~~ **Resolved:** ALL, structured as a fallback chain by attestation dimension (zkTLS for external data, TEE for agent execution). Not redundant parallel coverage. See `attestation` §type: multi above.
 - ~~Should `attestation.verifier` be a single routing-contract address or a per-dimension map?~~ **Resolved:** per-dimension map is the schema default (self-describing, dispute-ready); routing contracts are a valid deployment-layer optimization. See `attestation` above.
+
+## Reference implementations
+
+- **[Kuberna `IVerifierRouter` Solidity interface](https://github.com/kawacukennedy/kuberna-labs/issues/4#issuecomment-4466850557)** — a reference shape for a verifier-routing contract that satisfies this schema's per-dimension verifier requirement. Shared openly by [@kawacukennedy](https://github.com/kawacukennedy) (Kuberna intents SDK) as part of the design dialogue that shaped the `attestation.verifier` map and `fallback` adjudicator field. Implementations may adopt or adapt.
+
+## Contributors
+
+This spec was shaped by — see [CONTRIBUTORS.md](../CONTRIBUTORS.md#intent-schema) for current attribution:
+
+- **[@kawacukennedy](https://github.com/kawacukennedy)** — Genesis Co-author of the Intent Schema. Shaped `executor` binding model, `attestation.type: multi` semantics, per-dimension `attestation.verifier` map, and `attestation.verifier.fallback` adjudicator field across multiple rounds of design dialogue.
