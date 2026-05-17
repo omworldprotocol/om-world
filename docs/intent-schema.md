@@ -186,7 +186,7 @@ Implementations MUST NOT introduce additional canonicalization layers (re-sortin
 
 ## Reference implementations
 
-- **[Kuberna `IVerifierRouter` Solidity interface](https://github.com/kawacukennedy/kuberna-labs/issues/4#issuecomment-4466850557)** — a reference shape for a verifier-routing contract that satisfies this schema's per-dimension verifier requirement. Shared openly by [@kawacukennedy](https://github.com/kawacukennedy) (Kuberna intents SDK) as part of the design dialogue that shaped the `attestation.verifier` map and `fallback` adjudicator field. Implementations may adopt or adapt.
+- **[Kuberna `IVerifierRouter` Solidity interface](https://gist.github.com/kawacukennedy/2c42da7b4a74aff0d83bd40968a77864)** — a reference shape for a verifier-routing contract that satisfies this schema's per-dimension verifier requirement. Maintained by [@kawacukennedy](https://github.com/kawacukennedy) (Kuberna intents SDK) as part of the design dialogue that shaped the `attestation.verifier` map and `fallback` adjudicator field. Implementations may adopt or adapt.
 
 ## Contributors
 
