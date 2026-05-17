@@ -60,6 +60,8 @@ There is no application form. Builders are recognized for what they have already
 
 You can always raise spec issues on the [om-world repo](https://github.com/omworldprotocol/om-world/issues) without being a Builder. The Builder roles exist to recognize patterns of contribution, not to gatekeep contribution itself.
 
+When you accept an invitation, you can expect a consistent onboarding sequence — public attribution, spec-file citation, reference-implementation link (where applicable), a personal welcome thread in the Genesis Builders discussion, and a confirmation reply on the original outreach thread that names the next concrete touchpoint (typically the freeze-review window). The exact steps are documented in [CO-BUILDER-ONBOARDING.md](CO-BUILDER-ONBOARDING.md) so the same recognition surface is given to every Co-builder, regardless of who runs the onboarding.
+
 ---
 
 ## Decision rights
