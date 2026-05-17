@@ -49,9 +49,24 @@ _Co-authors will be listed here as primitive design dialogue matures._
 
 ## Genesis Reviewers
 
-_Single substantive design improvements that landed in the spec. Reviewers are added when the change ships._
+_Substantive design improvements that landed in the spec. Reviewers are listed once the change ships and the contributor consents to public attribution._
 
-_(none yet listed publicly — pending consent from contributors whose suggestions have already been folded into drafts)_
+### Execution Proof
+
+**[@Trusteedxyz](https://github.com/Trusteedxyz)** — Joined 2026-05-17
+
+Multi-round design feedback ([reference thread](https://github.com/Trusteedxyz/Trust-Receipt-Verifier/issues/3)) that shaped six sections of the [Execution Proof](docs/execution-proof.md) spec:
+
+- **JCS (RFC 8785) as the canonical-form requirement** — moved [intent-schema §Canonicalization](docs/intent-schema.md#canonicalization) out of TBD and grounded [execution-proof §Canonicalization](docs/execution-proof.md#canonicalization) in a deterministic, multi-language-supported standard ([commit d380a69](https://github.com/omworldprotocol/om-world/commit/d380a69))
+- **RFC 3161 timestamp sidecar pattern** — added [§Long-term verifiability](docs/execution-proof.md#long-term-verifiability) so proofs remain verifiable across signing-key rotation and compromise events without invalidating the original signature ([d380a69](https://github.com/omworldprotocol/om-world/commit/d380a69))
+- **Two-state key revocation (rotated vs compromised)** — added [§Key revocation states](docs/execution-proof.md#key-revocation-states) with the verifier rule that revocation state is consulted at proof-validation time rather than proof-creation time ([d380a69](https://github.com/omworldprotocol/om-world/commit/d380a69))
+- **"Envelope is the unit; slicing is undefined behavior"** — pinned in [§Envelope](docs/execution-proof.md#envelope-v0) as a documented non-goal to prevent the predictable forwarding-of-sub-receipts failure mode ([commit pending])
+- **Relayer attestation must commit to exact JCS-canonicalized bytes** — encoded as a rule in the new [§On-chain verification](docs/execution-proof.md#on-chain-verification) section, closing the dispute-path reconstruction gap on the relayer-attested path
+- **JCS + JWS + Ed25519 ecosystem-convergence note** — surfaced in the new [§Related work](docs/execution-proof.md#related-work) so verifier code can be shared across the cluster
+
+Reference implementation: [Trusteedxyz/Trust-Receipt-Verifier](https://github.com/Trusteedxyz/Trust-Receipt-Verifier) — JWS Compact + JCS + Ed25519 trust-receipt stack for agentic commerce.
+
+Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01).
 
 ---
 

@@ -22,6 +22,10 @@ ExecutionProof {
 ```
 
 > **Aggregate envelope, not streaming.** One ExecutionProof represents one intent's complete fulfillment — all step records, artifacts, and the success claim are inside a single signed object. The agent does not emit multiple envelopes per intent. Per-step dispute localization is achieved through `prev_hash` chaining inside the single envelope (see Step record below), not through multiple envelopes. This keeps the proof bundle as a single point of attribution and a single signature surface.
+>
+> **The envelope is the unit; slicing is undefined behavior.** A consumer that wants only "the last N steps" of a long fulfillment MUST NOT truncate the envelope — doing so breaks the `prev_hash` chain and silently invalidates the proof under any honest verifier. If a relying party needs a partial view, it receives the full envelope and projects locally. Forwarding sub-receipts derived from a slice is unsupported and any verifier consuming such a slice should reject it.
+>
+> If a streaming / observability profile is later added, it MUST be an out-of-band channel mirroring the aggregate, not replacing it — settlement always references the aggregate envelope as the single accountability surface.
 
 ## Step record
 
@@ -118,6 +122,18 @@ The identity registry (whichever the `intent.executor.id_scheme` points to — E
 7. Evaluate `success_claim` against the intent's `success_criteria`.
 8. Emit verdict event.
 
+## On-chain verification
+
+The spec is intentionally agnostic between three verification paths a relying party may use:
+
+1. **Off-chain verification** — a relying party (settlement orchestrator, dispute challenger, auditor) runs the verifier locally. JCS canonicalization plus the signature scheme work in any language that has a reference implementation.
+2. **On-chain native verification** — direct on-chain signature verification, viable where the chain offers a suitable precompile (Solana for Ed25519; certain EVM L2s for secp256r1 via RIP-7212). Native EVM Ed25519 currently lacks a stable precompile; ZK-friendly Ed25519 (the EIP-665 successor work, Poseidon-over-Ed25519 circuits) is the longer-term path.
+3. **Relayer-attested on-chain** — a relayer (or a committee) verifies the proof off-chain and posts an on-chain attestation that the settlement contract can check cheaply.
+
+**Rule (relayer-attested path):** The relayer's attestation MUST commit to the exact bytes of the JCS-canonicalized payload it verified, not to a re-hash or a derived digest. Otherwise a malicious relayer could attest "I verified something that hashes to X" and the dispute path would be unable to reconstruct what was actually shown to the verifier. The relayer's attestation itself MUST be cryptographically attributable to a stable relayer identity so that a successful challenge can slash the relayer, not just the agent.
+
+The choice of path is a deployment decision. Any on-chain settlement built on top of this spec MUST express its verification path back to the canonical JCS + signature primitives so that disputes can be replayed under any of the three modes.
+
 ## Disputes
 
 Anyone may post a challenge during the dispute window. A successful challenge slashes the agent's bond proportionally to the severity:
@@ -138,3 +154,21 @@ Proofs may include sealed fields decryptable only by the principal. Public verif
 - Zero-knowledge proofs for sensitive tool inputs.
 - Cross-domain attestation (off-chain APIs without native signing): zkTLS covers HTTP response proofs; TEE covers agent execution proofs. A hybrid (`attestation.type: multi`) likely covers most cases — formalize the combination rules.
 - Memory snapshot distribution: who is responsible for storing and serving the snapshot that `context_hash` commits to? Options: the memory tool provider, a dedicated snapshot oracle, or the agent itself (with provider co-signature).
+
+## Related work
+
+A small but real cluster of agentic-commerce and agent-execution specs is converging on **JCS (RFC 8785) + JWS + Ed25519** as the canonical-form + signature stack. Known instances at the time of writing:
+
+- [Trusteedxyz/Trust-Receipt-Verifier](https://github.com/Trusteedxyz/Trust-Receipt-Verifier) — JWS Compact + JCS + Ed25519 for trust receipts in agentic commerce
+- AP2 v0.2 Verifiable Intent (in development)
+- Several wallet-side credential profiles in the broader agent ecosystem
+
+The convergence is independent — no coordination body, just multiple specs picking the same primitives because they avoid the same failure modes: canonicalization drift, signature-suite fragmentation, per-language verifier reimplementation cost. Documenting it explicitly compounds the benefit: relying parties building verifiers can share canonicalization and signature-verification code across the lot.
+
+If you ship a spec or implementation in this cluster and want to be listed here, open an issue tagged `genesis-builders` on the [om-world repo](https://github.com/omworldprotocol/om-world/issues).
+
+## Contributors
+
+This spec was shaped by — see [CONTRIBUTORS.md](../CONTRIBUTORS.md#execution-proof) for current attribution:
+
+- **[@Trusteedxyz](https://github.com/Trusteedxyz)** — Genesis Reviewer of Execution Proof. Shaped §Canonicalization (JCS RFC 8785), §Long-term verifiability (RFC 3161 sidecar), §Key revocation states (rotated vs compromised), the envelope-is-the-unit non-goal in §Envelope, the relayer-bytes-commitment rule in §On-chain verification, and the §Related work convergence note across multiple rounds of design dialogue.
