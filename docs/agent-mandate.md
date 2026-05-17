@@ -33,6 +33,10 @@ A capability scope token contains:
 
 This keeps the mandate loosely coupled to the execution environment: the same mandate is valid across runtimes, cloud providers, and tool provider rotations, as long as a compliant tool for that capability exists in the registry.
 
+**Provider rotation without mandate reissue.** Because scope tokens declare capability rather than naming a provider, a tool provider can rotate its endpoints, hostnames, or backing infrastructure without the principal needing to re-sign the mandate. The Tool Registry's resolution layer maps the capability to the current provider at invocation time. Implementations may expose this resolution as an `upstreams` mapping returned alongside the mandate at execution time, similar to the pattern in [Garudex-Labs/caracal](https://github.com/Garudex-Labs/caracal/pull/183) where the delegation edge stores capability + optional resource ID while the runtime mandate carries a resolved upstream map.
+
+> **Note:** Provider rotation that materially changes the trust properties of the capability (different jurisdiction, different KYC posture, different operator) is NOT covered by this rule — that is a re-consent event, not a deployment rotation. The boundary between "rotation" and "re-consent" is a deployment-policy question that the registry's `attestation_method` and `boundary` fields are meant to surface.
+
 ## Memory binding
 
 When a mandate includes memory tools, the protocol specifies only the minimal interface — not the implementation.
