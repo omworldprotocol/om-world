@@ -102,7 +102,7 @@ The first Co-builder to go through this playbook. Use as a reference when onboar
 | 1. CONTRIBUTORS.md entry | [intent-schema co-authors section](CONTRIBUTORS.md#co-authors) |
 | 2. Spec file Contributors | [intent-schema.md#contributors](docs/intent-schema.md#contributors) |
 | 3. Reference implementation | [IVerifierRouter Solidity interface](https://github.com/kawacukennedy/kuberna-labs/issues/4#issuecomment-4466850557) linked from [intent-schema.md#reference-implementations](docs/intent-schema.md#reference-implementations) |
-| 4. Personal welcome thread | (link added after creation) |
+| 4. Personal welcome thread | [discussions/11](https://github.com/omworldprotocol/om-world/discussions/11) |
 | 5. Reply on original outreach thread | [kuberna-labs#4 comment](https://github.com/kawacukennedy/kuberna-labs/issues/4#issuecomment-4470133726) |
 | 6. CRM update | done |
 
