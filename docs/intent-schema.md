@@ -71,7 +71,8 @@ Multi-type attestation:
   "scheme": "hybrid",
   "verifier": {
     "zktls": "0x TLSNotary verifier address",
-    "tee": "0x SGX quote verifier address"
+    "tee": "0x SGX quote verifier address",
+    "fallback": "0x dispute council multisig"
   }
 }
 ```
@@ -80,7 +81,7 @@ Multi-type attestation:
 |---|---|
 | `type` | `zktls` \| `tee` \| `onchain_tx` \| `signed_log`, or an array for multi-type |
 | `scheme` | Specific implementation: `tlsn-v1`, `nitro-enclave`, `sp1`, … |
-| `verifier` | Single address (when `type` is a string) or per-dimension map (when `type` is an array) |
+| `verifier` | Single address (when `type` is a string) or per-dimension map (when `type` is an array). A reserved `fallback` key in the map declares the adjudicator-of-last-resort if the primary verifier is compromised or returns inconclusive results. |
 
 When `type` is an array, the agent must satisfy **ALL** listed types. Each type covers a distinct *attestation dimension* — not redundant coverage of the same claim.
 
@@ -93,6 +94,15 @@ When `type` is an array, the agent must satisfy **ALL** listed types. Each type 
 > **Deployment responsibility:** When a verifier contract is upgraded, old intents remain bound to the verifier address they declared. The prior verifier contract must stay operational until all intents referencing it have reached SETTLED or EXPIRED. The 48-hour dispute window on PROVEN state (see [intent-lifecycle.md](intent-lifecycle.md)) bounds this obligation.
 >
 > **Cross-chain extension (v1):** When verifiers live on different chains, per-dimension entries may be extended with a `chain` field: `{"chain": "base", "address": "0x..."}`. This is deferred to v1; v0 assumes all verifiers are reachable from the same execution context.
+>
+> **Fallback adjudicator:** A `fallback` key inside `verifier` declares the address that adjudicates if the primary verifier for any dimension is compromised, paused, or returns inconclusive results. Typically a dispute-council multisig or oracle that can independently evaluate the raw proof. The fallback is pinned at intent creation alongside the per-dimension verifiers and inherits the same immutability. Without a `fallback`, a compromised verifier leaves the intent stuck in DISPUTED with no automatic escalation path.
+>
+> **Compromise response (deployment pattern):** Verifier compromise is handled at two layers, not in the intent schema itself:
+>
+> - *On-chain VerifierRegistry* — maps `(attestationType, verifierAddress) → status (Active | Paused | Decommissioned)`. A timelocked multisig may `pauseVerifier(...)` for emergency response. The intent's pinned verifier address does not change; instead, the router short-circuits a paused verifier and the intent escalates to its declared `fallback`.
+> - *Off-chain signal* — a signed message from the protocol's security council declaring a verifier compromised. Validators and solvers watch for this signal and reject proofs from that verifier immediately, without waiting for the timelock to clear. The on-chain pause follows as the formal record.
+>
+> The schema's `fallback` field is what makes both layers safe: compromise pauses the primary path but does not block intent resolution.
 
 ## on_expire
 
@@ -140,7 +150,8 @@ TBD — describe the deterministic serialization used for hashing.
     "scheme": "hybrid",
     "verifier": {
       "zktls": "0xverif-tlsn…",
-      "tee": "0xverif-sgx…"
+      "tee": "0xverif-sgx…",
+      "fallback": "0xcouncil-multisig…"
     }
   },
   "on_expire": "cancel",
