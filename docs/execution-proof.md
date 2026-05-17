@@ -21,6 +21,8 @@ ExecutionProof {
 }
 ```
 
+> **Aggregate envelope, not streaming.** One ExecutionProof represents one intent's complete fulfillment — all step records, artifacts, and the success claim are inside a single signed object. The agent does not emit multiple envelopes per intent. Per-step dispute localization is achieved through `prev_hash` chaining inside the single envelope (see Step record below), not through multiple envelopes. This keeps the proof bundle as a single point of attribution and a single signature surface.
+
 ## Step record
 
 | Field | Description |
@@ -66,14 +68,55 @@ Verifiers MUST read `spec_version` before evaluating any proof. If the version i
 - Silent downgrade is a security anti-pattern: a tampered proof could claim an older `spec_version` to be evaluated against looser or preimage-vulnerable logic.
 - Pattern: read `spec_version` → route to a version-specific verifier module → surface the error explicitly if no module exists.
 
+## Canonicalization
+
+All hashing operations in this spec — `prev_hash` linkage, step record hashing, envelope hashing for `signature` — use the same **JCS (JSON Canonicalization Scheme, [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785))** canonicalization defined in [intent-schema.md §Canonicalization](intent-schema.md#canonicalization).
+
+A step's hash for `prev_hash` linkage is computed as:
+
+```
+step_hash = SHA-256(JCS(step_record_without_prev_hash))
+```
+
+The `prev_hash` field is excluded from its own step's hash input so the field can *contain* the previous step's hash without circular dependency. Step records are otherwise hashed including all present fields.
+
+The proof envelope's `signature` is computed over `SHA-256(JCS(envelope_without_signature))` using the agent's signing key (the key materially bound to `intent.executor.agent_id`).
+
+## Long-term verifiability
+
+A signed proof remains verifiable only while the agent's signing key is still trusted. For receipts that need to remain verifiable across key rotation or compromise events (months to years after issuance), the proof MAY carry an [RFC 3161](https://www.rfc-editor.org/rfc/rfc3161) timestamp sidecar countersigning the proof's signature input.
+
+The timestamp is **not** part of the canonical envelope — it is attached alongside the proof — so it can be added or refreshed without invalidating the original signature. A verifier evaluating an old proof checks:
+
+1. The agent's signing key was in a valid state at the time the RFC 3161 timestamp was issued (per the identity registry's key-state history).
+2. The timestamp was issued by a Time Stamping Authority the verifier trusts.
+
+If both hold, the proof remains verifiable even after the agent's signing key is rotated or revoked.
+
+**Rule:** Proofs whose signing key has moved to *compromised* status (see [Key revocation states](#key-revocation-states) below) MUST present a valid RFC 3161 timestamp predating the compromise event in order to remain verifiable. Proofs whose signing key has merely been *rotated* in normal course do not require a timestamp sidecar.
+
+## Key revocation states
+
+A signing key referenced by `intent.executor.agent_id` is in exactly one of three states from a verifier's perspective:
+
+| State | Meaning | Verifier action |
+|---|---|---|
+| **Active** | Currently authorized to sign proofs | Accept signatures |
+| **Rotated** | Retired in normal course | Accept signatures issued during the key's validity window |
+| **Compromised** | Retired due to compromise | Accept signatures only with an RFC 3161 timestamp predating the compromise event |
+
+The identity registry (whichever the `intent.executor.id_scheme` points to — ERC-8004, DID method, pubkey + revocation registry) maintains key-state transitions with effective dates. Verifiers MUST consult the registry's state at proof-validation time, not at proof-creation time, so that a compromise event that surfaces later still flows through to verdicts on old proofs.
+
 ## Verifier responsibilities
 
-1. Re-check the plan hash matches the mandate's commitment.
-2. Validate each step's attestation against the tool registry.
-3. If `intent.executor` is set, verify that the proof's `signature` originates from the same agent identity (`executor.agent_id`). A proof signed by a different agent identity than the one committed in the intent must be rejected.
-4. If `intent.attestation` is set, verify that the proof's attestation type and scheme match what the principal declared. A proof using an attestation type not listed in `intent.attestation` must be rejected.
-5. Evaluate `success_claim` against the intent's `success_criteria`.
-6. Emit verdict event.
+1. Read `spec_version` and route to the matching verifier module; reject with `UNSUPPORTED_SPEC_VERSION` if no module exists.
+2. Re-check the plan hash matches the mandate's commitment.
+3. Validate each step's attestation against the tool registry.
+4. If `intent.executor` is set, verify that the proof's `signature` originates from the same agent identity (`executor.agent_id`). A proof signed by a different agent identity than the one committed in the intent must be rejected.
+5. Consult the identity registry for the signing key's revocation state (see [Key revocation states](#key-revocation-states)) and apply the state-specific acceptance rule.
+6. If `intent.attestation` is set, verify that the proof's attestation type and scheme match what the principal declared. A proof using an attestation type not listed in `intent.attestation` must be rejected.
+7. Evaluate `success_claim` against the intent's `success_criteria`.
+8. Emit verdict event.
 
 ## Disputes
 

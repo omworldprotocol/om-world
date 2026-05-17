@@ -129,7 +129,21 @@ Default when field is omitted: `"cancel"`.
 
 ## Canonicalization
 
-TBD — describe the deterministic serialization used for hashing.
+All hashing operations on intent objects in this spec — computing `id`, hashing the intent for the principal's `signature`, hashing for `executor.commitment`, and any downstream hashing performed by verifiers — use **JCS (JSON Canonicalization Scheme, [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785))** over the canonical JSON representation, with the field being signed excluded from its own hash input.
+
+JCS is the canonicalization standard because:
+
+- It is deterministic, specified, and has reference implementations across TypeScript, Python, Java, Go, and Rust — verifiers in any of those runtimes produce identical canonical bytes from identical logical input.
+- It avoids the "everyone reinvents canonicalization" trap that has plagued earlier signed-JSON ecosystems.
+- It composes cleanly with JWS / JWT / COSE / raw Ed25519 signature schemes that implementations may choose for the signature itself.
+
+The canonical bytes are the SHA-256 input for:
+
+- `id` — `SHA-256(JCS(intent_object_without_id_and_signature))`
+- `signature` — over `SHA-256(JCS(intent_object_without_signature))` using the principal's signing key
+- `executor.commitment` — over `SHA-256(JCS({"intent_id": id, "agent_id": executor.agent_id}))` using the agent's signing key
+
+Implementations MUST NOT introduce additional canonicalization layers (re-sorting keys after JCS, additional normalization, etc.) — JCS output is the final canonical form.
 
 ## Examples
 
