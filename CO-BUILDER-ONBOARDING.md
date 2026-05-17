@@ -93,9 +93,13 @@ These are not part of the initial playbook but should be on the editor's calenda
 
 ---
 
-## Worked example: kawacukennedy (2026-05-17)
+## Worked examples
 
-The first Co-builder to go through this playbook. Use as a reference when onboarding the next one:
+Use these as references when onboarding the next Co-builder. The two are
+intentionally different tiers (Co-author vs Reviewer) so the playbook
+shape is visible across the spectrum.
+
+### kawacukennedy — Genesis Co-author of the Intent Schema (2026-05-17)
 
 | Step | Artifact |
 |------|----------|
@@ -105,6 +109,19 @@ The first Co-builder to go through this playbook. Use as a reference when onboar
 | 4. Personal welcome thread | [discussions/11](https://github.com/omworldprotocol/om-world/discussions/11) |
 | 5. Reply on original outreach thread | [kuberna-labs#4 comment](https://github.com/kawacukennedy/kuberna-labs/issues/4#issuecomment-4470133726) |
 | 6. CRM update | done |
+
+### Trusteedxyz — Genesis Reviewer of the Execution Proof (2026-05-17)
+
+| Step | Artifact |
+|------|----------|
+| 1. CONTRIBUTORS.md entry | [Genesis Reviewers → Execution Proof](CONTRIBUTORS.md#execution-proof) |
+| 2. Spec file Contributors | [execution-proof.md#contributors](docs/execution-proof.md#contributors) |
+| 3. Reference implementation | [Trust-Receipt-Verifier](https://github.com/Trusteedxyz/Trust-Receipt-Verifier) linked from [execution-proof.md#related-work](docs/execution-proof.md#related-work) |
+| 4. Personal welcome thread | [discussions/12](https://github.com/omworldprotocol/om-world/discussions/12) |
+| 5. Reply on original outreach thread | [Trust-Receipt-Verifier#3 comment](https://github.com/Trusteedxyz/Trust-Receipt-Verifier/issues/3#issuecomment-4470921921) |
+| 6. CRM update | done |
+
+Notes from this example: the original outreach was a single issue (no PR-as-vehicle complications); the Reviewer accepted in the same reply that brought a new round of substantive contributions; tier-boundary language was included in the confirmation reply so the contributor sees the path to Co-author without pressure.
 
 ---
 
