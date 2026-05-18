@@ -17,7 +17,13 @@ export type EventType =
   | "pattern_creation_reward"
   | "pattern_reuse_reward"
   | "system_grant"
-  | "manual_adjustment";
+  | "manual_adjustment"
+  | "node_storage_reward";
+
+// Phase 1: node storage reward parameters
+export const NODE_STORAGE = {
+  rewardOmcPerGbDay: Number(process.env.OMW_NODE_STORAGE_REWARD_OMC_PER_GB_DAY ?? 1),
+};
 
 /**
  * Get or create a credit account. New user accounts get OMC.initialUserCredits as a system_grant.
@@ -64,6 +70,7 @@ export async function recordEvent(params: {
   patternId?: string;
   capabilityId?: string;
   executionId?: string;
+  nodeId?: string;
   description?: string;
 }) {
   return db.$transaction(async (tx) => {
@@ -89,6 +96,7 @@ export async function recordEvent(params: {
         patternId: params.patternId,
         capabilityId: params.capabilityId,
         executionId: params.executionId,
+        nodeId: params.nodeId,
         description: params.description,
       },
     });
@@ -158,5 +166,28 @@ export async function rewardPatternReuse(opts: {
     patternId: opts.patternId,
     intentId: opts.intentId,
     description: `Reward for pattern ${opts.patternId} being reused on intent ${opts.intentId}`,
+  });
+}
+
+/**
+ * Phase 1: pay a node for storing bytes proven via a successful challenge.
+ * `gbHours` is the amount earned this tick (e.g. `bytes / 1024^3 * (hours_since_last_proof)`).
+ * Reward = gbHours * rewardOmcPerGbDay / 24.
+ */
+export async function rewardNodeStorage(opts: {
+  nodeId: string;
+  patternId: string;
+  gbHours: number;
+}) {
+  if (opts.gbHours <= 0) return null;
+  const account = await ensureAccount(opts.nodeId, "node");
+  const amount = (opts.gbHours * NODE_STORAGE.rewardOmcPerGbDay) / 24;
+  if (amount <= 0) return null;
+  return recordEvent({
+    accountId: account.id,
+    amount,
+    eventType: "node_storage_reward",
+    patternId: opts.patternId,
+    description: `Storage reward for node ${opts.nodeId}: ${opts.gbHours.toFixed(6)} GB-hours of pattern ${opts.patternId}`,
   });
 }

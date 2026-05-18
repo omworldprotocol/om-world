@@ -153,11 +153,12 @@ model CreditEvent {
   id            String   @id
   accountId     String   @map("account_id")
   amount        Float
-  eventType     String   @map("event_type") // intent_submission_debit | capability_reward | pattern_reuse_reward | system_grant | manual_adjustment | pattern_creation_reward
+  eventType     String   @map("event_type") // intent_submission_debit | capability_reward | pattern_reuse_reward | system_grant | manual_adjustment | pattern_creation_reward | node_storage_reward
   intentId      String?  @map("intent_id")
   patternId     String?  @map("pattern_id")
   capabilityId  String?  @map("capability_id")
   executionId   String?  @map("execution_id")
+  nodeId        String?  @map("node_id") // Phase 1: node-side rewards reference the node that earned them
   description   String?
   createdAt     DateTime @default(now()) @map("created_at")
 
@@ -166,4 +167,43 @@ model CreditEvent {
   @@index([accountId])
   @@index([eventType])
   @@map("credit_events")
+}
+
+// ---------- Phase 1: Node client (storage-only) ----------
+
+model Node {
+  id            String   @id // derived from pubkey hash
+  pubkey        String   @unique // ed25519 public key (base64)
+  ownerContact  String?  @map("owner_contact") // optional human contact for the node operator
+  claimedGb     Int      @map("claimed_gb") // self-reported capacity at registration
+  provenGb      Float    @default(0) @map("proven_gb") // updated as challenges succeed
+  status        String   @default("active") // active | striked | retired
+  strikes       Int      @default(0)
+  lastSeenAt    DateTime @map("last_seen_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  assignments NodeAssignment[]
+
+  @@index([status])
+  @@map("nodes")
+}
+
+model NodeAssignment {
+  id           String    @id
+  nodeId       String    @map("node_id")
+  patternId    String    @map("pattern_id")
+  sha256       String
+  sizeBytes    Int       @map("size_bytes")
+  status       String    @default("assigned") // assigned | confirmed | failed
+  lastChallengeAt DateTime? @map("last_challenge_at")
+  challengeFailures Int   @default(0) @map("challenge_failures")
+  assignedAt   DateTime  @default(now()) @map("assigned_at")
+  confirmedAt  DateTime? @map("confirmed_at")
+
+  node Node @relation(fields: [nodeId], references: [id])
+
+  @@unique([nodeId, patternId])
+  @@index([patternId])
+  @@index([status])
+  @@map("node_assignments")
 }
