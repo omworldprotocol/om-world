@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+// Always pull fresh from DB; never let Next.js prerender this at build time.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const [
     totalIntents,
