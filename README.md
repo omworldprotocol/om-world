@@ -54,6 +54,16 @@ Humans retain sovereignty over their intentions.
 - Interface Builders
 - Governance Participants
 
+## Core Documents
+
+- **[SELF_GROWTH_ENGINE.md](SELF_GROWTH_ENGINE.md)** — How OM World makes intent realization easier over time. The self-growth engine, the pattern library, the two-sided world, and the minimal core rules. **Start here to understand how the system is meant to work.**
+- [MANIFESTO.md](MANIFESTO.md) — The philosophical foundation.
+- [LITEPAPER.md](LITEPAPER.md) — The protocol overview.
+- [GOVERNANCE.md](GOVERNANCE.md) — How OM World is governed.
+- [GENESIS-BUILDERS.md](GENESIS-BUILDERS.md) — The Co-builder system for early contributors.
+- [CONTRIBUTORS.md](CONTRIBUTORS.md) — Public attribution of those who have shaped OM World.
+- [docs/](docs/) — Spec drafts for Intent Schema, Agent Mandate, Execution Proof, and Tool Registry.
+
 ## Current Status
 
 OM World is in its Genesis phase.
@@ -66,6 +76,7 @@ We are currently working on:
 - Intent Schema v0.1
 - Tool Registry design
 - Execution Proof design
+- Self-Growth Engine v0.1
 - Builder contribution framework
 
 ## Join the Genesis
