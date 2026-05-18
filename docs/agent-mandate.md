@@ -88,14 +88,21 @@ Different commerce protocols (UCP, ACP, AP2, x402, MPP, …) make different choi
 
 If a Mandate collapses any two of these into one field, then whenever a deployment behaves differently along the collapsed axis (e.g. AP2-signed checkout against an ACP-state-machine merchant) the abstraction has to leak. Keeping the axes as independent attributes preserves the abstraction.
 
+**Important asymmetry.** UCP is the **canonical vocabulary** the Mandate's tool surface is shaped to; ACP and AP2 are **adapted into** that vocabulary, not symmetric backends behind it. Implementers writing protocol-agnostic code against the Mandate primitive should not assume parity — ACP carries explicit lifecycle transitions and a `payment_handler` that can swap mid-session; AP2 carries `expiresAt` on the signed mandate itself that may be tighter than `tools_declared[*].expiry`. Both behaviors require ACP- or AP2-specific awareness even when the tool call looks UCP-shaped.
+
 **Deliberately not encoded into Mandate fields** (left to the deployment layer or the Tool Registry's metadata):
 
-- *Audit / compliance provenance* — which protocol carried the action, which authorization carrier signed. Belongs in the [Execution Proof](execution-proof.md) attestation chain, not in the signed Mandate.
+- *Audit / compliance provenance* — which protocol carried the action, which authorization carrier signed. Belongs in the [Execution Proof](execution-proof.md) attestation chain — and must be recorded as **separate fields** (`protocol` and `payment_carrier`), not one collapsed "protocol" field, so the axes the Mandate kept orthogonal don't re-collapse one layer down.
 - *Retry semantics* — `429 + Retry-After` vs `409 + idempotency_key` style choices. Belongs in the composable HTTP layer below the Mandate.
 
 Encoding either of these into Mandate would force a Mandate spec revision every time a protocol changes its surface.
 
-This decomposition is informed by the production experience of [Nolpak14/agorio](https://github.com/Nolpak14/agorio), a toolkit that bridges UCP + ACP + AP2 + MCP under one tool surface and documents the abstraction-leak points explicitly in [ADR 0002 — Quad-protocol](https://github.com/Nolpak14/agorio/blob/main/docs/adr/0002-quad-protocol.md) and [ADR 0004 — Composable HTTP](https://github.com/Nolpak14/agorio/blob/main/docs/adr/0004-composable-http.md).
+This decomposition is informed by the production experience of [Nolpak14/agorio](https://github.com/Nolpak14/agorio), a toolkit that bridges UCP + ACP + AP2 + MCP under one tool surface and documents the abstraction-leak points explicitly in [ADR 0002 — Quad-protocol](https://github.com/Nolpak14/agorio/blob/main/docs/adr/0002-quad-protocol.md), [ADR 0004 — Composable HTTP](https://github.com/Nolpak14/agorio/blob/main/docs/adr/0004-composable-http.md), and [ADR 0006 — Attestation HMAC](https://github.com/Nolpak14/agorio/blob/main/docs/adr/0006-attestation-hmac.md). agorio is cited in the OM World README as one production example of a single-agent runtime that composes cleanly under an OM World Mandate; OM World is implementation-agnostic and other runtimes that ship credible production examples may be added.
+
+### Planned v0.2 additions (informed by Nolpak14 review)
+
+- `tools_declared[*].carrier: 'bearer' | 'signed_mandate' | 'delegate_token' | 'none'` — optional field so verifiers can reject mandate/carrier mismatches instead of silently adopting bearer semantics. Also pins effective expiry as `min(tools_declared[*].expiry, sub_credential.expiresAt)` when a sub-credential carries its own `expiresAt`.
+- `executor.delegates: address[]` — optional pre-authorization set on the on-chain identity at `executor.agent_id`. A mandate posted by any address in `executor.delegates` is valid, attributed to `executor.agent_id` for slashing/reputation, but the audit trail records which delegate signed. Motivation: multi-LLM sub-agent chains (e.g. agorio's `AgentChain` running `find-best-price` → `request-approval` → `checkout-and-track` across different LLMs) where collapsing to one identity destroys EU AI Act attribution and posting per-sub-agent mandates triples slashable bonds.
 
 ## Open questions
 

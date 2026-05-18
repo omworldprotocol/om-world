@@ -80,6 +80,8 @@ Source layout: `app/` (Next.js App Router), `lib/` (LLM routing + matching + pat
 `prisma/schema.prisma` (7 tables per spec). LLM calls route through OpenClaw GPT-5.5 with
 DeepSeek auto-fallback. Deployment notes: [`scripts/deploy/README.md`](scripts/deploy/README.md).
 
+**Single-agent runtime example.** OM World is implementation-agnostic at the agent layer — any runtime that produces a signed Mandate and a valid Execution trace can plug in. As one production example: [Nolpak14/agorio](https://github.com/Nolpak14/agorio) is a quad-protocol agent toolkit (UCP / ACP / MCP / AP2) that composes cleanly under an OM World Mandate. See `docs/agent-mandate.md` §Composition for the cross-protocol axis decomposition shaped by the agorio review.
+
 ## Current Status
 
 OM World is in its Genesis phase. The Genesis MVP shipped on 2026-05-18.

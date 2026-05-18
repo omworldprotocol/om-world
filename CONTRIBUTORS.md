@@ -51,6 +51,23 @@ _Co-authors will be listed here as primitive design dialogue matures._
 
 _Substantive design improvements that landed in the spec. Reviewers are listed once the change ships and the contributor consents to public attribution._
 
+### Agent Mandate
+
+**[@Nolpak14](https://github.com/Nolpak14)** — Joined 2026-05-18
+
+Multi-round design feedback ([reference thread](https://github.com/Nolpak14/agorio/issues/50)) grounded in production agorio code paths, shaping four sections of the [Agent Mandate](docs/agent-mandate.md) spec:
+
+- **Three-axis decomposition for cross-protocol composition** — the framing of Discovery / Session-state-model / Authorization-carrier as orthogonal axes in §Composition with commerce protocols, preventing the silent leak that happens when any two are collapsed into one Mandate field
+- **`tools_declared[*].carrier` field for explicit carrier binding** — a minimal v0.2 addition that lets verifiers reject mandate/carrier mismatches instead of silently adopting bearer semantics, closing the sub-credential expiry split-brain (`AP2 mandate.expiresAt` vs `tools_declared[*].expiry`)
+- **`executor.delegates: address[]` for multi-LLM sub-agent attribution** — pre-authorizes a set of sub-agent addresses under one parent identity, so EU AI Act attribution (which LLM authorized what) survives without forcing one slashable bond per sub-agent
+- **Asymmetric framing of UCP vs ACP in §Composition** — UCP is the canonical vocabulary; ACP and AP2 are adapted into it. Stated explicitly so implementers don't assume parity and silently break on ACP-specific behaviors (lifecycle transitions, mid-session `payment_handler` swap)
+
+Reference implementation: [Nolpak14/agorio](https://github.com/Nolpak14/agorio) — quad-protocol toolkit (UCP / ACP / MCP / AP2) cited in §Composition with commerce protocols as a reference single-agent runtime that composes cleanly under an OM World mandate.
+
+Genesis Reviewer for the **agent-mandate v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-15.
+
+---
+
 ### Execution Proof
 
 **[@Trusteedxyz](https://github.com/Trusteedxyz)** — Joined 2026-05-17
