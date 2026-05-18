@@ -36,7 +36,7 @@ Co-author obligation (3) is bidirectional: you get to badge your project as a re
 - **Pre-publication access** to spec changes 48 hours before they go public, for the primitive(s) you are listed on
 - **Reference implementation status** — if your code implements the primitive you co-authored, we will link to it from the spec
 - **Influence on design direction** — your patterns shape what the protocol becomes; reference implementations are how protocols actually propagate
-- **Intention to recognize Genesis contributions if and when governance tokenization happens.** No specific formula is promised in advance; the commitment is that Genesis Co-builders are recognized as a class in any future tokenization or foundation formation, not that any specific allocation is owed. This is a statement of intention, not a contractual promise.
+- **Public attribution is the recognition.** No token is planned. No allocation of any token or financial instrument is contemplated for any contributor or class of contributors, now or in any future state of the protocol. Genesis Builder status confers exactly the items above (public credit, Litepaper acknowledgment, pre-publication access, reference-implementation linking, influence on design direction) — nothing more. Any future governance change, including but not limited to the introduction of a token, would be decided through the then-current governance process and is independent of Genesis Builder status; participation in that future process is not promised here.
 
 ---
 

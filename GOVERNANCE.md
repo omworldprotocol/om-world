@@ -465,7 +465,7 @@ Recognition may include:
 * badges
 * future on-chain contribution records
 
-No financial reward or token allocation is promised by contribution unless explicitly defined in a future approved program.
+No financial reward or token allocation is promised by contribution. The "future on-chain contribution records" listed above refer to public attribution records of past work, not to any allocation of value or token instrument.
 
 ## Phase 3 — Token-Aware Governance
 
@@ -1007,7 +1007,9 @@ Suggested governance-related labels:
 
 This document does not define a token.
 
-Any future token must be evaluated separately.
+**No token is planned at this time. No allocation of any token or financial instrument is contemplated for any party — including contributors, Genesis Builders, founders, or operators. No party has been promised, by this document or any other OM World channel, that they will receive value of any kind in any future state of the protocol.**
+
+Any future token must be evaluated separately. If a token is ever introduced, its allocation would be decided through the then-current governance process; no retroactive commitments exist or are implied by participation in OM World today.
 
 A token, if introduced, must serve the protocol.
 

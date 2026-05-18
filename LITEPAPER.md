@@ -495,6 +495,8 @@ The token should exist to support protocol function, not speculation.
 
 The final token model must be reviewed carefully for legal, economic, security, and governance risks before launch.
 
+**No party has been promised any allocation.** This section describes potential future utilities, not commitments. No current or past contributor, Genesis Builder, founder, operator, reader of this Litepaper, or other party has been promised any allocation of any token or financial instrument. If a token is ever introduced, its allocation would be decided through the then-current governance process; no retroactive allocation to any party participating in OM World today is implied or owed.
+
 ## 10. Governance
 
 OM World should not be controlled by a single company or closed team.
