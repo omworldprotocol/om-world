@@ -1,8 +1,8 @@
-# omw-node — OM World node client v0
+# omw-node — OM World node client v0.2
 
-Turn your laptop or server into an OM World storage node. The Pattern Library replicates onto your disk; you earn OM Credit (OMC) for proven storage.
+Turn your laptop or server into an OM World **storage** node and (optionally) a **compute** node. The Pattern Library replicates onto your disk; you earn OM Credit (OMC) for proven storage. If you opt into compute, the server may also assign you Pattern executions — you run the LLM call locally and earn OMC per minute of wall time.
 
-**v0 scope: storage only.** Compute offload arrives in Phase 2 of the MVP Wave 2 plan.
+**Scope:** Storage + Compute (one executor kind so far: `community_growth.builder_recruitment`).
 
 ## Install
 
@@ -13,14 +13,22 @@ npm install
 
 ## Run against the live MVP
 
+**Storage-only** (lowest barrier — no LLM creds needed):
+
 ```bash
 npm run start -- start --server https://app.omworld.one --gb 5 --contact "@yourhandle"
 ```
 
-Or against a local dev server:
+**Storage + compute** (opts into running Pattern executions; requires OpenClaw with ChatGPT Plus OAuth, or `DEEPSEEK_API_KEY` in env):
 
 ```bash
-OMW_SERVER=http://localhost:3001 npm run start -- start --gb 1 --verbose
+npm run start -- start --server https://app.omworld.one --gb 5 --contact "@yourhandle" --compute
+```
+
+Local dev:
+
+```bash
+OMW_SERVER=http://localhost:3001 npm run start -- start --gb 1 --compute --verbose
 ```
 
 First run:
@@ -33,12 +41,15 @@ First run:
 Each heartbeat is one of:
 
 - **No work** — the server has nothing for you; sleep until next interval.
+- **`kind: "compute"`** *(if you ran with `--compute`)* — server hands you a Pattern execution: `{ work_assignment_id, executor_kind, input_json }`. You run the runner locally (LLM call), then PUT the result to `/api/nodes/work`. Server completes the execution, fires OMC rewards (capability provider + pattern + your compute time). **Compute > challenge > store** in priority.
 - **`kind: "store"`** — you receive a base64 blob of a Pattern. You sha256-verify it, write to `~/.omw-node/blobs/<sha256>`, and confirm on the next heartbeat.
 - **`kind: "challenge"`** — server names a `(blob_sha256, byte_range)`; you compute the sha256 of that slice from your local copy and POST it to `/api/nodes/proof`. Match → OMC credited. Mismatch → strike. 3 strikes → status flips to `striked` and you stop earning.
 
 ## Earnings model
 
-`OMC_NODE_STORAGE_REWARD_OMC_PER_GB_DAY` (server env, default 1) splits hourly per successful proof: each accepted proof credits `bytes × hours_since_last_proof × rate / 24 / GB`. First proof per assignment earns 0 — only forward credit, no retroactive backfill.
+**Storage**: `OMW_NODE_STORAGE_REWARD_OMC_PER_GB_DAY` (server env, default 1) splits hourly per successful proof: each accepted proof credits `bytes × hours_since_last_proof × rate / 24 / GB`. First proof per assignment earns 0 — only forward credit, no retroactive backfill.
+
+**Compute**: `OMW_NODE_COMPUTE_PER_MINUTE` (server env, default 0.2) × elapsed minutes, capped at `OMW_NODE_COMPUTE_CAP_PER_JOB` (default 60). A typical 60s recruitment generation = `0.2 × 1 = 0.2` OMC for the node, alongside the standard `capability_reward` (10 OMC) + pattern create/reuse rewards.
 
 OMC balance is internal to OM World. Not a token. Not transferable in v0.
 
@@ -65,7 +76,8 @@ omw-node help        # usage
 - No replication factor > 1 — blob lives on the assigned node + on the server.
 - No NAT traversal — node polls outbound; server replies. Works behind NAT.
 - No GUI.
-- No compute capabilities — that's Phase 2.
+- No verifiable compute. Server may randomly re-run a fraction of node outputs as a spot check (Phase 2.5 / 3); for now compute results are trusted.
+- No model-weight or LLM-credential distribution: compute nodes BYO OpenClaw OAuth or `DEEPSEEK_API_KEY`.
 
 ## Troubleshooting
 

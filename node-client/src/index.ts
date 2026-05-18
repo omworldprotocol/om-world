@@ -15,6 +15,7 @@
 
 import { loadOrCreateIdentity, signMessage } from "./identity.js";
 import { putBlob, hashBlobRange, totalStoredBytes } from "./blob_store.js";
+import { runRecruitment, type RunnerInput } from "./runners/recruitment.js";
 import type {
   RegisterRequest,
   RegisterResponse,
@@ -22,6 +23,8 @@ import type {
   HeartbeatResponse,
   ProofRequest,
   Work,
+  WorkSubmitRequest,
+  WorkSubmitResponse,
 } from "./protocol.js";
 
 interface Config {
@@ -30,7 +33,12 @@ interface Config {
   contact: string;
   intervalMs: number;
   verbose: boolean;
+  executorKinds: string[];
 }
+
+// All capability kinds this node knows how to execute locally. Add entries as
+// new runners are ported into node-client/src/runners/.
+const KNOWN_EXECUTOR_KINDS = ["community_growth.builder_recruitment"];
 
 function parseArgs(argv: string[]): { command: string; cfg: Config } {
   const args = argv.slice(2);
@@ -41,6 +49,7 @@ function parseArgs(argv: string[]): { command: string; cfg: Config } {
     contact: process.env.OMW_NODE_CONTACT || "",
     intervalMs: Number(process.env.OMW_NODE_INTERVAL_S || 30) * 1000,
     verbose: false,
+    executorKinds: [],
   };
   for (let i = 1; i < args.length; i++) {
     const a = args[i];
@@ -49,12 +58,18 @@ function parseArgs(argv: string[]): { command: string; cfg: Config } {
     else if (a === "--contact") cfg.contact = args[++i];
     else if (a === "--interval") cfg.intervalMs = Number(args[++i]) * 1000;
     else if (a === "--verbose" || a === "-v") cfg.verbose = true;
+    else if (a === "--compute") {
+      // Opt into all known executor kinds. Without this flag, node is storage-only.
+      cfg.executorKinds = KNOWN_EXECUTOR_KINDS;
+    } else if (a === "--executor-kinds") {
+      cfg.executorKinds = args[++i].split(",").map((s) => s.trim()).filter(Boolean);
+    }
   }
   return { command, cfg };
 }
 
 function help(): void {
-  console.log(`omw-node — OM World node client v0
+  console.log(`omw-node — OM World node client v0.2
 
 Commands:
   start     register (if needed) then poll the server forever
@@ -62,13 +77,25 @@ Commands:
   help      show this message
 
 Flags:
-  --server URL       OM World server (default https://app.omworld.one)
-  --gb N             claimed storage capacity in GB (default 1)
-  --contact handle   optional human contact for the node operator
-  --interval SECONDS heartbeat poll interval (default 30)
-  --verbose, -v      print every poll cycle
+  --server URL                  OM World server (default https://app.omworld.one)
+  --gb N                        claimed storage capacity in GB (default 1)
+  --contact handle              optional human contact for the node operator
+  --interval SECONDS            heartbeat poll interval (default 30)
+  --compute                     opt into all known executor kinds (currently:
+                                community_growth.builder_recruitment); BYO LLM
+                                creds (OpenClaw OAuth or DEEPSEEK_API_KEY)
+  --executor-kinds k1,k2,...    explicit subset of executor_kinds to opt into
+  --verbose, -v                 print every poll cycle
 
 Identity + blob store live at \$OMW_NODE_DIR (default ~/.omw-node).
+
+Compute mode notes:
+  When the node opts into compute, the server may send a Pattern execution
+  work assignment in the heartbeat response. The node runs the executor
+  locally (calling OpenClaw GPT-5.5 by default, DeepSeek as fallback) and
+  posts the result back via PUT /api/nodes/work. The node earns
+  OMW_NODE_COMPUTE_PER_MINUTE OMC for the wall time of the job
+  (capped at OMW_NODE_COMPUTE_CAP_PER_JOB).
 `);
 }
 
@@ -110,11 +137,83 @@ function buildHeartbeat(nodeId: string, cfg: Config, confirm?: { assignment_id: 
     nonce,
     signature: signMessage(id, message),
     free_gb: Math.max(0, cfg.claimedGb - Math.ceil(totalStoredBytes() / 1024 / 1024 / 1024)),
+    executor_kinds: cfg.executorKinds.length ? cfg.executorKinds : undefined,
     confirm,
   };
 }
 
+async function runComputeWork(cfg: Config, nodeId: string, work: Extract<Work, { kind: "compute" }>): Promise<void> {
+  console.log(`[omw-node] claimed compute work ${work.work_assignment_id} (executor_kind=${work.executor_kind})`);
+  const id = loadOrCreateIdentity();
+  const startedAt = Date.now();
+
+  let runnerResult: { output: unknown; outputText: string; executionMode: "fresh" | "adapted" | "placeholder" };
+  try {
+    let input: RunnerInput;
+    try {
+      input = JSON.parse(work.input_json) as RunnerInput;
+    } catch (e) {
+      throw new Error(`malformed input_json: ${e instanceof Error ? e.message : String(e)}`);
+    }
+
+    if (work.executor_kind === "community_growth.builder_recruitment") {
+      const r = await runRecruitment(input);
+      runnerResult = { output: r.output, outputText: r.outputText, executionMode: r.executionMode };
+    } else {
+      throw new Error(`no runner registered for executor_kind=${work.executor_kind}`);
+    }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.warn(`[omw-node] compute work failed: ${message}`);
+    runnerResult = {
+      output: { error: message },
+      outputText: `Runner error: ${message}`,
+      executionMode: "placeholder",
+    };
+  }
+
+  const elapsedSec = (Date.now() - startedAt) / 1000;
+  const nonce = Date.now();
+  const message = `omw-work-submit|${nodeId}|${work.work_assignment_id}|${runnerResult.executionMode}|${nonce}`;
+  const body: WorkSubmitRequest = {
+    node_id: nodeId,
+    pubkey: id.publicKeyB64,
+    nonce,
+    signature: signMessage(id, message),
+    work_assignment_id: work.work_assignment_id,
+    output: runnerResult.output,
+    output_text: runnerResult.outputText,
+    execution_mode: runnerResult.executionMode,
+    elapsed_sec: elapsedSec,
+  };
+
+  try {
+    const res = await fetch(`${cfg.server}/api/nodes/work`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      throw new Error(`${res.status}: ${text.slice(0, 400)}`);
+    }
+    const parsed = JSON.parse(text) as WorkSubmitResponse;
+    console.log(`[omw-node] compute submit OK — execution=${parsed.execution_id} mode=${runnerResult.executionMode} elapsed=${elapsedSec.toFixed(1)}s pattern_event=${JSON.stringify(parsed.pattern_event)}`);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.warn(`[omw-node] compute submit failed: ${message}`);
+  }
+}
+
 async function handleWork(cfg: Config, nodeId: string, work: Work): Promise<{ confirm?: { assignment_id: string; sha256: string } }> {
+  if (work.kind === "compute") {
+    // Fire-and-await: a single compute job (LLM call ~30-60s) is the unit; we
+    // intentionally block the poll loop for its duration so the node doesn't
+    // claim a second piece of work it can't finish concurrently.
+    await runComputeWork(cfg, nodeId, work);
+    return {};
+  }
+
   if (work.kind === "store") {
     const bytes = Buffer.from(work.blob_base64, "base64");
     if (bytes.length !== work.size_bytes) {

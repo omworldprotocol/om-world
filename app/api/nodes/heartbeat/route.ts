@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { recordHeartbeat, verifyNodeSignature } from "@/lib/nodes";
 import { pickNextAssignment, confirmAssignment, pickChallengeForNode } from "@/lib/storage_assignment";
+import { claimNextWorkForNode, runFallbackSweep } from "@/lib/work";
 
 /**
  * POST /api/nodes/heartbeat
@@ -20,6 +21,8 @@ const HeartbeatSchema = z.object({
   nonce: z.number().int(),
   signature: z.string(),
   free_gb: z.number().int().nonnegative().optional(),
+  // Phase 2: node opts into compute by listing executor kinds it can run locally.
+  executor_kinds: z.array(z.string()).optional().default([]),
   // Optional: report a previously-issued assignment's confirmation (sha256 the node stored).
   confirm: z.object({
     assignment_id: z.string(),
@@ -67,22 +70,43 @@ export async function POST(req: Request) {
     confirmed = r.ok ? { pattern_id: r.patternId } : { error: r.reason };
   }
 
-  // Step 2: issue work — prefer issuing a challenge over a new assignment so
-  // a healthy node accumulates proven GB before being asked to store more.
-  // We alternate: ~30% challenge, ~70% new assignment.
+  // Opportunistic fallback sweep — flushes stale queued work that no node claimed.
+  void runFallbackSweep().catch((e) => console.error("fallback sweep:", e));
+
+  // Step 2: issue work in priority order — compute > challenge > store.
+  // Compute fulfills a real user intent immediately, so it wins. Challenges
+  // keep storage honest. Store is just replication and can wait.
   let work: unknown = null;
 
-  const wantChallenge = Math.random() < 0.3;
-  if (wantChallenge) {
-    const ch = await pickChallengeForNode({ nodeId: d.node_id });
-    if (ch) {
+  if (d.executor_kinds.length > 0 && node.status === "active") {
+    const compute = await claimNextWorkForNode({
+      nodeId: d.node_id,
+      executorKinds: d.executor_kinds,
+    });
+    if (compute) {
       work = {
-        kind: "challenge",
-        assignment_id: ch.assignmentId,
-        sha256: ch.sha256,
-        range_start: ch.rangeStart,
-        range_end: ch.rangeEnd,
+        kind: "compute",
+        work_assignment_id: compute.workAssignmentId,
+        execution_id: compute.executionId,
+        executor_kind: compute.executorKind,
+        input_json: compute.inputJson,
       };
+    }
+  }
+
+  if (!work) {
+    const wantChallenge = Math.random() < 0.3;
+    if (wantChallenge) {
+      const ch = await pickChallengeForNode({ nodeId: d.node_id });
+      if (ch) {
+        work = {
+          kind: "challenge",
+          assignment_id: ch.assignmentId,
+          sha256: ch.sha256,
+          range_start: ch.rangeStart,
+          range_end: ch.rangeEnd,
+        };
+      }
     }
   }
 

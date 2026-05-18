@@ -6,6 +6,7 @@ import type { ClassifiedIntent, MatchedPath } from "@/lib/llm";
 import { rewardCapabilityProvider, rewardPatternCreation, rewardPatternReuse } from "@/lib/credits";
 import { createPatternFromExecution, findReusablePattern, incrementPatternReuse } from "@/lib/patterns";
 import { runCapability } from "@/lib/capabilities";
+import { enqueueWork, runFallbackSweep, shouldEnqueue } from "@/lib/work";
 
 const ExecutionRequest = z.object({
   intent_id: z.string(),
@@ -17,6 +18,9 @@ const csvList = (s: string | null | undefined): string[] =>
   s ? s.split(",").map((x) => x.trim()).filter(Boolean) : [];
 
 export async function POST(req: Request) {
+  // Opportunistic fallback sweep — flushes any queued work that's gone stale.
+  void runFallbackSweep().catch((e) => console.error("fallback sweep:", e));
+
   const body = await req.json().catch(() => null);
   const parsed = ExecutionRequest.safeParse(body);
   if (!parsed.success) {
@@ -35,17 +39,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No matching capabilities" }, { status: 404 });
   }
 
-  // Determine classification (needed early for reusable-pattern lookup).
   let classified: ClassifiedIntent | null = null;
   if (intent.constraintsJson) {
     try { classified = JSON.parse(intent.constraintsJson) as ClassifiedIntent; } catch { /* ignore */ }
   }
 
-  // Check for reusable pattern BEFORE generation — enables the fast adaptive path.
-  let reusable: Awaited<ReturnType<typeof findReusablePattern>> = null;
-  if (classified) {
-    reusable = await findReusablePattern(classified.intent_type);
-  }
+  const reusable = classified ? await findReusablePattern(classified.intent_type) : null;
 
   const matchedPath: MatchedPath = {
     path_summary: path.pathSummary ?? "",
@@ -57,10 +56,31 @@ export async function POST(req: Request) {
     why_this_path: "",
   };
 
-  const startedAt = Date.now();
+  // ───────────────────────────────────────────────────────────────────
+  // Path A: capability is runsOnNode → enqueue + return queued
+  // ───────────────────────────────────────────────────────────────────
+  if (shouldEnqueue(intent.intentType)) {
+    const { executionId: execId, workAssignmentId } = await enqueueWork({
+      intent,
+      classified,
+      path,
+      matchedPath,
+      capabilities,
+      reusable,
+      capabilityIds: capability_ids,
+    });
+    return NextResponse.json({
+      execution_id: execId,
+      work_assignment_id: workAssignmentId,
+      status: "queued",
+      output_text: "Queued for a compute node; will fall back to inline server execution if no node claims within OMW_LOCAL_FALLBACK_AFTER_SEC.",
+    }, { status: 202 });
+  }
 
-  // Single dispatch point. The registry resolves the executor by intent_type
-  // (longest-prefix match), falling back to the placeholder for unsupported types.
+  // ───────────────────────────────────────────────────────────────────
+  // Path B: capability is NOT runsOnNode (e.g. placeholder) → run inline now
+  // ───────────────────────────────────────────────────────────────────
+  const startedAt = Date.now();
   let executorResult;
   try {
     executorResult = await runCapability({
@@ -78,7 +98,6 @@ export async function POST(req: Request) {
   }
 
   const { output, outputText, executionMode } = executorResult;
-
   const elapsedMs = Date.now() - startedAt;
   const timeUsed = `${(elapsedMs / 1000).toFixed(1)}s`;
 
@@ -108,7 +127,6 @@ export async function POST(req: Request) {
   await db.intent.update({ where: { id: intent_id }, data: { status: "fulfilled" } });
   await db.realizationPath.update({ where: { id: path_id }, data: { status: "completed" } });
 
-  // Reward each capability provider
   for (const cap of capabilities) {
     try {
       await rewardCapabilityProvider({
@@ -117,12 +135,9 @@ export async function POST(req: Request) {
         executionId: execution.id,
         intentId: intent_id,
       });
-    } catch (e) {
-      console.error("rewardCapabilityProvider failed:", e);
-    }
+    } catch (e) { console.error("rewardCapabilityProvider failed:", e); }
   }
 
-  // Pattern logic: reuse if we already found one above; otherwise create.
   let patternEvent: { pattern_id: string; action: "reused" | "created" } | null = null;
   if (classified) {
     if (reusable) {
@@ -160,9 +175,7 @@ export async function POST(req: Request) {
             });
           } catch (e) { console.error("rewardPatternCreation failed:", e); }
         }
-      } catch (e) {
-        console.error("Pattern creation failed (non-fatal):", e);
-      }
+      } catch (e) { console.error("Pattern creation failed (non-fatal):", e); }
     }
   }
 

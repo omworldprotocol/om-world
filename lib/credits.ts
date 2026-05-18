@@ -18,11 +18,18 @@ export type EventType =
   | "pattern_reuse_reward"
   | "system_grant"
   | "manual_adjustment"
-  | "node_storage_reward";
+  | "node_storage_reward"
+  | "node_compute_reward";
 
 // Phase 1: node storage reward parameters
 export const NODE_STORAGE = {
   rewardOmcPerGbDay: Number(process.env.OMW_NODE_STORAGE_REWARD_OMC_PER_GB_DAY ?? 1),
+};
+
+// Phase 2: node compute reward parameters
+export const NODE_COMPUTE = {
+  rewardOmcPerMinute: Number(process.env.OMW_NODE_COMPUTE_PER_MINUTE ?? 0.2),
+  capPerJob: Number(process.env.OMW_NODE_COMPUTE_CAP_PER_JOB ?? 60),
 };
 
 /**
@@ -174,6 +181,12 @@ export async function rewardPatternReuse(opts: {
  * `gbHours` is the amount earned this tick (e.g. `bytes / 1024^3 * (hours_since_last_proof)`).
  * Reward = gbHours * rewardOmcPerGbDay / 24.
  */
+// Don't fire per-challenge events for fractional micropayments — accumulate
+// silently inside Node.provenGb instead, and only emit a CreditEvent when
+// the credit crosses 0.0001 OMC. Otherwise a tiny test blob fires 100s of
+// rows per minute, which is index spam without practical value.
+const STORAGE_REWARD_MIN_EMIT_OMC = Number(process.env.OMW_NODE_STORAGE_MIN_EMIT_OMC ?? 0.0001);
+
 export async function rewardNodeStorage(opts: {
   nodeId: string;
   patternId: string;
@@ -182,12 +195,35 @@ export async function rewardNodeStorage(opts: {
   if (opts.gbHours <= 0) return null;
   const account = await ensureAccount(opts.nodeId, "node");
   const amount = (opts.gbHours * NODE_STORAGE.rewardOmcPerGbDay) / 24;
-  if (amount <= 0) return null;
+  if (amount < STORAGE_REWARD_MIN_EMIT_OMC) return null;
   return recordEvent({
     accountId: account.id,
     amount,
     eventType: "node_storage_reward",
     patternId: opts.patternId,
     description: `Storage reward for node ${opts.nodeId}: ${opts.gbHours.toFixed(6)} GB-hours of pattern ${opts.patternId}`,
+  });
+}
+
+/**
+ * Phase 2: pay a node for completing a compute job.
+ * Reward = min(elapsedMinutes * rewardOmcPerMinute, capPerJob).
+ */
+export async function rewardNodeCompute(opts: {
+  nodeId: string;
+  executionId: string;
+  elapsedSec: number;
+}) {
+  if (opts.elapsedSec <= 0) return null;
+  const account = await ensureAccount(opts.nodeId, "node");
+  const minutes = opts.elapsedSec / 60;
+  const amount = Math.min(minutes * NODE_COMPUTE.rewardOmcPerMinute, NODE_COMPUTE.capPerJob);
+  if (amount <= 0) return null;
+  return recordEvent({
+    accountId: account.id,
+    amount,
+    eventType: "node_compute_reward",
+    executionId: opts.executionId,
+    description: `Compute reward for node ${opts.nodeId}: ${opts.elapsedSec.toFixed(1)}s of execution ${opts.executionId}`,
   });
 }

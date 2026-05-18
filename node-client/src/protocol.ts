@@ -24,6 +24,8 @@ export interface HeartbeatRequest {
   nonce: number;
   signature: string;
   free_gb?: number;
+  /** Phase 2: list of intent_types this node can execute. Empty = storage-only. */
+  executor_kinds?: string[];
   confirm?: {
     assignment_id: string;
     sha256: string;
@@ -45,6 +47,13 @@ export type Work =
       sha256: string;
       range_start: number;
       range_end: number;
+    }
+  | {
+      kind: "compute";
+      work_assignment_id: string;
+      execution_id: string;
+      executor_kind: string;
+      input_json: string;
     };
 
 export interface HeartbeatResponse {
@@ -53,6 +62,25 @@ export interface HeartbeatResponse {
   strikes: number;
   confirmed?: { pattern_id: string } | { error: string } | null;
   work?: Work | null;
+}
+
+export interface WorkSubmitRequest {
+  node_id: string;
+  pubkey: string;
+  nonce: number;
+  signature: string;
+  work_assignment_id: string;
+  output: unknown;
+  output_text: string;
+  execution_mode: "fresh" | "adapted" | "placeholder";
+  elapsed_sec: number;
+}
+
+export interface WorkSubmitResponse {
+  ok: boolean;
+  execution_id: string;
+  pattern_event?: { pattern_id: string; action: "reused" | "created" } | null;
+  already_completed?: boolean;
 }
 
 export interface ProofRequest {

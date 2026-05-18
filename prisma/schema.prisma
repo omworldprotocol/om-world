@@ -207,3 +207,25 @@ model NodeAssignment {
   @@index([status])
   @@map("node_assignments")
 }
+
+// ---------- Phase 2: compute nodes + work queue ----------
+
+model WorkAssignment {
+  id           String   @id
+  executionId  String   @unique @map("execution_id")
+  executorKind String   @map("executor_kind") // intent_type — what kind of work this is
+  nodeId       String?  @map("node_id") // null = unclaimed; "local-fallback" = ran on server after timeout
+  status       String   @default("queued") // queued | claimed | running | completed | failed
+  inputJson    String   @map("input_json") // serialized minimal ExecutorContext for the runner
+  outputJson   String?  @map("output_json")
+  outputText   String?  @map("output_text")
+  executionMode String? @map("execution_mode") // "fresh" | "adapted" | "placeholder"
+  errorText    String?  @map("error_text")
+  claimedAt    DateTime? @map("claimed_at")
+  completedAt  DateTime? @map("completed_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([status, executorKind])
+  @@map("work_assignments")
+}
