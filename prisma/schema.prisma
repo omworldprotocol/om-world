@@ -55,11 +55,19 @@ model Capability {
   requiresApi           Boolean  @default(false) @map("requires_api")
   requiresHuman         Boolean  @default(false) @map("requires_human")
   status                String   @default("submitted")
+  // Phase 3.5: capability testability (red-team #6). A capability that hasn't
+  // been tested recently is excluded from matching, so the registry can't be
+  // junk-filled with unreachable / broken / overstated tools.
+  testInputJson         String?  @map("test_input_json")    // JSON-encoded fake intent fields for the test runner
+  expectedShapeJson     String?  @map("expected_shape_json") // JSON-encoded shape of expected output (top-level keys)
+  lastTestedAt          DateTime? @map("last_tested_at")
+  testPassRate          Float?   @map("test_pass_rate")     // 0..1; null = never tested
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
   @@index([capabilityType])
   @@index([status])
+  @@index([lastTestedAt])
   @@map("capabilities")
 }
 
@@ -72,6 +80,13 @@ model RealizationPath {
   proofCondition           String?  @map("proof_condition")
   settlementTemplate       String?  @map("settlement_template")
   pathSummary              String?  @map("path_summary")
+  // Phase 3.5: matching explainability (red-team #7). The Router is OM World's
+  // first centralized power point; supply-side must be able to audit "why was
+  // I not picked." Score ∈ [0,1]; alternativesJson lists the other 2-3 paths
+  // the LLM considered + their scores + why-not reasons.
+  matchScore               Float?   @map("match_score")
+  alternativesJson         String?  @map("alternatives_json")
+  routerVersion            String?  @map("router_version")
   status                   String   @default("proposed")
   createdAt                DateTime @default(now()) @map("created_at")
   updatedAt                DateTime @updatedAt @map("updated_at")
@@ -94,7 +109,16 @@ model Execution {
   traceJson       String?  @map("trace_json")
   cost            String?
   timeUsed        String?  @map("time_used")
+  // Phase 3.5: numeric mirror of timeUsed for friction-curve math (red-team #1).
+  // timeUsed is a human "57.2s" string; this is the raw seconds float.
+  elapsedSec      Float?   @map("elapsed_sec")
   status          String   @default("submitted")
+  // Phase 3.5: user feedback (red-team #10). null = unconfirmed; true = user
+  // accepted the output as useful; false = explicitly rejected. Drives the
+  // successfulReuseCount metric and gates pattern reuse rewards.
+  userAccepted    Boolean? @map("user_accepted")
+  feedbackAt      DateTime? @map("feedback_at")
+  feedbackNote    String?  @map("feedback_note")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -119,6 +143,23 @@ model Pattern {
   reuseCount                 Int      @default(0) @map("reuse_count")
   successCount               Int      @default(0) @map("success_count")
   failureCount               Int      @default(0) @map("failure_count")
+  // Phase 3.5: reuse that actually reduced friction (red-team #8). Only
+  // increments when adapted_time / fresh_avg_time < 0.85, OR when user
+  // explicitly confirmed the output via PATCH /api/executions/[id]/feedback.
+  // Rewards bind to this, not the raw reuseCount, so spam-reuse stops
+  // generating OMC.
+  successfulReuseCount       Int      @default(0) @map("successful_reuse_count")
+  // Phase 3.5: cumulative timing for friction-curve dashboard. Updated on
+  // every completion for the same intent_type.
+  freshTimeSumSec            Float    @default(0) @map("fresh_time_sum_sec")
+  freshExecutionCount        Int      @default(0) @map("fresh_execution_count")
+  adaptedTimeSumSec          Float    @default(0) @map("adapted_time_sum_sec")
+  adaptedExecutionCount      Int      @default(0) @map("adapted_execution_count")
+  // Phase 3.5: generic-capture defense. If this pattern is the matched-by
+  // for too many reuses too fast, flag for review and cool off.
+  reuseWindowCount           Int      @default(0) @map("reuse_window_count")
+  reuseWindowStartedAt       DateTime? @map("reuse_window_started_at")
+  cooldownUntil              DateTime? @map("cooldown_until")
   notes                      String?
   reusePotential             String?  @map("reuse_potential")
   futureDistributedStorage   Boolean  @default(true) @map("future_distributed_storage")

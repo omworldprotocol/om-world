@@ -18,6 +18,18 @@ const CapabilitySchema = z.object({
   requires_human: z.boolean().optional().default(false),
   pricing_model: z.enum(["free", "fixed", "usage_based", "custom"]).optional().default("free"),
   notes: z.string().max(4000).optional().nullable(),
+  // Phase 3.5 (red-team #6): testability fields. Optional in v0 so existing
+  // tooling doesn't break, but new public registrations are nudged hard:
+  // capabilities without these are flagged "untested" in matching + UI.
+  test_input: z.object({
+    intent_text: z.string().min(3).max(2000),
+    intent_type: z.string(),
+    context: z.string().max(2000).optional(),
+    desired_output: z.string().max(2000).optional(),
+  }).optional(),
+  expected_shape: z.object({
+    keys: z.array(z.string()).min(1),
+  }).optional(),
 });
 
 export async function POST(req: Request) {
@@ -50,6 +62,8 @@ export async function POST(req: Request) {
       requiresLlm: data.requires_llm,
       requiresApi: data.requires_api,
       requiresHuman: data.requires_human,
+      testInputJson: data.test_input ? JSON.stringify(data.test_input) : null,
+      expectedShapeJson: data.expected_shape ? JSON.stringify(data.expected_shape) : null,
       status: "active",
     },
   });

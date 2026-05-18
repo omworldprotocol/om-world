@@ -54,6 +54,15 @@ async function main() {
       requiresLlm: true,
       requiresApi: false,
       requiresHuman: false,
+      // Phase 3.5 capability testability.
+      testInputJson: JSON.stringify({
+        intent_text: "Research the state of intent realization networks.",
+        intent_type: "research.cite_synthesis",
+        context: "Test invocation; web search may fall back to unsourced brief.",
+      }),
+      expectedShapeJson: JSON.stringify({
+        keys: ["brief_markdown", "claims", "bibliography", "queries_used", "source_count", "caveat"],
+      }),
       status: "active",
     },
   });

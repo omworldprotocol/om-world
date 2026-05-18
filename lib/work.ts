@@ -30,7 +30,12 @@ import {
   rewardPatternReuse,
   rewardNodeCompute,
 } from "./credits";
-import { createPatternFromExecution, findReusablePattern, incrementPatternReuse } from "./patterns";
+import {
+  createPatternFromExecution,
+  findReusablePattern,
+  recordFreshExecution,
+  recordPatternReuse,
+} from "./patterns";
 
 const FALLBACK_AFTER_SEC = Number(process.env.OMW_LOCAL_FALLBACK_AFTER_SEC ?? 600);
 
@@ -282,6 +287,7 @@ export async function completeWork(input: CompleteWorkInput): Promise<{
           executed_by_node: input.nodeId,
         }),
         timeUsed,
+        elapsedSec: input.elapsedSec,
         status: "completed",
         nodeId: input.nodeId,
       },
@@ -323,12 +329,34 @@ export async function completeWork(input: CompleteWorkInput): Promise<{
     } catch (e) { console.error("rewardNodeCompute failed:", e); }
   }
 
-  let patternEvent: { pattern_id: string; action: "reused" | "created" } | null = null;
+  let patternEvent: { pattern_id: string; action: "reused" | "created"; reward_gated?: { reason: string } } | null = null;
   if (classified) {
     if (reusable) {
-      await incrementPatternReuse(reusable.id);
-      patternEvent = { pattern_id: reusable.id, action: "reused" };
-      if (reusable.creatorId) {
+      // Phase 3.5: record the reuse and decide whether to fire the OMC reward
+      // based on actual friction reduction + anti-gaming policy. If the adapted
+      // run wasn't faster than threshold, OR the reuser is the creator, OR the
+      // pattern is in cool-down, we still record the reuse but skip the reward.
+      const reuserContact = intent.contact;
+      const decision = await recordPatternReuse({
+        id: reusable.id,
+        adaptedElapsedSec: input.elapsedSec,
+        reuserContact,
+      });
+
+      // If execution was "fresh" (adaptive path missed) but the pattern existed,
+      // also update the fresh accumulator so the baseline reflects all fresh runs.
+      if (input.executionMode === "fresh") {
+        try {
+          await recordFreshExecution({ id: reusable.id, freshElapsedSec: input.elapsedSec });
+        } catch (e) { console.error("recordFreshExecution failed:", e); }
+      }
+
+      patternEvent = {
+        pattern_id: reusable.id,
+        action: "reused",
+        ...(decision.rewardEligible ? {} : { reward_gated: { reason: decision.reason } }),
+      };
+      if (decision.rewardEligible && reusable.creatorId) {
         try {
           await rewardPatternReuse({
             creatorContact: reusable.creatorId,
@@ -357,6 +385,8 @@ export async function completeWork(input: CompleteWorkInput): Promise<{
           creatorContact: capabilities[0]?.providerContact,
           historicalCost: path.estimatedCost ?? undefined,
           historicalTime: timeUsed,
+          // Phase 3.5: seed the friction baseline from the very first execution.
+          freshElapsedSec: input.elapsedSec,
         });
         patternEvent = { pattern_id: newPattern.id, action: "created" };
         if (newPattern.creatorId) {

@@ -74,7 +74,20 @@ The single success criterion is simple: **the second realization of any intent t
 
 A running minimal MVP is deployed at **https://app.omworld.one**:
 two entry points (Submit an Intent / Contribute a Capability), an LLM-classified intent router, a
-Pattern Library that captures every realization, and an internal OM Credit (OMC) ledger.
+Pattern Library that captures every realization, and an internal OM Credit (OMC) **contribution ledger** — see §OMC below.
+
+## §OMC — What it is and what it isn't
+
+OM Credit (OMC) is a **non-transferable internal contribution record**. It tracks who contributed what realization, who built what pattern, and how often a pattern's reuse actually saved real time. It is:
+
+- **Not a token.** No on-chain representation. No smart contract.
+- **Not a currency.** Not exchangeable for anything inside or outside the protocol.
+- **Not a promise.** No allocation, vesting, or future exchange contemplated, now or in any future state of the protocol.
+- **Not a balance you can spend.** "Earning" OMC means a public record of contribution; it does not entitle the recipient to anything beyond that record.
+
+The dashboard displays "Contributions recorded" rather than "OMC balance" to keep the framing honest. The internal accounting math (per-event amounts, totals) is preserved for record-keeping and for future redesign, but the labels everywhere external say "contribution," not "currency."
+
+The Pattern reuse reward in particular is **bound to actual friction reduction** (Phase 3.5 hardening): an adapted reuse only earns a "successful reuse" record when wall-time drops below 85% of the fresh baseline AND the reuser is not the pattern's creator (anti-self-farming). Patterns matched too frequently in a rolling window enter cool-down to prevent generic-capture spam.
 
 Source layout: `app/` (Next.js App Router), `lib/` (LLM routing + matching + patterns + credits),
 `prisma/schema.prisma` (7 tables per spec). LLM calls route through OpenClaw GPT-5.5 with

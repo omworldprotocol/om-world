@@ -67,6 +67,23 @@ async function main() {
         requiresLlm: true,
         requiresApi: false,
         requiresHuman: false,
+        // Phase 3.5 capability testability — see scripts/test_capability.ts.
+        testInputJson: JSON.stringify({
+          intent_text: "I want to recruit 3 early co-builders for a new agent protocol project.",
+          intent_type: "community_growth.builder_recruitment",
+          context: "Test invocation: should produce a complete recruitment package.",
+        }),
+        expectedShapeJson: JSON.stringify({
+          keys: [
+            "project_positioning",
+            "x_article",
+            "x_thread",
+            "dm_templates",
+            "github_issue_plan",
+            "target_builder_profiles",
+            "follow_up_plan",
+          ],
+        }),
         status: "active",
       },
     });

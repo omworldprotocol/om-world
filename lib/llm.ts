@@ -166,6 +166,14 @@ export interface MatchedPath {
   proof_condition: string;
   settlement_template: string;
   why_this_path: string;
+  // Phase 3.5: explainability (red-team #7). LLM-emitted score 0..1.
+  match_score?: number;
+}
+
+export interface MatchAlternative {
+  capability_id: string;
+  match_score: number;
+  why_not: string;
 }
 
 export async function matchCapabilities(input: {
@@ -179,7 +187,7 @@ export async function matchCapabilities(input: {
     intent_types_supported: string[];
     pricing_model: string | null;
   }>;
-}): Promise<{ paths: MatchedPath[] }> {
+}): Promise<{ paths: MatchedPath[]; alternatives_considered?: MatchAlternative[] }> {
   const system = `You are the OM World Matching Engine.
 
 Given a classified intent and a list of available capabilities, recommend 1-3 realization paths.
@@ -194,12 +202,21 @@ Return JSON only with shape:
       "estimated_time": "e.g. 30 minutes",
       "proof_condition": "...",
       "settlement_template": "fixed_payment | milestone | bounty | success_fee | usage_based | staked_execution",
-      "why_this_path": "..."
+      "why_this_path": "...",
+      "match_score": 0.0-1.0
     }
+  ],
+  "alternatives_considered": [
+    { "capability_id": "...", "match_score": 0.0-1.0, "why_not": "one sentence" }
   ]
 }
 
-Only reference capability ids that appear in the provided list. If no capability is a reasonable match, return paths: [].`;
+Only reference capability ids that appear in the provided list. If no capability is a reasonable match, return paths: [].
+
+Phase 3.5: match_score and alternatives_considered are REQUIRED so supply-side
+participants can audit "why was I not picked." Be specific and honest in
+why_not — vague answers ("less relevant") are worse than specific ones
+("capability doesn't support intent_types_supported including X").`;
 
   const user = `Intent (classified):
 ${JSON.stringify(input.classifiedIntent, null, 2)}
@@ -210,7 +227,9 @@ ${input.intentText}
 Available capabilities:
 ${JSON.stringify(input.capabilities, null, 2)}`;
 
-  return callLlmJson<{ paths: MatchedPath[] }>(system, user, { temperature: 0.3 });
+  return callLlmJson<{ paths: MatchedPath[]; alternatives_considered?: Array<{ capability_id: string; match_score: number; why_not: string }> }>(
+    system, user, { temperature: 0.3 },
+  );
 }
 
 // ---------- Spec §7.3 — Pattern generation ----------
