@@ -4,6 +4,21 @@
 .idea/
 .vscode/
 node_modules/
+__pycache__/
+*.pyc
+
+# Next.js build output
+.next/
+out/
+next-env.d.ts
+
+# Local databases and env (MVP uses SQLite locally)
+prisma/dev.db
+prisma/dev.db-journal
+prisma/migrations/dev.db
+.env
+.env.local
+.env.*.local
 
 # Local-only notes (deployment playbooks, scratch, secrets) — never pushed
 *.local.md

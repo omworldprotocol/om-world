@@ -64,6 +64,16 @@ Humans retain sovereignty over their intentions.
 - [CONTRIBUTORS.md](CONTRIBUTORS.md) — Public attribution of those who have shaped OM World.
 - [docs/](docs/) — Spec drafts for Intent Schema, Agent Mandate, Execution Proof, and Tool Registry.
 
+## Genesis MVP — Try it
+
+A running minimal MVP is deployed at **https://app.omworld.one**:
+two entry points (Submit an Intent / Contribute a Capability), an LLM-classified intent router, a
+Pattern Library that captures every realization, and an internal OM Credit (OMC) ledger.
+
+Source layout: `app/` (Next.js App Router), `lib/` (LLM routing + matching + patterns + credits),
+`prisma/schema.prisma` (7 tables per spec). LLM calls route through OpenClaw GPT-5.5 with
+DeepSeek auto-fallback. Deployment notes: [`scripts/deploy/README.md`](scripts/deploy/README.md).
+
 ## Current Status
 
 OM World is in its Genesis phase.

@@ -1,0 +1,23 @@
+# Cloudflared tunnel config for OM World MVP
+#
+# Placed at: /etc/cloudflared/config.yml on hetzner-ash
+# Tunnel name: om-world-mvp
+#
+# After `cloudflared tunnel create om-world-mvp`, cloudflared writes the
+# tunnel UUID and credentials to ~/.cloudflared/<UUID>.json. Copy that file
+# to /etc/cloudflared/, then fill <UUID> below.
+
+tunnel: <UUID>
+credentials-file: /etc/cloudflared/<UUID>.json
+
+# How to handle each incoming hostname; the catch-all 404 at the end is required.
+ingress:
+  - hostname: app.omworld.one
+    service: http://localhost:3001
+    originRequest:
+      connectTimeout: 30s
+      noTLSVerify: false
+  - service: http_status:404
+
+# Optional: write logs to a file in addition to stdout
+loglevel: info

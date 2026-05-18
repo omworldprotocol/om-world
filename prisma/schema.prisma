@@ -1,0 +1,169 @@
+// OM World MVP — Prisma schema
+// SQLite for local dev; switch DATABASE_URL to PostgreSQL for production.
+// Schema mirrors spec §5 with native types adapted for SQLite (JSON→String, TEXT[]→String CSV).
+// Future distributed-storage fields preserved (storage_uri, content_hash, future_distributed_storage).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Intent {
+  id              String   @id
+  originatorId    String?  @map("originator_id")
+  intentText      String   @map("intent_text")
+  context         String?
+  desiredOutput   String?  @map("desired_output")
+  budget          String?
+  timeline        String?
+  contact         String
+  visibility      String   @default("public")
+  intentType      String?  @map("intent_type")
+  status          String   @default("submitted")
+  constraintsJson String?  @map("constraints_json")
+  matchedPathId   String?  @map("matched_path_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  paths      RealizationPath[]
+  executions Execution[]
+
+  @@index([intentType])
+  @@index([status])
+  @@map("intents")
+}
+
+model Capability {
+  id                    String   @id
+  providerId            String?  @map("provider_id")
+  providerName          String   @map("provider_name")
+  providerContact       String   @map("provider_contact")
+  capabilityType        String   @map("capability_type") // Tool | Agent | Human Service
+  name                  String
+  description           String
+  intentTypesSupported  String?  @map("intent_types_supported") // CSV
+  inputSchemaJson       String?  @map("input_schema_json")
+  outputSchemaJson      String?  @map("output_schema_json")
+  inputRequired         String?  @map("input_required")
+  outputProduced        String?  @map("output_produced")
+  pricingModel          String?  @map("pricing_model") // free | fixed | usage_based | custom
+  requiresLlm           Boolean  @default(false) @map("requires_llm")
+  requiresApi           Boolean  @default(false) @map("requires_api")
+  requiresHuman         Boolean  @default(false) @map("requires_human")
+  status                String   @default("submitted")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@index([capabilityType])
+  @@index([status])
+  @@map("capabilities")
+}
+
+model RealizationPath {
+  id                       String   @id
+  intentId                 String   @map("intent_id")
+  recommendedCapabilities  String?  @map("recommended_capabilities") // CSV of capability ids
+  estimatedCost            String?  @map("estimated_cost")
+  estimatedTime            String?  @map("estimated_time")
+  proofCondition           String?  @map("proof_condition")
+  settlementTemplate       String?  @map("settlement_template")
+  pathSummary              String?  @map("path_summary")
+  status                   String   @default("proposed")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  intent     Intent      @relation(fields: [intentId], references: [id])
+  executions Execution[]
+
+  @@index([intentId])
+  @@map("realization_paths")
+}
+
+model Execution {
+  id              String   @id
+  intentId        String   @map("intent_id")
+  pathId          String?  @map("path_id")
+  capabilityIds   String?  @map("capability_ids") // CSV
+  nodeId          String?  @map("node_id") // future: which execution node ran this; MVP defaults to "local-dev"
+  outputJson      String?  @map("output_json")
+  outputText      String?  @map("output_text")
+  traceJson       String?  @map("trace_json")
+  cost            String?
+  timeUsed        String?  @map("time_used")
+  status          String   @default("submitted")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  intent Intent           @relation(fields: [intentId], references: [id])
+  path   RealizationPath? @relation(fields: [pathId], references: [id])
+
+  @@index([intentId])
+  @@map("executions")
+}
+
+model Pattern {
+  id                         String   @id
+  creatorId                  String?  @map("creator_id")
+  intentType                 String   @map("intent_type")
+  patternName                String   @map("pattern_name")
+  description                String?
+  originalIntentId           String?  @map("original_intent_id")
+  executionGraphJson         String?  @map("execution_graph_json")
+  capabilitiesUsed           String?  @map("capabilities_used") // CSV
+  historicalCost             String?  @map("historical_cost")
+  historicalTime             String?  @map("historical_time")
+  reuseCount                 Int      @default(0) @map("reuse_count")
+  successCount               Int      @default(0) @map("success_count")
+  failureCount               Int      @default(0) @map("failure_count")
+  notes                      String?
+  reusePotential             String?  @map("reuse_potential")
+  futureDistributedStorage   Boolean  @default(true) @map("future_distributed_storage")
+  storageUri                 String?  @map("storage_uri")
+  contentHash                String?  @map("content_hash")
+  status                     String   @default("active")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  @@index([intentType])
+  @@index([status])
+  @@map("patterns")
+}
+
+model CreditAccount {
+  id        String   @id
+  ownerId   String   @map("owner_id")
+  ownerType String   @map("owner_type") // user | provider | pattern_creator | node | system
+  balance   Float    @default(0)
+  earned    Float    @default(0)
+  spent     Float    @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  events CreditEvent[]
+
+  @@unique([ownerId, ownerType])
+  @@map("credit_accounts")
+}
+
+model CreditEvent {
+  id            String   @id
+  accountId     String   @map("account_id")
+  amount        Float
+  eventType     String   @map("event_type") // intent_submission_debit | capability_reward | pattern_reuse_reward | system_grant | manual_adjustment | pattern_creation_reward
+  intentId      String?  @map("intent_id")
+  patternId     String?  @map("pattern_id")
+  capabilityId  String?  @map("capability_id")
+  executionId   String?  @map("execution_id")
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  account CreditAccount @relation(fields: [accountId], references: [id])
+
+  @@index([accountId])
+  @@index([eventType])
+  @@map("credit_events")
+}

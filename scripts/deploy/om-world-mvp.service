@@ -1,0 +1,22 @@
+[Unit]
+Description=OM World MVP (Next.js, port 3001)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/om-world
+EnvironmentFile=/root/om-world/.env
+Environment=NODE_ENV=production
+Environment=PORT=3001
+# Next.js prod server; package.json's "start" runs `next start`
+ExecStart=/usr/bin/npm run start -- -p 3001
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
