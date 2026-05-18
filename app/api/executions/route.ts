@@ -2,15 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { executionId } from "@/lib/ids";
-import {
-  adaptRecruitmentCampaign,
-  generateRecruitmentCampaign,
-  type ClassifiedIntent,
-  type MatchedPath,
-  type RecruitmentCampaign,
-} from "@/lib/llm";
+import type { ClassifiedIntent, MatchedPath } from "@/lib/llm";
 import { rewardCapabilityProvider, rewardPatternCreation, rewardPatternReuse } from "@/lib/credits";
 import { createPatternFromExecution, findReusablePattern, incrementPatternReuse } from "@/lib/patterns";
+import { runCapability } from "@/lib/capabilities";
 
 const ExecutionRequest = z.object({
   intent_id: z.string(),
@@ -52,72 +47,6 @@ export async function POST(req: Request) {
     reusable = await findReusablePattern(classified.intent_type);
   }
 
-  const startedAt = Date.now();
-  let output: unknown = null;
-  let outputText = "";
-  let executionMode: "fresh" | "adapted" | "placeholder" = "placeholder";
-
-  // MVP §9: only one intent category is fully executable: Genesis Builder Recruitment.
-  // For others, return a placeholder so the loop still closes and pattern logic still runs.
-  const isRecruitment = intent.intentType?.startsWith("community_growth.builder_recruitment") ?? false;
-  if (isRecruitment) {
-    let adapted = false;
-
-    // ADAPTIVE FAST PATH (spec §16): if a reusable pattern exists for this intent type,
-    // fetch the previous successful execution's output and adapt it for the new intent.
-    // This is what makes the second realization cheaper than the first.
-    if (reusable?.originalIntentId) {
-      const sourceExec = await db.execution.findFirst({
-        where: { intentId: reusable.originalIntentId, status: "completed" },
-        orderBy: { createdAt: "asc" },
-      });
-      const sourceIntent = await db.intent.findUnique({ where: { id: reusable.originalIntentId } });
-
-      if (sourceExec?.outputJson && sourceIntent) {
-        try {
-          const prev = JSON.parse(sourceExec.outputJson) as RecruitmentCampaign;
-          // Heuristic: only attempt adaptation if the previous output has the expected shape.
-          if (prev?.project_positioning && Array.isArray(prev?.x_thread)) {
-            output = await adaptRecruitmentCampaign({
-              previousCampaign: prev,
-              previousIntentText: sourceIntent.intentText,
-              newIntentText: intent.intentText,
-              newContext: intent.context,
-            });
-            outputText = `Adapted recruitment campaign from pattern ${reusable.id} (source intent: ${reusable.originalIntentId}).`;
-            executionMode = "adapted";
-            adapted = true;
-          }
-        } catch (e) {
-          console.warn("Adaptive path failed, falling back to fresh generation:", e);
-        }
-      }
-    }
-
-    if (!adapted) {
-      try {
-        output = await generateRecruitmentCampaign({
-          intentText: intent.intentText,
-          context: intent.context,
-          desiredOutput: intent.desiredOutput,
-        });
-        outputText = "Generated full recruitment campaign package (positioning, X article, X thread, DM templates, GitHub issue plan, target profiles, follow-up plan).";
-        executionMode = "fresh";
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        return NextResponse.json({ error: "Execution failed", message }, { status: 502 });
-      }
-    }
-  } else {
-    output = {
-      note: "MVP supports automated execution only for community_growth.builder_recruitment intents. This execution is recorded but produced no artifact.",
-    };
-    outputText = "Manual / out-of-band execution recorded.";
-  }
-
-  const elapsedMs = Date.now() - startedAt;
-  const timeUsed = `${(elapsedMs / 1000).toFixed(1)}s`;
-
   const matchedPath: MatchedPath = {
     path_summary: path.pathSummary ?? "",
     recommended_capabilities: csvList(path.recommendedCapabilities),
@@ -127,6 +56,31 @@ export async function POST(req: Request) {
     settlement_template: path.settlementTemplate ?? "fixed_payment",
     why_this_path: "",
   };
+
+  const startedAt = Date.now();
+
+  // Single dispatch point. The registry resolves the executor by intent_type
+  // (longest-prefix match), falling back to the placeholder for unsupported types.
+  let executorResult;
+  try {
+    executorResult = await runCapability({
+      intent,
+      classified,
+      path,
+      matchedPath,
+      capabilities,
+      reusable,
+      nodeId: process.env.OM_NODE_ID || "local-dev",
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: "Execution failed", message }, { status: 502 });
+  }
+
+  const { output, outputText, executionMode } = executorResult;
+
+  const elapsedMs = Date.now() - startedAt;
+  const timeUsed = `${(elapsedMs / 1000).toFixed(1)}s`;
 
   const execution = await db.execution.create({
     data: {
