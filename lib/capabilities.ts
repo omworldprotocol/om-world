@@ -46,6 +46,7 @@ export interface Executor {
 
 import { recruitmentExecutor } from "./executors/recruitment";
 import { placeholderExecutor } from "./executors/placeholder";
+import { researchExecutor } from "./executors/research";
 
 /**
  * The capability registry. Keys are canonical `intent_type` strings.
@@ -53,6 +54,7 @@ import { placeholderExecutor } from "./executors/placeholder";
  */
 export const CAPABILITY_EXECUTORS: Record<string, Executor> = {
   "community_growth.builder_recruitment": recruitmentExecutor,
+  "research.cite_synthesis": researchExecutor,
 };
 
 /**

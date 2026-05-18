@@ -16,6 +16,7 @@
 import { loadOrCreateIdentity, signMessage } from "./identity.js";
 import { putBlob, hashBlobRange, totalStoredBytes } from "./blob_store.js";
 import { runRecruitment, type RunnerInput } from "./runners/recruitment.js";
+import { runResearch, type ResearchRunnerInput } from "./runners/research.js";
 import type {
   RegisterRequest,
   RegisterResponse,
@@ -38,7 +39,10 @@ interface Config {
 
 // All capability kinds this node knows how to execute locally. Add entries as
 // new runners are ported into node-client/src/runners/.
-const KNOWN_EXECUTOR_KINDS = ["community_growth.builder_recruitment"];
+const KNOWN_EXECUTOR_KINDS = [
+  "community_growth.builder_recruitment",
+  "research.cite_synthesis",
+];
 
 function parseArgs(argv: string[]): { command: string; cfg: Config } {
   const args = argv.slice(2);
@@ -158,6 +162,9 @@ async function runComputeWork(cfg: Config, nodeId: string, work: Extract<Work, {
 
     if (work.executor_kind === "community_growth.builder_recruitment") {
       const r = await runRecruitment(input);
+      runnerResult = { output: r.output, outputText: r.outputText, executionMode: r.executionMode };
+    } else if (work.executor_kind === "research.cite_synthesis") {
+      const r = await runResearch(input as ResearchRunnerInput);
       runnerResult = { output: r.output, outputText: r.outputText, executionMode: r.executionMode };
     } else {
       throw new Error(`no runner registered for executor_kind=${work.executor_kind}`);
