@@ -16,9 +16,7 @@ The brand must communicate a new kind of digital world:
 
 ## Brand Definition
 
-OM World is a decentralized intent economy protocol where AI executes and crypto verifies.
-
-It enables human intentions to be expressed, executed, verified, settled, and remembered through open protocol rules.
+OM World is a **self-growing intent realization network**. It connects intent demand with realization supply, and turns every successful realization into a reusable pattern so the next intent is easier to fulfill. AI provides the execution power; verifiable records provide the trust; humans own the patterns they create.
 
 ## Core Line
 
@@ -26,15 +24,21 @@ It enables human intentions to be expressed, executed, verified, settled, and re
 
 ## Core Statement
 
-**AI executes. Crypto verifies. Humanity owns its intentions.**
+**Every realization makes the next one easier.**
 
 ## Extended Statement
 
-OM World is a decentralized intent economy protocol where AI turns human intentions into executable actions, and crypto makes every authorization, decision, payment, and outcome verifiable.
+OM World is a self-growing intent realization network that links the people who declare intentions with the tools, agents, and human services that can deliver them. Every successful realization becomes a reusable pattern in the Pattern Library, so over time the system grows more capable on its own — fewer intents need to be solved from scratch, and contributors who created the underlying patterns are credited each time their work is reused. AI is the engine; verifiable records are the rules; the Pattern Library is the memory.
+
+## Operating Principle
+
+The single test every OM World feature must pass: **does it make future intent realization easier?** If yes, ship it. If no, cut it.
 
 ## Chinese Statement
 
-OM World 是一个去中心化意图经济协议。AI 将人的意图转化为可执行行动，Crypto 让每一次授权、决策、支付与结果都可验证、可追溯、可共享。
+OM World 是一个自增长的意图实现网络。它连接意图需求端与意图实现供给端，把每一次成功的实现沉淀为可复用的模式，让下一次同类意图越来越容易实现。AI 提供执行力；可验证记录提供信任；人持有自己创造的模式。
+
+成熟形态下，它也可以被理解为一个去中心化的意图经济协议——但 "自增长" 是核心机制，"经济协议" 只是组织形式之一。
 
 ## Brand Philosophy
 
@@ -125,22 +129,27 @@ The voice should avoid:
 
 ## Preferred Language
 
-Use:
+Use (primary, MVP-relevant):
 
+* self-growing intent realization network
+* Pattern Library
+* OM Credit (OMC)
+* Submit an Intent / Contribute a Capability
+* every realization makes the next one easier
 * intent sovereignty
 * verifiable execution
 * open protocol
-* AI executes
-* crypto verifies
+* user-owned intent
+* proof before trust
+
+Use (long-term framing):
+
+* decentralized intent economy protocol
+* AI executes / crypto verifies
 * agent mandate
 * execution proof
-* consent ledger
 * tool registry
-* user-owned intent
-* decentralized intent economy
 * cryptographic settlement
-* public protocol
-* proof before trust
 
 Avoid:
 
@@ -154,6 +163,8 @@ Avoid:
 * sacred destiny
 * chosen ones
 * world domination
+* future token utility (we have no token plans)
+* token holders, allocation, airdrop, vesting
 
 ## Visual Concept
 

@@ -1,5 +1,7 @@
 # Intent Schema
 
+> **Status: v0 design draft — protocol-layer specification.** The MVP at https://app.omworld.one implements a simplified subset of this design (a form-submitted intent + LLM classification + an `intents` table in SQLite). The cryptographic, lifecycle, and registry primitives below are the long-term target, not the current implementation. See [SELF_GROWTH_ENGINE.md](../SELF_GROWTH_ENGINE.md) for the canonical Genesis MVP architecture.
+
 > Draft. The canonical wire format for a user-issued intent.
 
 ## Goals

@@ -1,5 +1,7 @@
 # Agent Mandate
 
+> **Status: v0 design draft — protocol-layer specification.** The MVP at https://app.omworld.one implements a simplified subset (a capability is selected from the `capabilities` table by an LLM-suggested matching path; the chosen capability + path are stored as a `realization_paths` row). The full cryptographic mandate, signing, and routing described below is the long-term target, not the current implementation. See [SELF_GROWTH_ENGINE.md](../SELF_GROWTH_ENGINE.md) for the canonical Genesis MVP architecture.
+
 > The contract an Agent posts when it accepts an Intent.
 
 ## Purpose

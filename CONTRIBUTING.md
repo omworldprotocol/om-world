@@ -4,28 +4,34 @@
 
 OM World is in its Genesis phase.
 
-This repository is the public starting point for a decentralized intent economy protocol where AI executes and crypto verifies.
+This repository is the public starting point for a self-growing intent realization network — a system that connects intent demand with realization supply, and turns every successful realization into a reusable pattern so the next one is easier. The Genesis MVP shipped on 2026-05-18 at https://app.omworld.one.
 
-We welcome contributors who want to help define, design, build, verify, explain, and govern this new world.
+We welcome contributors who want to help define, design, build, verify, explain, and govern this new world. Its operating principle is self-growth: every realization makes the next one easier.
 
 ## What We Are Building
 
 OM World is not a closed product.
 
-It is an open protocol for expressing, executing, verifying, and settling human intentions.
+It is an open protocol for expressing, executing, verifying, settling, and *learning from* human intentions — where each realization compounds the next.
 
-We are currently developing:
+**Live now (Genesis MVP at app.omworld.one)**:
 
-* the OM World Manifesto
-* the OM World Litepaper
-* Intent Schema v0.1
-* Agent Mandate v0.1
-* Execution Proof v0.1
-* Tool Registry v0.1
-* Governance principles
-* Visual language
-* Contributor framework
-* Initial use cases and prototypes
+* Intent Demand Entry — `Submit an Intent` form + intent classification
+* Capability Supply Entry — `Contribute a Capability` form + capability registry
+* Matching Engine — LLM-routed intent → capability matching
+* Pattern Library v0 — every realization is stored; reusable patterns recommend faster paths next time
+* OM Credit Ledger v0 — internal accounting unit (OMC) that rewards capability providers and pattern creators when their work is reused
+* First seeded capability: Genesis Builder Recruitment Generator, for intent type `community_growth.builder_recruitment`
+
+**In progress**:
+
+* Growing the capability supply (more tools / agents / human-service providers)
+* Seeding the second pattern (the second supported intent type — TBD)
+* Genesis Builder primitive freezes: Intent Schema v0.1 + Execution Proof v0.1 reviews underway
+
+**Long-term design drafts** (in [`docs/`](docs/)):
+
+* Intent Schema, Agent Mandate, Execution Proof, Tool Registry, Intent Lifecycle, Economic Model — these describe the protocol-layer target. The MVP currently implements a simplified subset, and each draft now carries a banner noting this.
 
 ## Who Can Contribute
 
@@ -442,35 +448,33 @@ Personal attacks, harassment, scams, spam, and manipulative behavior are not.
 
 ## Recognition
 
-OM World should recognize meaningful contributions.
+OM World recognizes meaningful contributions through **public attribution only**.
 
-Potential recognition mechanisms may include:
+Recognition mechanisms:
 
-* contributor credits
-* GitHub contribution history
-* public acknowledgments
-* contributor badges
-* working group membership
-* future on-chain contribution records
+* commit history on GitHub
+* public acknowledgment in [CONTRIBUTORS.md](CONTRIBUTORS.md)
+* Genesis Builder roles documented in [GENESIS-BUILDERS.md](GENESIS-BUILDERS.md)
+* working group membership when working groups exist
 
-No token, airdrop, or financial reward is promised by contributing to this repository.
+**No token, airdrop, or financial reward is promised or implied by contributing to this repository.** No allocation of any token or financial instrument is contemplated for any contributor or class of contributors, now or in any future state of the protocol. "Recognition" here means a public record of past work — not a claim on any future value.
 
 The Genesis phase is about building the foundation.
 
 ## Current Priority Areas
 
-The highest-priority contribution areas are:
+The Genesis MVP is live at https://app.omworld.one. Current priorities follow what the MVP needs to validate the self-growth thesis at scale:
 
-1. Manifesto refinement
-2. Litepaper refinement
-3. Intent Schema v0.1
-4. Agent Mandate v0.1
-5. Execution Proof v0.1
-6. Tool Registry v0.1
-7. Governance model
-8. Use case mapping
-9. Visual and website assets
-10. Builder onboarding
+1. **Capability supply** — register more `Tool` / `Agent` / `Human Service` capabilities at https://app.omworld.one/capability beyond the seeded Genesis Builder Recruitment Generator.
+2. **Second pattern seed** — submit a real intent under a new intent type so the Pattern Library begins covering more than one category.
+3. **Spec primitive freezes** — review the four `docs/*` primitive drafts (Intent Schema, Agent Mandate, Execution Proof, Tool Registry) and provide written critique for v0.1 → v0.2 freeze.
+4. **Real-world recruitment campaigns** — use the seeded `community_growth.builder_recruitment` capability to recruit Genesis Builders for *other* open-source / agent / crypto projects, then submit results back as Pattern Library evidence.
+5. **MVP UI polish** — capability-creation UX, pattern-detail page, dashboard charts.
+6. **Documentation alignment** — flag any remaining drift between public docs and the canonical [SELF_GROWTH_ENGINE.md](SELF_GROWTH_ENGINE.md).
+7. **Translation** — Chinese mirrors of MANIFESTO / LITEPAPER / SELF_GROWTH_ENGINE.
+8. **Visual + brand** — apply [BRAND.md](BRAND.md) to a refreshed marketing site.
+9. **Genesis Builder recruitment** — find Co-authors / Reviewers / Primitive Stewards for the four primitives per [GENESIS-BUILDERS.md](GENESIS-BUILDERS.md).
+10. **Adversarial review** — red-team the published documents and the MVP; file issues with specific quotes and proposed alternatives.
 
 ## Final Note
 

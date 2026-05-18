@@ -175,7 +175,7 @@ AI executes. Crypto verifies. Humanity decides.
 
 ## What OM World Is
 
-OM World is a decentralized intent economy protocol.
+OM World is a **self-growing intent realization network**. In its mature form it is also a decentralized intent economy protocol — but the operating principle is self-growth: every realization makes the next one easier.
 
 It is not a closed AI application.
 
@@ -183,7 +183,7 @@ It is not a company-controlled marketplace.
 
 It is not another short-term Web3 launch.
 
-It is an open protocol for a world where human intentions can be expressed, routed, executed, verified, settled, and improved.
+It is an open protocol for a world where human intentions can be expressed, routed, executed, verified, settled, **and remembered** — so that what one person realizes once becomes a pattern that anyone can reuse.
 
 In OM World:
 

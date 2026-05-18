@@ -1,5 +1,7 @@
 # Tool Registry
 
+> **Status: v0 design draft — protocol-layer specification.** The MVP at https://app.omworld.one uses a flat `capabilities` table that providers fill via a web form (Submit a Capability) with no bonds, no on-chain registration, no slashing, and no decentralized curation. The full registry primitives below — bonds, scope tokens, dispute mechanics, attestation chains — are the long-term target, not the current implementation. See [SELF_GROWTH_ENGINE.md](../SELF_GROWTH_ENGINE.md) for the canonical Genesis MVP architecture.
+
 > The directory of capabilities agents can invoke.
 
 ## Purpose

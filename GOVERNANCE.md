@@ -467,62 +467,11 @@ Recognition may include:
 
 No financial reward or token allocation is promised by contribution. The "future on-chain contribution records" listed above refer to public attribution records of past work, not to any allocation of value or token instrument.
 
-## Phase 3 — Token-Aware Governance
+## Phase 3 — Reserved
 
-### Objective
+**No token is planned in any phase of OM World's Genesis governance.** No allocation of any token or financial instrument is contemplated for any contributor or class of contributors. If, after extensive future review, a settlement asset is ever proposed, its governance model must be designed and reviewed through a separate, public process — independently of any contributor's status today and independently of any commitment made in this document.
 
-Introduce token-based governance only if it strengthens protocol function.
-
-A token should not be introduced merely for speculation.
-
-If OM World introduces a token, governance must clearly define:
-
-* token utility
-* voting rights
-* staking rights
-* fee participation
-* slashing exposure
-* treasury role
-* legal considerations
-* anti-capture mechanisms
-* delegation model
-* quorum thresholds
-* emergency powers
-* upgrade process
-
-### Token Governance Risks
-
-Token voting may create risks:
-
-* plutocracy
-* voter apathy
-* bribery
-* governance attacks
-* short-term speculation
-* hostile takeovers
-* regulatory exposure
-* misalignment with users
-* capture by capital providers
-
-### Possible Mitigations
-
-Potential mitigations include:
-
-* quadratic voting
-* contribution-weighted voting
-* role-based voting
-* reputation-weighted review
-* time-locks
-* quorum requirements
-* veto councils
-* security councils
-* delegated voting
-* bicameral governance
-* intent-originator protections
-* emergency pause limits
-* transparent vote records
-
-Token-aware governance should be introduced only after extensive review.
+Detailed token-governance design is out of scope for the Genesis phase. The relevant open research questions (voting models, staking, anti-capture mitigations) are noted in [LITEPAPER §9 Settlement Asset](LITEPAPER.md) and [discussions/genesis-questions.md](discussions/genesis-questions.md) — they are questions, not roadmap.
 
 ## Phase 4 — DAO Governance
 

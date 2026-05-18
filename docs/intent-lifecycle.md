@@ -1,5 +1,7 @@
 # Intent Lifecycle
 
+> **Status: v0 design draft — protocol-layer specification.** The MVP at https://app.omworld.one uses a simpler 5-state model in the `intents` table (`submitted → classified → matched → in_execution → fulfilled`, plus `failed` / `archived`). The dispute/resolution/expiry paths described below are the long-term target, not the current implementation. See [SELF_GROWTH_ENGINE.md](../SELF_GROWTH_ENGINE.md) for the canonical Genesis MVP architecture.
+
 ## States
 
 ```

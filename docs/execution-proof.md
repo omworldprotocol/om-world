@@ -1,5 +1,7 @@
 # Execution Proof
 
+> **Status: v0 design draft — protocol-layer specification.** The MVP at https://app.omworld.one records execution outcomes as JSON in the `executions` table (`output_json` + `trace_json`) — there are no cryptographic attestations, no on-chain anchors, no zkTLS, and no key revocation states implemented yet. The cryptographic primitives below are the long-term target. See [SELF_GROWTH_ENGINE.md](../SELF_GROWTH_ENGINE.md) for the canonical Genesis MVP architecture.
+
 > The artifact an Agent posts to claim fulfillment.
 
 ## Purpose

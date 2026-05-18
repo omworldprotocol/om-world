@@ -6,22 +6,19 @@
 
 This document is a public draft.
 
-OM World is currently in the Genesis phase.
-The concepts, architecture, terminology, and economic design described here are subject to community review, technical validation, and protocol iteration.
+OM World is currently in the Genesis phase. The Genesis MVP shipped on 2026-05-18 and is live at **https://app.omworld.one** (five modules: Intent Demand Entry, Capability Supply Entry, Matching Engine, Pattern Library v0, OM Credit Ledger v0). The MVP implements a simplified subset of the architecture described in this Litepaper. The fuller cryptographic, settlement, and governance design below is the long-term target, subject to community review, technical validation, and protocol iteration.
+
+For the canonical engine architecture in operational terms, see [SELF_GROWTH_ENGINE.md](SELF_GROWTH_ENGINE.md).
 
 ## Abstract
 
-OM World is a decentralized intent economy protocol.
+OM World is a **self-growing intent realization network**.
 
-It enables human intentions to be expressed, transformed into executable actions by AI agents, verified through cryptographic mechanisms, and settled through open economic rules.
+It links three sides: human intentions on the demand side; tools, agents, and human services on the supply side; and a growing Pattern Library as the memory of every successful realization. Each time a new intent is realized, the path is saved as a reusable Pattern, so the next intent of the same kind is faster, cheaper, and requires less manual thinking. The system grows more capable on its own — and the people who created the underlying Patterns are credited each time their work is reused.
 
-The core thesis of OM World is simple:
+The single thesis: **every realization should make the next one easier.**
 
-**AI should execute human intention, but it should not own it. Crypto should verify execution, but it should not replace human agency.**
-
-OM World introduces a protocol stack for intent expression, agent mandates, tool registries, execution proofs, settlement, reputation, and governance.
-
-Its long-term goal is to create an open digital world where anyone can declare an intention, discover or invoke tools to fulfill it, verify the result, and participate in the value created by the intent economy.
+Beneath the engine, OM World is designed to mature into a decentralized intent economy protocol — where AI provides execution power, verifiable records provide the rules and audit trail, humans retain sovereignty over their intentions, and contributors are credited (not just paid) for the patterns and capabilities they bring. The MVP today is the smallest possible version of that loop. The rest of this document describes how it scales.
 
 ## 1. Background
 
@@ -169,120 +166,95 @@ Sensitive data may remain encrypted, hashed, or stored off-chain, while proofs a
 
 ## 4. Protocol Architecture
 
-OM World can be understood as a seven-layer protocol stack.
+OM World is best understood not as a single stack but as **three nested layers**:
 
-### 4.1 Intent Layer
+1. The **12 core systems** — the modules of the mature world.
+2. The **8 module groups** — how those systems organize as the ecosystem expands.
+3. The **5 MVP modules** — what is actually shipped today.
 
-The Intent Layer allows users to express, structure, sign, and submit intentions.
+This nesting matters: the MVP is not a "v0 of the full system" — it is a deliberate, minimal subset chosen so the self-growth loop can be validated before larger commitments are made.
 
-Core components:
+### 4.1 The 12 core systems (mature form)
 
-* natural language intent input
-* intent parser
-* structured intent schema
-* user constraints
-* consent configuration
-* budget limits
-* privacy settings
-* signing mechanism
-* intent hash
+In its mature form, OM World consists of twelve interlocking systems:
 
-### 4.2 Agent Layer
+| # | System | Role |
+|---|---|---|
+| 1 | **Intent Demand Portal** | Where users declare what they want — natural language, voice, file, multi-turn refinement, default authorizations, intent history. |
+| 2 | **Capability Supply Portal** | Where supply-side participants register what they can do — tool / agent / API / human service / compute / storage / data / pattern. |
+| 3 | **Intent Router** | The "brain" — classifies an intent, retrieves matching patterns, selects the fastest / cheapest / most reliable realization path. |
+| 4 | **Pattern Library** | The memory — every realization is recorded as a reusable pattern with cost, time, success rate, reuse count, and reward distribution. The compounding asset. |
+| 5 | **Distributed Storage Network** | Where patterns, execution traces, tool metadata, and proofs live. Begins centralized, evolves toward user-contributed storage with on-chain commitment anchors. |
+| 6 | **Distributed Compute Network** | Tiered compute supply — light nodes (feedback, caching), local execution nodes (scripts, browser automation), compute nodes (LLM, embedding, inference), expert nodes (human services, audit, design). |
+| 7 | **Execution Runtime** | The engine that actually invokes capabilities, composes multi-tool flows, records traces, returns results. |
+| 8 | **Proof & Trace Layer** | Confirms execution happened, with what output, by whom — for settlement, reuse, and dispute resolution. Not for moral judgment. |
+| 9 | **Settlement System** | The internal value flow. **MVP uses an OM Credit (OMC) ledger only — no token.** Mature form may add stablecoin settlement or other accounting layers via independent review. |
+| 10 | **Value Distribution Engine** | Splits proceeds across contributors (capability providers, agent operators, compute / storage nodes, pattern creators, interface builders, core maintenance) by event-time records, not committee decisions. |
+| 11 | **Node Client** | Lets ordinary users turn their device into a participating node (storage, compute, local tools, browser execution, lightweight verification) for OMC. |
+| 12 | **OM World Index / Explorer** | Read-only world-state surface: how many intents are flowing, what patterns are most reused, who's contributing what, where the network is growing. |
 
-The Agent Layer transforms intents into plans and actions.
+### 4.2 The 8 module groups (organizing principle)
 
-Core components:
+The twelve systems above expand into ~100 sub-modules over time. Those sub-modules cluster into eight groups:
 
-* agent planner
-* tool selector
-* execution router
-* risk evaluator
-* policy checker
-* mandate interpreter
-* action logger
-* fallback handler
+**A. Demand modules** — web / mobile / browser-extension / voice / file / image intent input; intent clarification; user preferences; default authorization; intent history.
 
-### 4.3 Tool Layer
+**B. Supply modules** — tool registry; agent registry; API registry; human-service registry; compute-node registry; storage-node registry; data-source registry; pattern submission; pricing declaration; capability testing.
 
-The Tool Layer allows builders to create and register intent-fulfillment capabilities.
+**C. Matching modules** — intent classification; pattern retrieval; tool matching; compute matching; cost / time estimation; multi-path comparison; path scoring; path composition; automatic retry.
 
-Core components:
+**D. Execution modules** — LLM calls; tool invocation; API calls; browser automation; local-node execution; cloud execution; multi-agent coordination; file handling; code execution; task queue.
 
-* tool registry
-* tool metadata
-* capability description
-* pricing rules
-* permission requirements
-* input/output schema
-* reliability history
-* reputation score
-* audit status
+**E. Pattern modules** — pattern creation; pattern storage; pattern retrieval; pattern reuse; pattern forking; pattern versioning; pattern success rate; pattern revenue; pattern ranking; pattern graph.
 
-### 4.4 Compute Layer
+**F. Storage & compute modules** — storage nodes; compute nodes; node reputation; node rewards; data sharding; redundant backup; node liveness; local-execution environments; GPU task dispatch; storage proofs.
 
-The Compute Layer supplies the inference and execution resources needed by agents and tools.
+**G. Settlement modules** — internal credits; user top-up; task debit; revenue distribution; node payouts; tool payouts; pattern payouts; withdrawal; ledger; (future, only if ever proposed) on-chain settlement.
 
-Core components:
+**H. Explorer & growth modules** — total intents; fulfillment rate; pattern reuse rate; cost-decline curve; node count; capability map; total settlement; category expansion; leaderboards; growth dashboard.
 
-* model providers
-* inference providers
-* GPU/CPU compute providers
-* decentralized compute networks
-* execution environments
-* cost accounting
-* performance metrics
+This is the long-term shape. The MVP picks five.
 
-### 4.5 Verification Layer
+### 4.3 The 5 MVP modules (shipped 2026-05-18)
 
-The Verification Layer generates, records, and checks evidence of execution.
+The MVP at https://app.omworld.one implements exactly five modules — the minimum needed to validate that pattern accumulation reduces future realization friction.
 
-Core components:
+1. **Intent Demand Entry** — `Submit an Intent` web form; intent saved with `intent_id`; LLM classifies into an `intent_type`.
+2. **Capability Supply Entry** — `Contribute a Capability` web form; supply types: `Tool`, `Agent`, `Human Service`.
+3. **Matching Engine** — half-automatic: LLM proposes 1–3 ranked realization paths; user / operator picks one before execute.
+4. **Pattern Library v0** — first execution creates a Pattern record; subsequent executions of the same `intent_type` adapt the existing pattern (smaller LLM call, faster wall time) and increment `reuse_count`.
+5. **OM Credit Ledger v0** — internal accounting only; no token, no on-chain representation. Spec values: 100 OMC initial user grant, 1 OMC submission cost, 10 OMC capability reward, 5 OMC pattern-creation reward, 2 OMC pattern-reuse reward.
 
-* execution logs
-* proof hashes
-* verifier attestations
-* oracle inputs
-* result commitments
-* reproducibility checks
-* dispute evidence
-* proof aggregation
+The MVP success criterion is the operating principle of OM World, stated as a test: **the second realization of any intent type should be easier than the first.** First production runs validated this on `community_growth.builder_recruitment` with a ~20% wall-time drop.
 
-### 4.6 Settlement Layer
-
-The Settlement Layer handles payments, rewards, refunds, and penalties.
-
-Core components:
-
-* smart contracts
-* escrow
-* milestone payments
-* usage fees
-* tool royalties
-* verifier rewards
-* slashing rules
-* dispute resolution
-* reputation changes
-
-### 4.7 Governance Layer
-
-The Governance Layer manages protocol evolution.
-
-Core components:
-
-* parameter governance
-* registry governance
-* verifier governance
-* dispute governance
-* grant allocation
-* protocol upgrades
-* ecosystem standards
-* community proposals
+Everything else — wallets, on-chain settlement, distributed storage, compute network, complex governance, multi-intent breadth, mobile — is explicitly out of scope for MVP and discussed only in the long-term-target docs at [`docs/`](docs/).
 
 ## 5. Intent Lifecycle
 
-An intent passes through the following lifecycle:
+### 5.0 MVP lifecycle (live today)
 
-### 5.1 Declare
+The Genesis MVP at https://app.omworld.one implements a 5-state lifecycle (per the canonical [SELF_GROWTH_ENGINE.md](SELF_GROWTH_ENGINE.md) loop):
+
+```
+submitted → classified → matched → in_execution → fulfilled
+                                         ↘ failed
+```
+
+- **submitted** — user posted a `Submit an Intent` form. Stored in `intents` table.
+- **classified** — LLM assigned an `intent_type` (e.g. `community_growth.builder_recruitment`).
+- **matched** — one or more `realization_paths` proposed; user / operator selected one.
+- **in_execution** — the chosen capability is being invoked.
+- **fulfilled** — output JSON saved; a Pattern is either created (first time for this type) or reused (subsequent times), and OMC events fire.
+
+### 5.1 – 5.7 Mature lifecycle (long-term design)
+
+In its mature form, an intent passes through the following protocol-layer lifecycle (not all phases are implemented yet — items below the MVP scope are described in [`docs/`](docs/)):
+
+#### 5.1 Declare
+
+A user expresses an intention.
+
+The system converts the intention into a structured intent object.
 
 A user expresses an intention.
 
@@ -473,29 +445,21 @@ Reputation may be built from:
 
 Reputation should be portable and protocol-readable.
 
-## 9. Token Utility
+## 9. Settlement Asset
 
-OM World may introduce a native token in a later phase.
+**No token exists. No token is planned in the Genesis phase. No party has been promised any allocation of any token or financial instrument.**
 
-No token design is finalized in this Genesis draft.
+OM World's MVP uses an internal **OM Credit (OMC)** ledger — see Section 8 and the spec at [SELF_GROWTH_ENGINE.md](SELF_GROWTH_ENGINE.md). OMC is a non-transferable internal accounting unit used to record who contributed what realization, and to reward pattern creators when their patterns are reused. It is not a token, has no on-chain representation, and confers no financial right.
 
-Potential token utilities may include:
+Any future settlement asset — if ever proposed — would require an independent, public review process for legal, economic, security, and governance risks before it could be introduced. No retroactive allocation to any party participating in OM World today is implied or owed.
 
-* payment for protocol services
-* staking for verifiers and tool creators
-* governance participation
-* incentive distribution
-* registry curation
-* dispute bonding
-* compute and execution fee settlement
-* ecosystem grants
-* reputation-weighted participation
+The following are open research questions for any hypothetical future asset, not commitments and not roadmap:
 
-The token should exist to support protocol function, not speculation.
+- whether bonds, fees, and grants are better expressed in stablecoins, in OMC alone, or in a separate unit;
+- whether dispute bonding and verifier compensation can be sustained without a dedicated asset;
+- whether reputation-weighted participation is sufficient for governance, or requires economic skin-in-game.
 
-The final token model must be reviewed carefully for legal, economic, security, and governance risks before launch.
-
-**No party has been promised any allocation.** This section describes potential future utilities, not commitments. No current or past contributor, Genesis Builder, founder, operator, reader of this Litepaper, or other party has been promised any allocation of any token or financial instrument. If a token is ever introduced, its allocation would be decided through the then-current governance process; no retroactive allocation to any party participating in OM World today is implied or owed.
+These questions have no current decision, and none is forced by the Genesis MVP.
 
 ## 10. Governance
 
@@ -533,43 +497,53 @@ Governance should be:
 * technically grounded
 * slow on values, fast on execution
 
-## 11. Initial Use Cases
+## 11. Use Cases
 
-OM World can begin with practical, narrow, verifiable use cases.
+### 11.0 MVP — supported today
 
-Examples:
+The Genesis MVP supports exactly **one** intent type:
 
-### 11.1 Research Intent
+**`community_growth.builder_recruitment`** — "I want to recruit N early contributors for my project."
+
+Submitting this intent at https://app.omworld.one/intent triggers the Genesis Builder Recruitment Generator capability, which produces a complete recruitment package: project positioning, X article, X thread, DM templates, GitHub issue plan, target builder profiles, follow-up plan. The first run creates the underlying Pattern; subsequent runs (for other projects) adapt the same Pattern at lower cost.
+
+This choice is deliberate: the founder's own first real need was recruiting Genesis Builders for OM World itself. Grounding the MVP in a real, recurring task that the team uses *immediately* is what gives the self-growth thesis real-world weight.
+
+### 11.1 – 11.6 Long-term candidate categories
+
+The system is designed to expand to many intent categories over time. The following are candidate categories under consideration (none yet implemented):
+
+#### 11.1 Research Intent
 
 A user declares a research question.
 
 Agents gather sources, summarize evidence, produce a report, and provide citations or source hashes.
 
-### 11.2 Procurement Intent
+#### 11.2 Procurement Intent
 
 A user defines a budget and constraints.
 
 Agents compare vendors, produce a decision record, and optionally execute purchase through authorized payment tools.
 
-### 11.3 Code Intent
+#### 11.3 Code Intent
 
 A user requests a software task.
 
 Agents generate code, run tests, produce artifacts, and record test logs as proof.
 
-### 11.4 Audit Intent
+#### 11.4 Audit Intent
 
 A user submits a smart contract or protocol.
 
 Agents identify risks, generate findings, produce reproducible proof-of-concepts, and record evidence.
 
-### 11.5 Content Intent
+#### 11.5 Content Intent
 
 A user wants a campaign, article, video script, or social thread.
 
 Agents generate outputs, track versions, and record artifact hashes.
 
-### 11.6 Financial Intent
+#### 11.6 Financial Intent
 
 A user defines a trading, treasury, or yield strategy under strict constraints.
 
@@ -596,14 +570,17 @@ Agents execute only under signed mandates and verifiable risk parameters.
 * Verifier Role v0.1
 * Contributor Framework v0.1
 
-### Phase 2 — MVP
+### Phase 2 — MVP (✅ shipped 2026-05-18, live at https://app.omworld.one)
 
-* Intent submission interface
-* Tool registry prototype
-* Basic agent routing
-* Execution log format
-* Proof hash generation
-* Public explorer prototype
+The five MVP modules that actually shipped (per [SELF_GROWTH_ENGINE.md](SELF_GROWTH_ENGINE.md) and `OM_World_MVP_Development_Spec_v0.1`):
+
+* Intent Demand Entry (web form + LLM classification)
+* Capability Supply Entry (web form, types: Tool / Agent / Human Service)
+* Matching Engine (LLM-routed, half-automatic)
+* Pattern Library v0 (Pattern record + adaptive reuse)
+* OM Credit Ledger v0 (internal OMC accounting only, no token)
+
+First seeded capability: Genesis Builder Recruitment Generator (intent type `community_growth.builder_recruitment`). Self-growth verified on first production runs with ~20% wall-time drop between fresh and adapted realizations. See ROADMAP §"Phase 2 — MVP Prototype" for the full shipped-vs-deferred breakdown.
 
 ### Phase 3 — Testnet
 

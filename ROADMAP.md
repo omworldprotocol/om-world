@@ -206,120 +206,45 @@ Phase 1 is complete when:
 * at least three early use cases are fully mapped
 * contributors can build against the initial specifications
 
-## Phase 2 — MVP Prototype
+## Phase 2 — MVP Prototype (✅ shipped 2026-05-18)
 
-### Objective
+**Live at https://app.omworld.one.** The MVP demonstrates one loop end-to-end:
 
-Build the first working prototype of the OM World intent lifecycle.
+**submit intent → LLM classify → match capability → execute → record pattern → credit OMC**
 
-This phase is about demonstrating the loop:
+### What actually shipped (5 modules, per OM_World_MVP_Development_Spec_v0.1)
 
-**declare → bind → route → execute → prove → settle**
+1. **Intent Demand Entry** — `Submit an Intent` form (web), persisted to `intents` table, auto-classified by LLM, an `intent_type` written back.
+2. **Capability Supply Entry** — `Contribute a Capability` form (web), persisted to `capabilities` table; supply types: `Tool` / `Agent` / `Human Service`.
+3. **Matching Engine** — LLM-routed: classified intent + candidate capabilities → 1–3 ranked `realization_paths`. Half-automatic (user picks a path before execute).
+4. **Pattern Library v0** — first execution of a new `intent_type` creates a Pattern record; subsequent executions of the same type adapt the existing Pattern (smaller LLM call, faster wall time), incrementing `reuse_count`.
+5. **OM Credit Ledger v0** — internal OMC accounting: every user grant (100), submission cost (1), capability reward (10), pattern creation (5), and pattern reuse (2) writes a `credit_event` row. No on-chain token. No financial promise.
 
-### Key Deliverables
+### First seeded capability & intent type
 
-#### 1. Intent Submission Interface
+The MVP launched with one seeded capability: **Genesis Builder Recruitment Generator**, supporting the single intent type `community_growth.builder_recruitment`. This is the OM World founder's own first real need; it grounds the system in something used immediately.
 
-A simple interface where users can submit an intention.
+### Self-growth validation
 
-Should support:
+The MVP success criterion is: **the second realization of any intent_type should be easier than the first.** First production run (2026-05-18):
+- Round 1 (fresh generation): ~78s wall time
+- Round 2 (adapted from Pattern): ~57s wall time → **−20%**
+- Pattern Library: 1 created, 1 reused, OMC ledger 227 issued / 27 distributed
 
-* natural language input
-* structured intent preview
-* constraint editing
-* budget configuration
-* verification requirement selection
-* mandate generation
+This is small-N but it's the loop running on real LLM calls, not a mocked demo. Self-growth is validated in principle; the next step is widening it to more intent types.
 
-#### 2. Tool Registry Prototype
+### What was deliberately NOT in MVP
 
-A basic registry of available tools.
+Per `OM_World_MVP_Development_Spec_v0.1 §14`:
+- no on-chain token, no wallets
+- no distributed storage, no compute network
+- no complex governance or permission system
+- no general agent platform
+- no multi-intent-category support (just one)
+- no mobile entry
+- no cryptographic proofs (`trace_json` only)
 
-Should support:
-
-* tool listing
-* tool metadata
-* capability tags
-* creator identity
-* input/output schema
-* pricing information
-* verification method
-* status and reputation fields
-
-#### 3. Basic Agent Router
-
-A simple routing engine that selects tools based on intent requirements.
-
-Should support:
-
-* tool matching
-* execution plan generation
-* risk warning
-* cost estimation
-* explanation of chosen path
-
-#### 4. Execution Log Format
-
-A standard log for recording agent and tool actions.
-
-Should support:
-
-* action timestamps
-* tool calls
-* inputs and outputs
-* hashes
-* errors
-* retries
-* final result
-
-#### 5. Proof Hash Generator
-
-A basic mechanism for hashing outputs, logs, and artifacts.
-
-Should support:
-
-* output hash
-* execution trace hash
-* artifact hash
-* proof record export
-
-#### 6. Public Explorer Prototype
-
-A read-only explorer for viewing non-sensitive intent records.
-
-Should show:
-
-* intent ID
-* status
-* tools used
-* proof hash
-* verifier status
-* settlement status
-* public metadata
-
-### Early MVP Use Cases
-
-The first MVP should focus on narrow and verifiable use cases.
-
-Recommended candidates:
-
-1. Research report generation with source records
-2. Code task execution with test logs
-3. Cloud server comparison with decision proof
-4. Smart contract risk analysis with finding hashes
-5. Content generation with artifact history
-
-### Exit Criteria
-
-Phase 2 is complete when:
-
-* a user can submit an intent
-* the system can generate a mandate
-* at least one tool can be invoked
-* execution logs are created
-* proof hashes are generated
-* results can be viewed in an explorer
-* the process can be reproduced by external contributors
+Many of these are described as long-term targets in [`docs/*`](docs/), which now carry banners noting the MVP implements a simplified subset.
 
 ## Phase 3 — Testnet Experiment
 
@@ -547,35 +472,35 @@ Phase 5 is complete when:
 * real disputes can be resolved
 * real governance can modify protocol parameters
 
-## Current Immediate Priorities
+## Current Immediate Priorities (post-MVP shipment)
 
-The current Genesis priorities are:
+With Phase 2 MVP live at https://app.omworld.one, priorities have shifted:
 
-1. Finalize README.md
-2. Publish MANIFESTO.md
-3. Publish LITEPAPER.md
-4. Publish CONTRIBUTING.md
-5. Publish ROADMAP.md
-6. Publish BRAND.md
-7. Upload Visual Language System v1
-8. Open Genesis issues
-9. Invite first contributors
-10. Prepare first public builder thread
+1. **Grow capability supply** — register additional `Tool` / `Agent` / `Human Service` capabilities beyond the seeded Genesis Builder Recruitment Generator
+2. **Seed the second intent type** — accept a real second-category intent so the Pattern Library expands beyond `community_growth.builder_recruitment`
+3. **Run real Genesis Builder recruitment campaigns** using the live MVP — for OM World itself and for one or two partner open-source / agent / crypto projects — and feed results back as Pattern Library evidence
+4. **Freeze Intent Schema v0.1** with Co-author kawacukennedy (see CONTRIBUTORS.md)
+5. **Freeze Execution Proof v0.1** with Reviewer Trusteedxyz
+6. **Recruit Co-authors / Reviewers** for Agent Mandate and Tool Registry
+7. **MVP UI polish** — capability detail pages, pattern detail page improvements, dashboard time-series chart for self-growth visualization
+8. **Documentation alignment** — keep public docs aligned with SELF_GROWTH_ENGINE.md as the canonical engine architecture
+9. **Translate Manifesto + Litepaper + SELF_GROWTH_ENGINE to Chinese**
+10. **Adversarial review** — red-team published documents and the live MVP; file issues with specific quotes
 
 ## Suggested Genesis Issues
 
 Recommended public GitHub issues:
 
-1. Draft Manifesto v0.1
-2. Draft Litepaper v0.1
-3. Define Intent Schema v0.1
-4. Define Agent Mandate format
-5. Define Execution Proof format
-6. Design Tool Registry v0.1
-7. Map first 10 intent use cases
-8. Prepare first builder call
-9. Translate Genesis documents into Chinese
-10. Review Visual Language System v1
+1. Submit a real intent at https://app.omworld.one/intent and report the friction
+2. Register a `Tool` or `Agent` capability for an intent type *other* than `community_growth.builder_recruitment`
+3. Co-author Intent Schema v0.2 (post-Genesis-Builder freeze)
+4. Co-author Agent Mandate v0.2 (Co-author slot open)
+5. Co-author Execution Proof v0.2
+6. Co-author Tool Registry v0.2 (Co-author slot open)
+7. Map the next 10 candidate intent categories with success criteria
+8. Translate Manifesto + Litepaper to Chinese
+9. Review Visual Language System v1 and propose an MVP UI theme
+10. Red-team the published documents for token-language drift or self-growth-thesis contradictions
 
 ## Final Note
 
