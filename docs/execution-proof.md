@@ -154,6 +154,8 @@ The spec is intentionally agnostic between three verification paths a relying pa
 
 **Rule (relayer-attested path):** The relayer's attestation MUST commit to the exact bytes of the JCS-canonicalized payload it verified, not to a re-hash or a derived digest. Otherwise a malicious relayer could attest "I verified something that hashes to X" and the dispute path would be unable to reconstruct what was actually shown to the verifier. The relayer's attestation itself MUST be cryptographically attributable to a stable relayer identity so that a successful challenge can slash the relayer, not just the agent.
 
+**Rule (verifier independence):** The trust root for verifying any execution proof MUST be the deterministic open-source verifier + the versioned schemas + the exported evidence bytes. Hosted indices, APIs, or convenience services run by the protocol or any single operator are an acceptable convenience layer for discovery, slicing, and retrieval — but verification correctness MUST NOT depend on trusting them. A third-party auditor receiving a complete export must be able to verify it offline, including chain continuity, signatures and anchors where present, schema version, and the location of any verification failure. This rule protects the dispute path from a class of failure where a hosted API silently substitutes a different payload than what was actually anchored.
+
 The choice of path is a deployment decision. Any on-chain settlement built on top of this spec MUST express its verification path back to the canonical JCS + signature primitives so that disputes can be replayed under any of the three modes.
 
 ## Disputes
@@ -171,6 +173,17 @@ Anyone may post a challenge during the dispute window. A successful challenge sl
 
 Proofs may include sealed fields decryptable only by the principal. Public verifiers check structural integrity; semantic verification happens under the principal's key.
 
+## Deletion evidence (commit-then-redact)
+
+An append-only proof envelope sits in tension with deletion regimes such as GDPR right-to-erasure: once raw PII enters an immutable chain, "deleting" it requires either breaking the chain or breaking the regulation. The spec resolves this by **commit-then-redact**, a profile under which deletion is itself an attestable event without invalidating chain continuity:
+
+1. **Minimize PII before ingest.** Raw PII MUST NOT be written into the append-only envelope by default. The envelope carries commitments (hashes, encrypted sealed fields, or zero-knowledge claims) rather than raw personal data.
+2. **Keep raw / deletable material in a controller-owned sidecar store**, outside the proof envelope. The sidecar is the only place from which deletion can be effected.
+3. **On a verified deletion request,** destroy or redact the sidecar material AND append a **deletion-evidence event** to the envelope chain. The deletion event records what was deleted (by commitment, not by raw content), under whose request, at what time, with what authority — and is itself signed and chained like any other step record.
+4. **The envelope's append-only property is preserved.** A verifier reconstructing the chain after deletion sees a coherent history that includes the deletion event; it cannot reconstruct the deleted raw material, but it can verify that the deletion happened, was authorized, and did not retroactively alter earlier records.
+
+This is a **profile**, not a compliance certification. It provides an evidence substrate that supports GDPR / data-minimization regimes, but legal sufficiency for any specific regulator depends on controller-specific review of the full deployment context (sidecar storage choice, key management, redaction completeness).
+
 ## Open questions
 
 - Zero-knowledge proofs for sensitive tool inputs.
@@ -185,6 +198,7 @@ A small but real cluster of agentic-commerce and agent-execution specs is conver
 - [Trusteedxyz/Trust-Receipt-Verifier](https://github.com/Trusteedxyz/Trust-Receipt-Verifier) — JWS Compact + JCS + Ed25519 for trust receipts in agentic commerce
 - [Tyche Institute / EATF](https://github.com/tyche-institute/eatf) — key-rooted attestation with hybrid PQC (RSA-4096 / ECDSA-P256 / ML-DSA-65), JCS canonicalization, RFC 3161 timestamps, and an externally-mirrored key history (reference mirror at `tyche-institute/eatf-trust-anchors`). Multi-decade-verifier-viability framing; runtime-honesty explicitly out-of-scope of the envelope, composable underneath via TEE if needed.
 - [Occasio Labs / occasio](https://github.com/occasiolabs/occasio) — audit-only end of the cluster. In-toto Statement over a JSONL hash-chain, RFC 8785-subset canonicalization (with documented deviations and integer-only numbers), mirrored JS and Python verifiers, DSSE-wrapped, Sigstore keyless via GitHub Actions OIDC, Rekor inclusion proof in CI. The economic/settlement axis is intentionally absent — a clean reference for the audit/economic decoupling pattern.
+- [attestplane/attestplane](https://github.com/attestplane/attestplane) — compliance-and-audit-substrate end of the cluster. Verifiable audit substrate framed explicitly as an **AIA-12 aligned profile** (Article 12 of the EU AI Act), not a compliance certification: role-bound event fields (provider/deployer/operator/human reviewer), system+model+policy version refs, event categories mapping to high-risk operations (decision / human intervention / exception / drift / audit-export), continuity checkpoints, optional external timestamp anchoring, offline-readable auditor export. Verifier-independence rule (deterministic OSS verifier + versioned schemas + exported bytes as the trust root; hosted APIs as convenience only) and the **commit-then-redact** retention/deletion profile (raw PII in controller-owned sidecar; deletion appended as a signed, chained evidence event) were independently arrived at and align with [§Verifier independence](#on-chain-verification) and [§Deletion evidence](#deletion-evidence-commit-then-redact) in this spec.
 - AP2 v0.2 Verifiable Intent (in development)
 - Several wallet-side credential profiles in the broader agent ecosystem
 
