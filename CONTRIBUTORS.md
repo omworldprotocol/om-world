@@ -70,6 +70,21 @@ Genesis Reviewer for the **agent-mandate v0.2 freeze** (target 2026-08-01); pre-
 
 ### Execution Proof
 
+**Tyche Institute** — maintainer of the [EATF](https://github.com/tyche-institute/eatf) research project · contact `dev@tyche.institute` — Joined 2026-05-19
+
+Multi-round design feedback ([reference thread](https://github.com/tyche-institute/eatf/issues/1)) shaping two sections of the [Execution Proof](docs/execution-proof.md) spec:
+
+- **§Threat model — runtime honesty as an explicit out-of-scope property** — added [§Threat model](docs/execution-proof.md#threat-model) at the top of the spec, stating verbatim what the envelope claims and what it deliberately does not, with the composition story (TEE underneath optional, optimistic challenge above, envelope unchanged in either direction). The term "runtime honesty" itself is adopted from Tyche; it sharpens the boundary that prior drafts treated implicitly.
+- **§Related work — key-rooted + key-history-mirror as a complementary axis** — added EATF to [§Related work](docs/execution-proof.md#related-work) as a key-rooted reference instance, complementary to the JCS/JWS stack already in the cluster. The cross-spec convergence is now framed around four converging primitives (JCS canonicalization + key-rooted signatures + RFC 3161 timestamping + runtime-honesty out-of-scope) rather than just JCS+JWS+Ed25519.
+
+**Posture:** Tyche's listing is for technical review of substrate / canonicalization / freshness / revocation decisions. It is explicitly **not** an endorsement of OM World governance, business model, or any future commercial state. Tyche reserves the right to withdraw attribution if a token, ICO, or commercial offering is introduced prior to v0.2 publication, or if the no-token policy in [GENESIS-BUILDERS.md](GENESIS-BUILDERS.md) is rescinded.
+
+**License of contribution:** CC-BY-4.0 (per the prose scope in [LICENSE](LICENSE)).
+
+Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-25. Schedule conditional on no collision with Tyche's own public-release prep under `github.com/tyche-institute` — to be confirmed ~2026-07-15.
+
+---
+
 **[@Trusteedxyz](https://github.com/Trusteedxyz)** — Joined 2026-05-17
 
 Multi-round design feedback ([reference thread](https://github.com/Trusteedxyz/Trust-Receipt-Verifier/issues/3)) that shaped six sections of the [Execution Proof](docs/execution-proof.md) spec:

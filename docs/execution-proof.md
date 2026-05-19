@@ -8,6 +8,24 @@
 
 Make execution legible to verifiers and disputable by anyone, without forcing the agent to reveal more than necessary.
 
+## Threat model
+
+The Execution Proof envelope records **what** was claimed and **when**, signed by a key with a known revocation state. It deliberately does *not* claim **runtime honesty** — the property that the agent's internal reasoning, prompts, or tool-call decisions inside the runtime were truthful representations of what the agent actually computed.
+
+What the envelope does claim:
+- The bytes inside this envelope were signed by a key paired with the declared agent identity at the declared time
+- The signing key's revocation state at proof-validation time matches the rule applied (see [§Key revocation states](#key-revocation-states))
+- The plan revealed matches the mandate's `plan_hash` commitment
+- Each step's attestation, where present, is internally consistent
+- The chained `prev_hash` (when used) is unbroken
+
+What the envelope deliberately does *not* claim:
+- That the agent's internal decisions were honest (use a TEE-attested runtime for that, composed underneath the envelope)
+- That a stateful tool's snapshot at `context_hash` reflects ground truth — only that the snapshot was committed to before the query ran
+- That the runtime was not coerced, prompt-injected, or otherwise manipulated upstream of the signing surface — runtime-honesty disputes are handled through optimistic challenge windows, not through cryptographic attestation alone
+
+Runtime honesty composes cleanly underneath this envelope: a TEE-attested runtime can wrap the signing key, an optimistic-challenge protocol can run above the settlement layer, and the envelope itself remains unchanged in either direction. This separation is intentional — coupling runtime-honesty into the proof envelope would force every relying party to trust whichever runtime substrate the agent chose, which defeats the multi-decade verifier-viability goal.
+
 ## Envelope (v0)
 
 ```
@@ -124,6 +142,8 @@ The identity registry (whichever the `intent.executor.id_scheme` points to — E
 7. Evaluate `success_claim` against the intent's `success_criteria`.
 8. Emit verdict event.
 
+**Conditional load-bearing on externally-attested agent identity.** Item 4 is **conditionally required** depending on deployment context. Externally-attested `executor.agent_id` is load-bearing when the deployment admits a solver market, runs an adversarial bond/dispute layer, or otherwise requires the principal to identify, bond, and dispute against a counterparty they do not control. It is **optional** when the deployment is single-account / single-runtime / single-trust-domain — for example, a developer running an agent locally against their own credentials, with no competing pool of agents bidding to execute and no slashable bond. In that mode, `executor.agent_id` may be a routing string (which adapter to dispatch to) rather than a cryptographic principal, and identity is the OS-user plus optionally a workflow-level attestation. Verifiers in such deployments still apply items 1–3 and 5–8 verbatim; item 4 reduces to an existence check rather than a registry resolution. The two questions — externally-attested agent identity and on-chain settlement — collapse to the same trigger: both become load-bearing the moment the deployment admits adversarial counterparties.
+
 ## On-chain verification
 
 The spec is intentionally agnostic between three verification paths a relying party may use:
@@ -156,16 +176,19 @@ Proofs may include sealed fields decryptable only by the principal. Public verif
 - Zero-knowledge proofs for sensitive tool inputs.
 - Cross-domain attestation (off-chain APIs without native signing): zkTLS covers HTTP response proofs; TEE covers agent execution proofs. A hybrid (`attestation.type: multi`) likely covers most cases — formalize the combination rules.
 - Memory snapshot distribution: who is responsible for storing and serving the snapshot that `context_hash` commits to? Options: the memory tool provider, a dedicated snapshot oracle, or the agent itself (with provider co-signature).
+- **Cross-chain proof aggregation.** When an intent originates on chain A (e.g. Base) and the agent executes against tools or settlement on chain B (e.g. Solana), the proof must be verifiable on the originating chain without forcing the originating chain to natively parse the foreign chain's transactions. Two candidate shapes: (a) **a new primitive** — a `proof_relay_contract` field in the Intent Schema that lets the principal declare the relay path at intent issuance, or (b) **a deployment pattern** — handled outside the spec by relayer attestation, with the spec only requiring that the relayer's attestation commit to exact JCS bytes and be cryptographically attributable (see [§On-chain verification](#on-chain-verification)). Current lean is (b) for v0.2 with (a) reserved for v0.3+; pushback welcome before the freeze.
 
 ## Related work
 
-A small but real cluster of agentic-commerce and agent-execution specs is converging on **JCS (RFC 8785) + JWS + Ed25519** as the canonical-form + signature stack. Known instances at the time of writing:
+A small but real cluster of agentic-commerce and agent-execution specs is converging on **JCS (RFC 8785) + key-rooted signatures + RFC 3161 timestamping** as the canonical-form + verifiability stack, with **runtime-honesty deliberately separated from the proof envelope**. Known instances at the time of writing:
 
 - [Trusteedxyz/Trust-Receipt-Verifier](https://github.com/Trusteedxyz/Trust-Receipt-Verifier) — JWS Compact + JCS + Ed25519 for trust receipts in agentic commerce
+- [Tyche Institute / EATF](https://github.com/tyche-institute/eatf) — key-rooted attestation with hybrid PQC (RSA-4096 / ECDSA-P256 / ML-DSA-65), JCS canonicalization, RFC 3161 timestamps, and an externally-mirrored key history (reference mirror at `tyche-institute/eatf-trust-anchors`). Multi-decade-verifier-viability framing; runtime-honesty explicitly out-of-scope of the envelope, composable underneath via TEE if needed.
+- [Occasio Labs / occasio](https://github.com/occasiolabs/occasio) — audit-only end of the cluster. In-toto Statement over a JSONL hash-chain, RFC 8785-subset canonicalization (with documented deviations and integer-only numbers), mirrored JS and Python verifiers, DSSE-wrapped, Sigstore keyless via GitHub Actions OIDC, Rekor inclusion proof in CI. The economic/settlement axis is intentionally absent — a clean reference for the audit/economic decoupling pattern.
 - AP2 v0.2 Verifiable Intent (in development)
 - Several wallet-side credential profiles in the broader agent ecosystem
 
-The convergence is independent — no coordination body, just multiple specs picking the same primitives because they avoid the same failure modes: canonicalization drift, signature-suite fragmentation, per-language verifier reimplementation cost. Documenting it explicitly compounds the benefit: relying parties building verifiers can share canonicalization and signature-verification code across the lot.
+The convergence is independent — no coordination body, just multiple specs picking the same primitives because they avoid the same failure modes: canonicalization drift, signature-suite fragmentation, per-language verifier reimplementation cost, and conflation of audit-grade attestation with runtime-honesty claims. Documenting it explicitly compounds the benefit: relying parties building verifiers can share canonicalization and signature-verification code across the lot, and the audit/economic decoupling pattern (audit envelope on Rekor-class infrastructure, economic settlement separately on-chain when needed) is now visible as a deliberate design axis rather than a quirk.
 
 If you ship a spec or implementation in this cluster and want to be listed here, open an issue tagged `genesis-builders` on the [om-world repo](https://github.com/omworldprotocol/om-world/issues).
 
@@ -174,3 +197,4 @@ If you ship a spec or implementation in this cluster and want to be listed here,
 This spec was shaped by — see [CONTRIBUTORS.md](../CONTRIBUTORS.md#execution-proof) for current attribution:
 
 - **[@Trusteedxyz](https://github.com/Trusteedxyz)** — Genesis Reviewer of Execution Proof. Shaped §Canonicalization (JCS RFC 8785), §Long-term verifiability (RFC 3161 sidecar), §Key revocation states (rotated vs compromised), the envelope-is-the-unit non-goal in §Envelope, the relayer-bytes-commitment rule in §On-chain verification, and the §Related work convergence note across multiple rounds of design dialogue.
+- **Tyche Institute** (maintainer of the [EATF](https://github.com/tyche-institute/eatf) research project) — Genesis Reviewer of Execution Proof (institutional attribution). Shaped §Threat model (runtime-honesty as an explicit out-of-scope property of the envelope) and the cross-spec convergence framing in §Related work (key-rooted + key-history-mirror as a complementary axis to the JCS/JWS stack). Posture: technical review only; not an endorsement of OM World governance, business model, or any future commercial state.

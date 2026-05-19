@@ -917,6 +917,80 @@ Disclosure does not automatically disqualify participation.
 
 But undisclosed conflicts damage governance trust.
 
+## Licensing
+
+OM World is dual-licensed to match how the project is used. The full
+license texts and scope are in [LICENSE](LICENSE) at the repository root;
+this section documents the contributor-facing rules that depend on those
+licenses.
+
+### Scope summary
+
+| Scope | License |
+|-------|---------|
+| Specifications and prose — `docs/`, `discussions/`, root-level `*.md` files | [CC-BY-4.0](LICENSE-DOCS) |
+| Code and reference implementation — `app/`, `lib/`, `node-client/`, `prisma/`, `scripts/`, `tools/`, source files | [Apache-2.0](LICENSE-CODE) |
+| Brand and visual identity — `assets/` (logo, visual-language, social, litepaper assets) | Not covered. All rights reserved. |
+
+Schema definitions and code samples embedded inside a specification
+document inherit that document's license. The same shapes reproduced
+as runnable code under the code scope are under the code license. See
+[LICENSE](LICENSE) for the authoritative wording.
+
+### Inbound = outbound
+
+Contributions are licensed under the same terms as the file they touch:
+
+- Pull requests against any file in the prose scope are accepted under
+  **CC-BY-4.0**.
+- Pull requests against any file in the code scope are accepted under
+  **Apache-2.0**.
+- Review comments, design suggestions, and discussion posts that are
+  incorporated into the spec or code are licensed under the
+  corresponding scope's license.
+
+Submitting a contribution to this repository constitutes agreement to
+license that contribution under the applicable scope's license. No
+additional Contributor License Agreement (CLA) is required. This
+follows the inbound=outbound model used by the Linux kernel, Rust, and
+most large open-source protocol projects. Contributors retain copyright
+in their contributions; the license grants the project (and downstream
+users) the right to use the contribution under the chosen terms.
+
+### Attribution
+
+CC-BY-4.0 requires attribution. The expected attribution form is:
+
+> © OM World Protocol contributors, licensed under CC-BY-4.0.
+> Source: https://github.com/omworldprotocol/om-world
+
+Genesis Builders who shape a specification section are additionally
+cited by name in [CONTRIBUTORS.md](CONTRIBUTORS.md) and in the spec
+file's `§Contributors` block. That is a recognition mechanism, separate
+from and additional to the CC-BY-4.0 legal attribution requirement.
+
+### What this licensing model does not do
+
+This section governs copyright and use of the OM World specification
+and code. It is independent of:
+
+- **Contributor recognition** ([GENESIS-BUILDERS.md](GENESIS-BUILDERS.md))
+  — Genesis Builder roles are a project-internal recognition system,
+  not a legal grant. A contribution remains licensed even if the
+  contributor later steps back from active Builder status.
+- **Trademark** — the OM World name, logo, and visual identity assets
+  in `assets/` are not licensed under CC-BY-4.0 or Apache-2.0. Use of
+  the OM World name to describe an implementation that builds on the
+  spec is welcome; use that suggests endorsement, ownership, or
+  sponsorship requires explicit permission.
+- **Patents** — Apache-2.0 includes an explicit patent grant for the
+  code scope. The specification itself makes no patent claims and
+  grants no patent rights beyond what is contributed through the
+  CC-BY-4.0 prose.
+- **Token, allocation, or financial instrument** — see §Relationship
+  to Future Token. Nothing in the licensing model creates or implies
+  any economic right.
+
 ## Genesis Governance To-Do
 
 Immediate governance tasks:

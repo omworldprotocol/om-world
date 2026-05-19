@@ -461,6 +461,10 @@ Recognition mechanisms:
 
 The Genesis phase is about building the foundation.
 
+## Licensing
+
+Contributions follow **inbound = outbound**: a pull request or review comment that lands in a prose file is licensed under [CC-BY-4.0](LICENSE-DOCS); one that lands in a code file is licensed under [Apache-2.0](LICENSE-CODE). No separate Contributor License Agreement (CLA) is required. Contributors retain copyright in their contributions; the license grants the project (and downstream users) the right to use the contribution under the chosen terms. See [LICENSE](LICENSE) for scope and [GOVERNANCE.md §Licensing](GOVERNANCE.md#licensing) for full contributor terms.
+
 ## Current Priority Areas
 
 The Genesis MVP is live at https://app.omworld.one. Current priorities follow what the MVP needs to validate the self-growth thesis at scale:

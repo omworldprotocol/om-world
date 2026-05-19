@@ -136,5 +136,9 @@ If you believe human intention should be sovereign, verifiable, and executable i
 The first OM World Genesis issues are now open.  
 Builders, researchers, designers, writers, and protocol contributors are invited to join.
 
+## License
+
+OM World is dual-licensed: specifications and prose under [CC-BY-4.0](LICENSE-DOCS), code and reference implementation under [Apache-2.0](LICENSE-CODE). Brand and visual identity assets under `assets/` are not covered by either license. See [LICENSE](LICENSE) for scope details and [GOVERNANCE.md §Licensing](GOVERNANCE.md#licensing) for contributor terms (inbound=outbound, no CLA required).
+
 **One Mind, One World.**
 

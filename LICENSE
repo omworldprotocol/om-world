@@ -1,0 +1,90 @@
+OM World Protocol — Licensing
+=============================
+
+OM World is dual-licensed to match how the project is used.
+
+
+Specifications and prose
+------------------------
+
+The following are licensed under the Creative Commons Attribution 4.0
+International license (CC-BY-4.0). Full legal text: LICENSE-DOCS.
+
+  - Everything under `docs/`
+  - Everything under `discussions/`
+  - The root-level Markdown files:
+    README.md, MANIFESTO.md, LITEPAPER.md, GOVERNANCE.md, CONTRIBUTORS.md,
+    GENESIS-BUILDERS.md, SELF_GROWTH_ENGINE.md, CO-BUILDER-ONBOARDING.md,
+    ROADMAP.md, BRAND.md, CONTRIBUTING.md
+  - Any other `*.md` file added under the same scopes
+
+You may share and adapt these materials for any purpose, including
+commercial use, provided you give appropriate attribution. The expected
+attribution form is:
+
+    © OM World Protocol contributors, licensed under CC-BY-4.0.
+    Source: https://github.com/omworldprotocol/om-world
+
+
+Code and reference implementation
+---------------------------------
+
+The following are licensed under the Apache License, Version 2.0.
+Full legal text: LICENSE-CODE.
+
+  - Everything under `app/`, `lib/`, `node-client/`, `prisma/`, `scripts/`,
+    `tools/`
+  - Source files anywhere in the repository with extensions:
+    `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.py`, `.sql`, `.sh`,
+    `.toml`, `.yaml`, `.yml`, `.json` (when used as configuration or schema)
+
+Apache-2.0 includes an explicit patent grant for code contributions.
+
+Schema definitions and code samples embedded inside a specification
+document (for example, the JSON shapes shown inside
+`docs/intent-schema.md`) inherit that document's license — they are
+part of the prose. The same shapes when reproduced as runnable code
+under `app/`, `lib/`, or `node-client/` are under the code license.
+
+
+Brand and visual identity — not covered
+----------------------------------------
+
+The OM World name, the logo, and the visual-identity assets under
+`assets/logo/`, `assets/visual-language/`, `assets/social/`, and
+`assets/litepaper/` are NOT covered by either license.
+
+All rights reserved by the OM World Protocol project. You may refer
+to OM World by name to describe an implementation of the spec; using
+the OM World name or visual identity in a way that suggests
+endorsement, ownership, or sponsorship requires explicit permission.
+A separate TRADEMARK.md may be published later; for now, open an
+issue if your intended use is not obvious.
+
+
+Inbound = outbound
+------------------
+
+Contributions to this repository are licensed under the same terms as
+the file they touch. A pull request against a prose file is accepted
+under CC-BY-4.0; a pull request against a code file is accepted under
+Apache-2.0. Review comments, design suggestions, and discussion posts
+that are incorporated into the spec or code are licensed under the
+corresponding scope's license.
+
+Submitting a contribution to this repository constitutes agreement to
+license that contribution under the applicable scope's license. No
+additional Contributor License Agreement (CLA) is required.
+
+Contributors retain copyright in their contributions; the license
+grants the project (and downstream users) the right to use the
+contribution under the chosen terms.
+
+See GOVERNANCE.md §Licensing for the full contributor terms.
+
+
+Copyright
+---------
+
+Copyright (c) OM World Protocol contributors.
+See CONTRIBUTORS.md for the attributed contributors.
