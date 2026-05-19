@@ -142,6 +142,8 @@ The identity registry (whichever the `intent.executor.id_scheme` points to — E
 7. Evaluate `success_claim` against the intent's `success_criteria`.
 8. Emit verdict event.
 
+**Pre-commitment of the signing key.** The verifier's correctness rests on the signing key being **committed to a registry before** the proof is generated, not after. This is what makes claims about the runtime substrate (TEE, sandbox, bare metal) irrelevant to verification: even if substrate-attestation is fully delegated to a third-party broker, an agent that signs with a non-registered key has its proof rejected at item 4; an agent that signs with a registered key cannot retroactively claim a different key was the "real" one. The economic bet collapses to ECDSA (or whatever signature scheme the registered identity uses) — forging a proof requires the private key. This is why the spec is comfortable leaving substrate selection to the deployment while still claiming verifier-level correctness.
+
 **Conditional load-bearing on externally-attested agent identity.** Item 4 is **conditionally required** depending on deployment context. Externally-attested `executor.agent_id` is load-bearing when the deployment admits a solver market, runs an adversarial bond/dispute layer, or otherwise requires the principal to identify, bond, and dispute against a counterparty they do not control. It is **optional** when the deployment is single-account / single-runtime / single-trust-domain — for example, a developer running an agent locally against their own credentials, with no competing pool of agents bidding to execute and no slashable bond. In that mode, `executor.agent_id` may be a routing string (which adapter to dispatch to) rather than a cryptographic principal, and identity is the OS-user plus optionally a workflow-level attestation. Verifiers in such deployments still apply items 1–3 and 5–8 verbatim; item 4 reduces to an existence check rather than a registry resolution. The two questions — externally-attested agent identity and on-chain settlement — collapse to the same trigger: both become load-bearing the moment the deployment admits adversarial counterparties.
 
 ## On-chain verification
@@ -160,7 +162,13 @@ The choice of path is a deployment decision. Any on-chain settlement built on to
 
 ## Disputes
 
-Anyone may post a challenge during the dispute window. A successful challenge slashes the agent's bond proportionally to the severity:
+The dispute layer is decomposed into three deliberately-separate mechanisms. Conflating them produces a class of failure where reputation swings on disputes and becomes manipulable.
+
+**1. Hard enforcement at proof submission (binary, automatic, pre-dispute).** A proof whose signature does not recover to the agent identity committed in `intent.executor` (or, where executor is unbound, the signing identity claimed in the proof itself) MUST be rejected at submission time. The honest path and the malicious-attempt path are indistinguishable to downstream consumers because the malicious attempt never lands. This is the verifier's job (see [§Verifier responsibilities](#verifier-responsibilities)), not the dispute layer's.
+
+**2. Reputation accumulation (signal, monotonic).** Reputation MUST be increment-only on successful settlement. It MUST NOT decrement on dispute resolution. A slashed agent retains their historical settled-jobs count; what they lose is bond and the right to take new jobs until the bond is restored. The rationale is sybil-resistance: reputation that swings on disputes can be manipulated by a coordinated griefing campaign, but reputation that swings only on settlements is bounded by the buyer-volume curve of the deployment.
+
+**3. Bond slashing (post-settlement, adversarial).** Anyone may post a challenge during the dispute window. The challenger posts a dispute bond (anti-griefing). Resolution is objective wherever possible — a successful challenge slashes the agent's bond proportionally to the severity:
 
 | Class | Slash |
 |---|---|
@@ -168,6 +176,10 @@ Anyone may post a challenge during the dispute window. A successful challenge sl
 | Tool misuse / unattested call | 50% |
 | Plan/mandate mismatch | 25% |
 | Latency / minor protocol breach | ≤10% |
+
+The slash is a **funding event, not a reputation event**: bond redistribution follows the severity table; the agent's reputation score is not retroactively altered. Subjective output-quality judgments are out-of-scope for the slashing rule (subjective quality is the reputation accumulator's signal, not bond slashing's).
+
+This three-mechanism decomposition is independent of whether the deployment is on-chain or off-chain. On-chain deployments express each mechanism as a contract surface (e.g. `AttestationVerifier` for #1, a reputation vault for #2, a slashing arbiter for #3); off-chain deployments express the same three concerns as discrete relying-party checks. The spec only requires that the three concerns remain separable.
 
 ## Privacy
 
@@ -198,6 +210,7 @@ A small but real cluster of agentic-commerce and agent-execution specs is conver
 - [Trusteedxyz/Trust-Receipt-Verifier](https://github.com/Trusteedxyz/Trust-Receipt-Verifier) — JWS Compact + JCS + Ed25519 for trust receipts in agentic commerce
 - [Tyche Institute / EATF](https://github.com/tyche-institute/eatf) — key-rooted attestation with hybrid PQC (RSA-4096 / ECDSA-P256 / ML-DSA-65), JCS canonicalization, RFC 3161 timestamps, and an externally-mirrored key history (reference mirror at `tyche-institute/eatf-trust-anchors`). Multi-decade-verifier-viability framing; runtime-honesty explicitly out-of-scope of the envelope, composable underneath via TEE if needed.
 - [Occasio Labs / occasio](https://github.com/occasiolabs/occasio) — audit-only end of the cluster. In-toto Statement over a JSONL hash-chain, RFC 8785-subset canonicalization (with documented deviations and integer-only numbers), mirrored JS and Python verifiers, DSSE-wrapped, Sigstore keyless via GitHub Actions OIDC, Rekor inclusion proof in CI. The economic/settlement axis is intentionally absent — a clean reference for the audit/economic decoupling pattern.
+- [winsznx/pact](https://github.com/winsznx/pact) — deployed on-chain execution-attestation verifier (0G mainnet). Pre-registered signing-address commitment + EIP-191-signed 5-field canonical text (`contentHash:usageHash:providerType:providerIdentity:tlsCertFingerprint`) + `AttestationVerifier.sol` running `ECDSA.recover` at submission time. Three-mechanism dispute decomposition (hard enforcement / reputation accumulator / bond slashing) shaped [§Disputes](#disputes) in this spec. PACT's `AttestationVerifier` can verify an OM World Execution Proof as-is when the proof's canonical-text shape matches and is EIP-191-signed against a key registered in PACT's `PactRegistry` — a useful interop surface for deployments that want to settle on 0G.
 - [attestplane/attestplane](https://github.com/attestplane/attestplane) — compliance-and-audit-substrate end of the cluster. Verifiable audit substrate framed explicitly as an **AIA-12 aligned profile** (Article 12 of the EU AI Act), not a compliance certification: role-bound event fields (provider/deployer/operator/human reviewer), system+model+policy version refs, event categories mapping to high-risk operations (decision / human intervention / exception / drift / audit-export), continuity checkpoints, optional external timestamp anchoring, offline-readable auditor export. Verifier-independence rule (deterministic OSS verifier + versioned schemas + exported bytes as the trust root; hosted APIs as convenience only) and the **commit-then-redact** retention/deletion profile (raw PII in controller-owned sidecar; deletion appended as a signed, chained evidence event) were independently arrived at and align with [§Verifier independence](#on-chain-verification) and [§Deletion evidence](#deletion-evidence-commit-then-redact) in this spec.
 - AP2 v0.2 Verifiable Intent (in development)
 - Several wallet-side credential profiles in the broader agent ecosystem
