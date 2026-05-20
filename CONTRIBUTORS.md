@@ -102,6 +102,22 @@ Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01).
 
 ---
 
+**attestplane project** — maintained by [@merchloubna70-dot](https://github.com/merchloubna70-dot) — Joined 2026-05-21
+
+Multi-comment design feedback ([reference thread](https://github.com/attestplane/attestplane/issues/7)), backed by five concrete artifacts published on the attestplane side, shaping three elements of the [Execution Proof](docs/execution-proof.md) spec:
+
+- **§On-chain verification — verifier-independence rule** — the trust root MUST be the deterministic open-source verifier + versioned schemas + exported evidence bytes; hosted indices, APIs, or convenience services are an acceptable convenience layer for discovery and retrieval, but verification correctness MUST NOT depend on trusting them ([commit 61979b1](https://github.com/omworldprotocol/om-world/commit/61979b1))
+- **§Deletion evidence (commit-then-redact)** — a new top-level section: minimize PII before ingest → commitments in the chain → raw/deletable material in a controller-owned sidecar → on verified deletion, destroy the sidecar and append a signed deletion-evidence event, preserving the envelope's append-only property ([61979b1](https://github.com/omworldprotocol/om-world/commit/61979b1))
+- **§Related work — compliance-and-audit-substrate corner of the convergence cluster** — attestplane added as the AIA-12-aligned-profile reference instance, carrying the alpha-stage qualifier and the "evidence-substrate primitives, not a legal compliance conclusion" caveat as defended framing ([61979b1](https://github.com/omworldprotocol/om-world/commit/61979b1))
+
+**Posture:** attestplane's listing is a spec-level convergence only — technical review of audit-substrate / verifier-independence / retention-deletion decisions. It is explicitly **not** an endorsement of OM World governance, business model, or any future commercial state, and carries no joint marketing, hosted-service endorsement, or economic axis. Opt-out at any time per [GENESIS-BUILDERS.md](GENESIS-BUILDERS.md).
+
+**License of contribution:** CC-BY-4.0 (per the prose scope in [LICENSE](LICENSE)).
+
+Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-25.
+
+---
+
 ## Primitive Stewards
 
 _Stewards take long-term maintenance ownership of a primitive's spec section, typically after v1.0 freeze._
