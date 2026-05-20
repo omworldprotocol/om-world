@@ -59,13 +59,6 @@ Output: `outreach/dm-drafts/YYYY-MM-DD-@<handle>.md`.
 ### `check-replies.py`
 
 Daily reply monitor for outreach threads already logged in `outreach/crm.md`.
-Two checking passes per run:
-
-1. Every GitHub issue/discussion URL found in each active CRM row's notes
-   (all of them, not just the first — a row may reference side-threads).
-2. A full sweep of `omworldprotocol/om-world`'s own issues + discussions, so
-   co-builder replies on our own repo (welcome threads, Genesis Review Sprint
-   issues, integration proposals) are never missed.
 
 ```bash
 python3 tools/check-replies.py              # since last run
@@ -73,13 +66,41 @@ python3 tools/check-replies.py --since 2026-05-14
 python3 tools/check-replies.py --dry-run    # report only, no CRM write
 ```
 
-A `sent` row escalates to `engaged` only when a new comment comes from a
-commenter affiliated with that repo (`author_association` of OWNER / MEMBER /
-COLLABORATOR / CONTRIBUTOR — i.e. the maintainer / outreach target). Comments
-from unaffiliated accounts (drive-by commenters, vendors pitching services)
-are still reported but flagged `⚠ unaffiliated` and do **not** escalate the
-row. Threads found by the om-world sweep are report-only — they need manual
-triage, since they cannot be auto-mapped to a CRM row.
+**Coverage — designed so no reply is missed:**
+
+1. Every GitHub issue / PR / discussion URL found in each active CRM row's
+   notes (all of them, not just the first — a row may reference side-threads).
+2. A full sweep of `omworldprotocol/om-world`'s own issues, pull requests,
+   and discussions, so co-builder replies on our own repo (welcome threads,
+   Genesis Review Sprint issues, integration proposals) are never missed.
+3. Discussion threads are read with their nested replies, not just top-level
+   comments.
+
+**Which rows are checked:** every row *except* `bounce` (explicit
+not-interested — outreach stopped). `committed`, `engaged`, `silent` and
+`sent` rows are all checked — a committed co-builder's ongoing reply and a
+silent contact's late re-engagement both matter.
+
+**Dedup guarantee:** each distinct thread is fetched and reported at most once
+per run (a run-wide set covers both the per-row pass and the own-repo sweep).
+Across runs the `since` timestamp advances, so a comment is reported in exactly
+one run. `since` is saved as the run's *start* time, so a comment landing
+mid-run is re-checked next run rather than missed.
+
+**Status escalation:** a `sent` or `silent` row escalates to `engaged` only
+when a new comment comes from a commenter affiliated with that repo
+(`author_association` of OWNER / MEMBER / COLLABORATOR / CONTRIBUTOR — the
+maintainer / outreach target). Comments from unaffiliated accounts (drive-by
+commenters, vendors pitching services) are still reported but flagged
+`⚠ unaffiliated` and do **not** escalate the row. `engaged` and `committed`
+rows are reported on new activity but never auto-change status.
+
+om-world sweep threads not referenced by any CRM row are report-only — they
+need manual triage, since they cannot be auto-mapped to a row.
+
+**Known bounds:** discussion comments + nested replies are read 100-at-a-time
+(no pagination); inline PR *review* comments are not read (PR conversation
+comments are). Neither matters at current thread sizes.
 
 State (last-run timestamp) is kept in `outreach/.check-replies-state.json`.
 

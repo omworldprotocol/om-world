@@ -6,19 +6,37 @@ Reads outreach/crm.md, checks every tracked GitHub thread for new comments
 since the last run, prints a structured report, and updates the replied /
 status columns in crm.md.
 
-What it checks, per run:
+Coverage — what it checks, per run (designed so no reply is missed):
   1. Every GitHub issue/discussion URL found in each active CRM row's notes
      (all of them, not just the first — a row may reference side-threads).
-  2. A full sweep of omworldprotocol/om-world's own issues and discussions,
-     so co-builder replies on our own repo (welcome threads, Genesis Review
-     Sprint issues, integration proposals) are never missed.
+  2. A full sweep of omworldprotocol/om-world's own issues, pull requests,
+     and discussions, so co-builder replies on our own repo (welcome
+     threads, Genesis Review Sprint issues, integration proposals) are
+     never missed.
+  3. Discussion threads are read with their nested replies, not just the
+     top-level comments.
+
+Which rows are checked:
+  Every row EXCEPT `bounce` (explicit not-interested / hostile — outreach
+  stopped per the crm.md operating rules). `committed`, `engaged`, `silent`
+  and `sent` rows are ALL checked — a committed co-builder's ongoing reply
+  and a silent contact's late re-engagement both matter.
+
+Dedup guarantee:
+  Each distinct thread is fetched and reported at most once per run (a
+  run-wide `checked` set covers both the per-row pass and the own-repo
+  sweep). Across runs, the `since` timestamp advances, so a comment is
+  reported in exactly one run.
 
 Status escalation rule:
-  A `sent` row is escalated to `engaged` only when a new comment comes from
-  someone with a real association to that repo (OWNER / MEMBER / COLLABORATOR
-  / CONTRIBUTOR) — i.e. the maintainer / outreach target. Comments from
-  unaffiliated accounts (association NONE — drive-by commenters, vendors
-  pitching services) are still reported, but do NOT auto-escalate the row.
+  A `sent` or `silent` row escalates to `engaged` only when a new comment
+  comes from someone with a real association to that repo (OWNER / MEMBER /
+  COLLABORATOR / CONTRIBUTOR) — i.e. the maintainer / outreach target.
+  Comments from unaffiliated accounts (association NONE — drive-by
+  commenters, vendors pitching services) are still reported, but do NOT
+  auto-escalate the row. `engaged` and `committed` rows are reported when
+  they get new activity but never auto-change status (those transitions
+  are human judgement calls).
 
 Usage:
     python3 tools/check-replies.py              # since last run (default)
@@ -43,8 +61,14 @@ STATE_PATH = REPO_ROOT / "outreach" / ".check-replies-state.json"
 # GitHub logins that count as "us" — excluded from reply detection.
 OWN_LOGINS = {"flyoung588", "omworldprotocol"}
 
-# Threads in these statuses are skipped entirely.
-SKIP_STATUSES = {"committed", "bounce", "silent"}
+# Rows in these statuses are skipped entirely. Only `bounce` — an explicit
+# not-interested / hostile close where outreach has stopped. `committed`
+# and `silent` are intentionally NOT skipped: a committed co-builder's
+# ongoing reply and a silent contact's late re-engagement both matter.
+SKIP_STATUSES = {"bounce"}
+
+# Statuses that escalate to `engaged` on a maintainer-side reply.
+ESCALATABLE_STATUSES = {"sent", "silent"}
 
 # author_association values that mean "this commenter is the maintainer /
 # outreach target side of the thread" rather than an unaffiliated outsider.
@@ -98,9 +122,11 @@ def load_since(override: str | None) -> str:
     return (date.today() - timedelta(days=1)).isoformat() + "T00:00:00Z"
 
 
-def save_state() -> None:
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    STATE_PATH.write_text(json.dumps({"last_checked": now}, indent=2))
+def save_state(run_started: str) -> None:
+    """Persist the run's START time as the next lower bound. Using start (not
+    end) time means a comment created mid-run is re-checked next run rather
+    than missed — a harmless re-report is preferred over a silent miss."""
+    STATE_PATH.write_text(json.dumps({"last_checked": run_started}, indent=2))
 
 
 # ── CRM parsing ───────────────────────────────────────────────────────────────
@@ -135,15 +161,21 @@ def parse_crm(path: Path) -> list[dict]:
     return rows
 
 
+def row_status(row: dict) -> str:
+    """Status cell, normalized — markdown bold (**committed**) and whitespace
+    stripped — so the skip / escalation checks compare clean values."""
+    return row.get("status", "").strip().strip("*").strip().lower()
+
+
 _THREAD_URL_RE = re.compile(
     r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"
-    r"/(?:issues|discussions)/\d+"
+    r"/(?:issues|discussions|pull)/\d+"
 )
 
 
 def extract_thread_urls(notes: str) -> list[str]:
-    """Extract every GitHub issue/discussion URL from a notes string, deduped,
-    in first-seen order."""
+    """Extract every GitHub issue/discussion/PR URL from a notes string,
+    deduped, in first-seen order."""
     seen: list[str] = []
     for m in _THREAD_URL_RE.finditer(notes):
         if m.group(0) not in seen:
@@ -154,31 +186,37 @@ def extract_thread_urls(notes: str) -> list[str]:
 def parse_thread_url(url: str) -> dict | None:
     """
     Parse owner / repo / type / number from a GitHub thread URL.
-    Returns None if the URL doesn't match.
+    Returns None if the URL doesn't match. PRs are treated as issues for
+    comment-fetching (the issue-comments endpoint serves PR conversation
+    comments) but keep a `kind` of "PR" for display.
     """
     m = re.match(
-        r"https://github\.com/([^/]+)/([^/]+)/(issues|discussions)/(\d+)",
+        r"https://github\.com/([^/]+)/([^/]+)/(issues|discussions|pull)/(\d+)",
         url,
     )
     if not m:
         return None
+    seg = m.group(3)
+    kind = {"issues": "issue", "discussions": "discussion", "pull": "PR"}[seg]
     return {
         "owner":  m.group(1),
         "repo":   m.group(2),
-        "type":   "issue" if m.group(3) == "issues" else "discussion",
+        "type":   "discussion" if kind == "discussion" else "issue",
+        "kind":   kind,
         "number": int(m.group(4)),
-        "url":    f"https://github.com/{m.group(1)}/{m.group(2)}/{m.group(3)}/{m.group(4)}",
+        "url":    f"https://github.com/{m.group(1)}/{m.group(2)}/{seg}/{m.group(4)}",
     }
 
 
 def thread_key(thread: dict) -> tuple:
-    """Hashable identity for a thread, for cross-pass dedup."""
+    """Hashable identity for a thread, for run-wide dedup."""
     return (thread["owner"], thread["repo"], thread["type"], thread["number"])
 
 
 # ── Comment fetching ──────────────────────────────────────────────────────────
 
 def fetch_issue_comments(owner: str, repo: str, number: int, since: str) -> list[dict]:
+    """Conversation comments for an issue or PR (same REST endpoint)."""
     try:
         raw = gh_rest(f"repos/{owner}/{repo}/issues/{number}/comments")
         return [
@@ -202,6 +240,15 @@ query($owner: String!, $repo: String!, $number: Int!) {
           body
           createdAt
           url
+          replies(first: 100) {
+            nodes {
+              author { login }
+              authorAssociation
+              body
+              createdAt
+              url
+            }
+          }
         }
       }
     }
@@ -211,6 +258,7 @@ query($owner: String!, $repo: String!, $number: Int!) {
 
 
 def fetch_discussion_comments(owner: str, repo: str, number: int, since: str) -> list[dict]:
+    """Discussion comments AND their nested replies, flattened to one list."""
     try:
         data = gh_graphql(
             _DISCUSSION_COMMENTS_QUERY,
@@ -223,23 +271,26 @@ def fetch_discussion_comments(owner: str, repo: str, number: int, since: str) ->
                 .get("comments", {})
                 .get("nodes", [])
         )
-        return [
-            n for n in nodes
-            if n.get("createdAt", "") > since
-            and (n.get("author") or {}).get("login") not in OWN_LOGINS
-        ]
+        out: list[dict] = []
+        for n in nodes:
+            replies = (n.get("replies") or {}).get("nodes", [])
+            for c in [n, *replies]:
+                if (c.get("createdAt", "") > since
+                        and (c.get("author") or {}).get("login") not in OWN_LOGINS):
+                    out.append(c)
+        return out
     except Exception as e:
         log(f"  [warn] discussion GraphQL failed {owner}/{repo}#{number}: {e}")
         return []
 
 
 def fetch_thread_comments(thread: dict, since: str) -> list[dict]:
-    """Dispatch to the right fetcher for an issue or discussion thread."""
-    if thread["type"] == "issue":
-        return fetch_issue_comments(
+    """Dispatch to the right fetcher for an issue/PR or discussion thread."""
+    if thread["type"] == "discussion":
+        return fetch_discussion_comments(
             thread["owner"], thread["repo"], thread["number"], since
         )
-    return fetch_discussion_comments(
+    return fetch_issue_comments(
         thread["owner"], thread["repo"], thread["number"], since
     )
 
@@ -247,7 +298,7 @@ def fetch_thread_comments(thread: dict, since: str) -> list[dict]:
 # ── OM World own-repo enumeration ─────────────────────────────────────────────
 
 def list_own_issue_threads() -> list[dict]:
-    """Every issue (any state) in omworldprotocol/om-world, excluding PRs."""
+    """Every issue and pull request (any state) in omworldprotocol/om-world."""
     try:
         raw = gh_rest(f"repos/{OWN_OWNER}/{OWN_REPO}/issues?state=all&per_page=100")
     except Exception as e:
@@ -255,10 +306,10 @@ def list_own_issue_threads() -> list[dict]:
         return []
     threads = []
     for it in raw or []:
-        if "pull_request" in it:  # the issues endpoint also returns PRs
-            continue
+        is_pr = "pull_request" in it
         threads.append({
             "owner": OWN_OWNER, "repo": OWN_REPO, "type": "issue",
+            "kind": "PR" if is_pr else "issue",
             "number": it["number"],
             "url": it.get("html_url", ""),
             "title": it.get("title", ""),
@@ -292,7 +343,8 @@ def list_own_discussion_threads() -> list[dict]:
         return []
     return [
         {"owner": OWN_OWNER, "repo": OWN_REPO, "type": "discussion",
-         "number": n["number"], "url": n.get("url", ""), "title": n.get("title", "")}
+         "kind": "discussion", "number": n["number"],
+         "url": n.get("url", ""), "title": n.get("title", "")}
         for n in nodes
     ]
 
@@ -318,7 +370,10 @@ def update_crm_row(line: str, today: str, new_status: str) -> str:
     Given a raw CRM table row string, update the replied and status columns.
     Columns (1-indexed after pipe split):
       8 = replied   (update "-" → today, leave existing dates alone)
-      9 = status    (update "sent" → new_status, leave others alone)
+      9 = status    (escalate "sent"/"silent" → new_status; leave others alone)
+    The status cell may carry markdown bold (e.g. **committed**); the
+    comparison strips it so a bolded escalatable value would still match,
+    but in practice only sent/silent are escalated and neither is bolded.
     """
     parts = line.split("|")
     if len(parts) < 11:
@@ -326,7 +381,7 @@ def update_crm_row(line: str, today: str, new_status: str) -> str:
     # replied is index 8, status is index 9 (0 = leading empty from split)
     if parts[8].strip() == "-":
         parts[8] = f" {today} "
-    if parts[9].strip() == "sent":
+    if parts[9].strip().strip("*").lower() in ESCALATABLE_STATUSES:
         parts[9] = f" {new_status} "
     return "|".join(parts)
 
@@ -377,24 +432,26 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    run_started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     since = load_since(args.since)
     today = date.today().isoformat()
 
     log(f"[check-replies] since={since}  dry_run={args.dry_run}")
 
     rows = parse_crm(CRM_PATH)
-    active = [r for r in rows if r.get("status", "").strip().strip("*") not in SKIP_STATUSES]
-    log(f"[check-replies] {len(active)}/{len(rows)} rows active")
+    active = [r for r in rows if row_status(r) not in SKIP_STATUSES]
+    log(f"[check-replies] {len(active)}/{len(rows)} rows active "
+        f"({len(rows) - len(active)} skipped as bounce)")
 
     sections: list[str] = []
     crm_updates: dict[int, tuple[str, str]] = {}
-    checked: set[tuple] = set()
+    checked: set[tuple] = set()  # run-wide dedup — each thread checked once
 
     # ── Pass 1: every thread URL referenced in each active CRM row ─────────────
     for row in active:
         handle = row.get("handle", "").strip()
         notes  = row.get("notes", "")
-        status = row.get("status", "").strip().strip("*")
+        status = row_status(row)
         track  = row.get("track_fit", "").strip()
 
         urls = extract_thread_urls(notes)
@@ -402,43 +459,44 @@ def main() -> None:
             log(f"  [skip] {handle}: no thread URL found in notes")
             continue
 
-        row_comments: list[tuple[dict, dict]] = []  # (thread, comment)
+        # fetch each referenced thread exactly once, keep (thread, comments)
+        row_hits: list[tuple[dict, list[dict]]] = []
         for url in urls:
             thread = parse_thread_url(url)
             if not thread:
                 log(f"  [skip] {handle}: could not parse URL: {url}")
                 continue
-            checked.add(thread_key(thread))
-            log(f"  {handle} → {thread['type']} #{thread['number']} "
+            tk = thread_key(thread)
+            if tk in checked:          # already fetched via an earlier row
+                continue
+            checked.add(tk)
+            log(f"  {handle} → {thread['kind']} #{thread['number']} "
                 f"in {thread['owner']}/{thread['repo']}")
-            for c in fetch_thread_comments(thread, since):
-                row_comments.append((thread, c))
+            cs = fetch_thread_comments(thread, since)
+            if cs:
+                row_hits.append((thread, cs))
 
-        if not row_comments:
+        if not row_hits:
             continue
 
-        maintainer_replied = any(is_maintainer_side(c) for _, c in row_comments)
+        row_comments = [c for _, cs in row_hits for c in cs]
+        maintainer_replied = any(is_maintainer_side(c) for c in row_comments)
+        escalate = status in ESCALATABLE_STATUSES and maintainer_replied
 
-        # Build report section
-        escalate = status == "sent" and maintainer_replied
-        if status == "sent" and not maintainer_replied:
+        if escalate:
+            note = f"  → status: {status} → engaged"
+            if status == "silent":
+                note += "  (RE-ENGAGEMENT after silent)"
+        elif status in ESCALATABLE_STATUSES:  # sent/silent, unaffiliated only
             note = "  ⚠ unaffiliated commenter(s) only — status NOT escalated"
-        elif escalate:
-            note = "  → status: sent → engaged"
-        else:
-            note = ""
-        header = (f"## {handle}  [{track}]  "
+        else:                                  # engaged / committed
+            note = f"  ℹ status={status} — ongoing, no auto status change"
+
+        header = (f"## {handle}  [{track}]  status={status}  "
                   f"({len(row_comments)} new comment(s))")
-        lines = [header]
-        if note:
-            lines.append(note)
-        lines.append("")
-        # group comments by thread for readability
-        by_thread: dict[str, list[dict]] = {}
-        for thread, c in row_comments:
-            by_thread.setdefault(thread["url"], []).append(c)
-        for turl, cs in by_thread.items():
-            lines.append(f"   {turl}")
+        lines = [header, note, ""]
+        for thread, cs in row_hits:
+            lines.append(f"   {thread['url']}")
             for c in cs:
                 lines.append(format_comment(c))
                 lines.append("")
@@ -448,17 +506,19 @@ def main() -> None:
             crm_updates[row["_line_idx"]] = (today, "engaged")
 
     # ── Pass 2: full sweep of omworldprotocol/om-world's own threads ───────────
-    log("[check-replies] sweeping om-world own issues + discussions")
+    log("[check-replies] sweeping om-world own issues / PRs / discussions")
     sweep_sections: list[str] = []
     own_threads = list_own_issue_threads() + list_own_discussion_threads()
     for thread in own_threads:
-        if thread_key(thread) in checked:
+        tk = thread_key(thread)
+        if tk in checked:
             continue  # already covered by a CRM row's notes
+        checked.add(tk)
         comments = fetch_thread_comments(thread, since)
         if not comments:
             continue
         title = thread.get("title", "")
-        header = (f"## [om-world sweep] {thread['type']} #{thread['number']} "
+        header = (f"## [om-world sweep] {thread['kind']} #{thread['number']} "
                   f"— {title}")
         lines = [header,
                  "  ⚠ not tied to a CRM row — manual triage needed",
@@ -470,9 +530,10 @@ def main() -> None:
 
     # ── Print report ──────────────────────────────────────────────────────────
     print(f"# OM World reply report — {today}")
-    print(f"# Checking comments since: {since[:10]}")
+    print(f"# Checking comments since: {since[:10]}  ({since})")
     print(f"# Active CRM threads checked: {len(active)}  |  "
-          f"om-world own threads swept: {len(own_threads)}")
+          f"om-world own threads swept: {len(own_threads)}  |  "
+          f"distinct threads this run: {len(checked)}")
     print()
 
     if sections:
@@ -493,8 +554,8 @@ def main() -> None:
         if crm_updates:
             write_crm_updates(CRM_PATH, crm_updates)
             log(f"[check-replies] updated {len(crm_updates)} CRM row(s)")
-        save_state()
-        log(f"[check-replies] state saved → next run checks from now")
+        save_state(run_started)
+        log(f"[check-replies] state saved (last_checked={run_started})")
     else:
         log("[check-replies] dry-run: no files written")
 
