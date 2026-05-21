@@ -15,6 +15,11 @@ Coverage — what it checks, per run (designed so no reply is missed):
      never missed.
   3. Discussion threads are read with their nested replies, not just the
      top-level comments.
+  4. State-change events on every checked thread — a silently merged PR, a
+     silently closed or reopened issue — not just comments. A maintainer
+     acting on our thread without writing a word is still reported, flagged
+     `⚠ STATE CHANGE`. (State changes are reported but never auto-escalate
+     a row's status — a silent close is not a stated opinion.)
 
 Which rows are checked:
   Every row EXCEPT `bounce` (explicit not-interested / hostile — outreach
@@ -73,6 +78,10 @@ ESCALATABLE_STATUSES = {"sent", "silent"}
 # author_association values that mean "this commenter is the maintainer /
 # outreach target side of the thread" rather than an unaffiliated outsider.
 MAINTAINER_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR", "CONTRIBUTOR"}
+
+# Timeline events that signal someone acted on our thread without (necessarily)
+# leaving a comment — a silently merged PR, a silently closed/reopened issue.
+STATE_EVENTS = {"closed", "reopened", "merged"}
 
 # Our own repo — swept in full every run regardless of CRM notes.
 OWN_OWNER = "omworldprotocol"
@@ -295,6 +304,65 @@ def fetch_thread_comments(thread: dict, since: str) -> list[dict]:
     )
 
 
+_DISCUSSION_STATE_QUERY = """
+query($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    discussion(number: $number) { closed closedAt }
+  }
+}
+"""
+
+
+def fetch_thread_events(thread: dict, since: str) -> list[dict]:
+    """
+    State-change events on a thread since `since` — a silently merged PR, a
+    silently closed/reopened issue. These are NOT comments; without this a
+    maintainer acting on our thread without writing anything is invisible.
+    Events by ourselves (OWN_LOGINS) are excluded. Returns a list of
+    {event, created_at, actor} dicts.
+    """
+    owner, repo, number = thread["owner"], thread["repo"], thread["number"]
+
+    if thread["type"] == "discussion":
+        try:
+            data = gh_graphql(
+                _DISCUSSION_STATE_QUERY,
+                {"owner": owner, "repo": repo, "number": str(number)},
+            )
+            disc = (data.get("data", {}).get("repository", {})
+                        .get("discussion", {}) or {})
+            if disc.get("closed") and (disc.get("closedAt") or "") > since:
+                return [{"event": "closed", "created_at": disc["closedAt"],
+                         "actor": None}]
+            return []
+        except Exception as e:
+            log(f"  [warn] discussion state failed {owner}/{repo}#{number}: {e}")
+            return []
+
+    # issue / PR — the timeline carries closed / reopened / merged events
+    try:
+        raw = gh_rest(f"repos/{owner}/{repo}/issues/{number}/timeline")
+    except Exception as e:
+        log(f"  [warn] timeline failed {owner}/{repo}#{number}: {e}")
+        return []
+    out: list[dict] = []
+    for ev in raw or []:
+        name = ev.get("event", "")
+        if name not in STATE_EVENTS:
+            continue
+        ts = ev.get("created_at", "")
+        if not ts or ts <= since:
+            continue
+        actor = (ev.get("actor") or {}).get("login")
+        if actor in OWN_LOGINS:
+            continue
+        out.append({"event": name, "created_at": ts, "actor": actor})
+    # a merge also emits a `closed` event at the same instant — keep `merged`
+    if any(e["event"] == "merged" for e in out):
+        out = [e for e in out if e["event"] != "closed"]
+    return out
+
+
 # ── OM World own-repo enumeration ─────────────────────────────────────────────
 
 def list_own_issue_threads() -> list[dict]:
@@ -399,6 +467,14 @@ def write_crm_updates(path: Path, updates: dict[int, tuple[str, str]]) -> None:
 
 # ── Formatting ────────────────────────────────────────────────────────────────
 
+def format_event(e: dict) -> str:
+    verb = {"merged": "MERGED", "closed": "CLOSED",
+            "reopened": "REOPENED"}.get(e["event"], e["event"].upper())
+    actor = e.get("actor") or "unknown"
+    ts = (e.get("created_at") or "")[:10]
+    return f"  ⚠ STATE CHANGE — thread {verb} by @{actor} [{ts}]"
+
+
 def format_comment(c: dict) -> str:
     login = (
         c.get("user", {}).get("login")
@@ -459,8 +535,8 @@ def main() -> None:
             log(f"  [skip] {handle}: no thread URL found in notes")
             continue
 
-        # fetch each referenced thread exactly once, keep (thread, comments)
-        row_hits: list[tuple[dict, list[dict]]] = []
+        # fetch each referenced thread exactly once; keep (thread, comments, events)
+        row_hits: list[tuple[dict, list[dict], list[dict]]] = []
         for url in urls:
             thread = parse_thread_url(url)
             if not thread:
@@ -473,13 +549,15 @@ def main() -> None:
             log(f"  {handle} → {thread['kind']} #{thread['number']} "
                 f"in {thread['owner']}/{thread['repo']}")
             cs = fetch_thread_comments(thread, since)
-            if cs:
-                row_hits.append((thread, cs))
+            evs = fetch_thread_events(thread, since)
+            if cs or evs:
+                row_hits.append((thread, cs, evs))
 
         if not row_hits:
             continue
 
-        row_comments = [c for _, cs in row_hits for c in cs]
+        row_comments = [c for _, cs, _ in row_hits for c in cs]
+        row_events   = [e for _, _, es in row_hits for e in es]
         maintainer_replied = any(is_maintainer_side(c) for c in row_comments)
         escalate = status in ESCALATABLE_STATUSES and maintainer_replied
 
@@ -487,16 +565,22 @@ def main() -> None:
             note = f"  → status: {status} → engaged"
             if status == "silent":
                 note += "  (RE-ENGAGEMENT after silent)"
-        elif status in ESCALATABLE_STATUSES:  # sent/silent, unaffiliated only
+        elif status in ESCALATABLE_STATUSES and row_comments:
             note = "  ⚠ unaffiliated commenter(s) only — status NOT escalated"
+        elif status in ESCALATABLE_STATUSES:  # state change only, no comment
+            note = "  ⚠ state change only, no comment — status NOT escalated"
         else:                                  # engaged / committed
             note = f"  ℹ status={status} — ongoing, no auto status change"
 
-        header = (f"## {handle}  [{track}]  status={status}  "
-                  f"({len(row_comments)} new comment(s))")
+        counts = f"{len(row_comments)} new comment(s)"
+        if row_events:
+            counts += f", {len(row_events)} state change(s)"
+        header = f"## {handle}  [{track}]  status={status}  ({counts})"
         lines = [header, note, ""]
-        for thread, cs in row_hits:
+        for thread, cs, evs in row_hits:
             lines.append(f"   {thread['url']}")
+            for e in evs:
+                lines.append(format_event(e))
             for c in cs:
                 lines.append(format_comment(c))
                 lines.append("")
@@ -515,7 +599,8 @@ def main() -> None:
             continue  # already covered by a CRM row's notes
         checked.add(tk)
         comments = fetch_thread_comments(thread, since)
-        if not comments:
+        events = fetch_thread_events(thread, since)
+        if not comments and not events:
             continue
         title = thread.get("title", "")
         header = (f"## [om-world sweep] {thread['kind']} #{thread['number']} "
@@ -523,6 +608,8 @@ def main() -> None:
         lines = [header,
                  "  ⚠ not tied to a CRM row — manual triage needed",
                  "", f"   {thread['url']}"]
+        for e in events:
+            lines.append(format_event(e))
         for c in comments:
             lines.append(format_comment(c))
             lines.append("")

@@ -75,6 +75,13 @@ python3 tools/check-replies.py --dry-run    # report only, no CRM write
    Genesis Review Sprint issues, integration proposals) are never missed.
 3. Discussion threads are read with their nested replies, not just top-level
    comments.
+4. State-change events on every checked thread — a silently merged PR, a
+   silently closed or reopened issue — read from the GitHub timeline, not
+   just comments. A maintainer acting on our thread without writing a word
+   is reported, flagged `⚠ STATE CHANGE`. (Reported but never auto-escalates
+   a row — a silent close is not a stated opinion. For a PR to be tracked
+   here, its full `https://github.com/.../pull/N` URL must be in the row's
+   notes.)
 
 **Which rows are checked:** every row *except* `bounce` (explicit
 not-interested — outreach stopped). `committed`, `engaged`, `silent` and
