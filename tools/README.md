@@ -58,13 +58,23 @@ Output: `outreach/dm-drafts/YYYY-MM-DD-@<handle>.md`.
 
 ### `check-replies.py`
 
-Daily reply monitor for outreach threads already logged in `outreach/crm.md`.
+Daily reply monitor for outreach threads logged in a CRM markdown file.
 
 ```bash
+# OM World co-builder CRM (defaults)
 python3 tools/check-replies.py              # since last run
 python3 tools/check-replies.py --since 2026-05-14
 python3 tools/check-replies.py --dry-run    # report only, no CRM write
+
+# first5's separate outreach CRM (a product finding its own customers —
+# NOT OM World co-builder recruitment; tracked strictly apart)
+python3 tools/check-replies.py --crm ../first5/outreach-crm.md --own-repo ""
 ```
+
+`--crm PATH` picks the CRM file; `--own-repo OWNER/REPO` sets the repo swept in
+full each run (`""` skips the sweep — first5 has no repo of its own). Each CRM
+keeps its own state file (`.check-replies-state.json` next to it), so the two
+outreach streams never cross-contaminate.
 
 **Coverage — designed so no reply is missed:**
 

@@ -44,9 +44,17 @@ Status escalation rule:
   are human judgement calls).
 
 Usage:
-    python3 tools/check-replies.py              # since last run (default)
+    # OM World co-builder CRM (defaults)
+    python3 tools/check-replies.py              # since last run
     python3 tools/check-replies.py --since 2026-05-14
     python3 tools/check-replies.py --dry-run    # report only, no CRM write
+
+    # first5's separate outreach CRM (no own repo to sweep)
+    python3 tools/check-replies.py --crm ../first5/outreach-crm.md --own-repo ""
+
+The two CRMs are tracked strictly separately — first5 is a product finding
+its own customers; OM World is the protocol finding co-builders. Each CRM
+keeps its own state file (.check-replies-state.json next to the CRM).
 
 Requirements: gh CLI authenticated as the outreach account.
 """
@@ -60,8 +68,11 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-CRM_PATH  = REPO_ROOT / "outreach" / "crm.md"
-STATE_PATH = REPO_ROOT / "outreach" / ".check-replies-state.json"
+# Defaults — overridable with --crm / --own-repo so the same monitor serves
+# both the OM World co-builder CRM and first5's separate outreach CRM.
+DEFAULT_CRM = REPO_ROOT / "outreach" / "crm.md"
+DEFAULT_OWN_REPO = "omworldprotocol/om-world"
+STATE_FILENAME = ".check-replies-state.json"
 
 # GitHub logins that count as "us" — excluded from reply detection.
 OWN_LOGINS = {"flyoung588", "omworldprotocol"}
@@ -83,9 +94,8 @@ MAINTAINER_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR", "CONTRIBUTOR"}
 # leaving a comment — a silently merged PR, a silently closed/reopened issue.
 STATE_EVENTS = {"closed", "reopened", "merged"}
 
-# Our own repo — swept in full every run regardless of CRM notes.
-OWN_OWNER = "omworldprotocol"
-OWN_REPO  = "om-world"
+# The "own repo" (swept in full every run) is resolved from --own-repo at
+# runtime — see main(). first5 has no own repo, so its runs pass --own-repo "".
 
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
@@ -119,23 +129,23 @@ def gh_graphql(query: str, variables: dict | None = None, timeout: int = 25) -> 
 
 # ── State ─────────────────────────────────────────────────────────────────────
 
-def load_since(override: str | None) -> str:
+def load_since(override: str | None, state_path: Path) -> str:
     """Return ISO-8601 UTC timestamp to use as the lower bound for comments."""
     if override:
         return override + "T00:00:00Z"
-    if STATE_PATH.exists():
-        state = json.loads(STATE_PATH.read_text())
+    if state_path.exists():
+        state = json.loads(state_path.read_text())
         ts = state.get("last_checked", "")
         if ts:
             return ts
     return (date.today() - timedelta(days=1)).isoformat() + "T00:00:00Z"
 
 
-def save_state(run_started: str) -> None:
+def save_state(run_started: str, state_path: Path) -> None:
     """Persist the run's START time as the next lower bound. Using start (not
     end) time means a comment created mid-run is re-checked next run rather
     than missed — a harmless re-report is preferred over a silent miss."""
-    STATE_PATH.write_text(json.dumps({"last_checked": run_started}, indent=2))
+    state_path.write_text(json.dumps({"last_checked": run_started}, indent=2))
 
 
 # ── CRM parsing ───────────────────────────────────────────────────────────────
@@ -365,18 +375,18 @@ def fetch_thread_events(thread: dict, since: str) -> list[dict]:
 
 # ── OM World own-repo enumeration ─────────────────────────────────────────────
 
-def list_own_issue_threads() -> list[dict]:
-    """Every issue and pull request (any state) in omworldprotocol/om-world."""
+def list_own_issue_threads(owner: str, repo: str) -> list[dict]:
+    """Every issue and pull request (any state) in the own repo."""
     try:
-        raw = gh_rest(f"repos/{OWN_OWNER}/{OWN_REPO}/issues?state=all&per_page=100")
+        raw = gh_rest(f"repos/{owner}/{repo}/issues?state=all&per_page=100")
     except Exception as e:
-        log(f"  [warn] could not list om-world issues: {e}")
+        log(f"  [warn] could not list {owner}/{repo} issues: {e}")
         return []
     threads = []
     for it in raw or []:
         is_pr = "pull_request" in it
         threads.append({
-            "owner": OWN_OWNER, "repo": OWN_REPO, "type": "issue",
+            "owner": owner, "repo": repo, "type": "issue",
             "kind": "PR" if is_pr else "issue",
             "number": it["number"],
             "url": it.get("html_url", ""),
@@ -396,10 +406,10 @@ query($owner: String!, $repo: String!) {
 """
 
 
-def list_own_discussion_threads() -> list[dict]:
-    """Every discussion in omworldprotocol/om-world."""
+def list_own_discussion_threads(owner: str, repo: str) -> list[dict]:
+    """Every discussion in the own repo."""
     try:
-        data = gh_graphql(_OWN_DISCUSSIONS_QUERY, {"owner": OWN_OWNER, "repo": OWN_REPO})
+        data = gh_graphql(_OWN_DISCUSSIONS_QUERY, {"owner": owner, "repo": repo})
         nodes = (
             data.get("data", {})
                 .get("repository", {})
@@ -407,10 +417,10 @@ def list_own_discussion_threads() -> list[dict]:
                 .get("nodes", [])
         )
     except Exception as e:
-        log(f"  [warn] could not list om-world discussions: {e}")
+        log(f"  [warn] could not list {owner}/{repo} discussions: {e}")
         return []
     return [
-        {"owner": OWN_OWNER, "repo": OWN_REPO, "type": "discussion",
+        {"owner": owner, "repo": repo, "type": "discussion",
          "kind": "discussion", "number": n["number"],
          "url": n.get("url", ""), "title": n.get("title", "")}
         for n in nodes
@@ -496,25 +506,45 @@ def format_comment(c: dict) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Check GitHub thread replies for OM World outreach."
+        description="GitHub thread reply monitor for an outreach CRM "
+                    "(OM World co-builder CRM, or first5's outreach CRM)."
     )
     parser.add_argument(
         "--since", metavar="YYYY-MM-DD",
         help="Check comments since this date (default: timestamp of last run)",
     )
     parser.add_argument(
+        "--crm", metavar="PATH",
+        help=f"CRM markdown file to scan (default: {DEFAULT_CRM})",
+    )
+    parser.add_argument(
+        "--own-repo", metavar="OWNER/REPO", default=DEFAULT_OWN_REPO,
+        help="Repo to sweep in full every run for untracked threads. Pass an "
+             f'empty string ("") to skip the sweep (default: {DEFAULT_OWN_REPO}).',
+    )
+    parser.add_argument(
         "--dry-run", action="store_true",
-        help="Print report without updating crm.md or saving state",
+        help="Print report without updating the CRM or saving state",
     )
     args = parser.parse_args()
 
+    crm_path = Path(args.crm).resolve() if args.crm else DEFAULT_CRM
+    if not crm_path.exists():
+        log(f"[check-replies] CRM file not found: {crm_path}")
+        sys.exit(2)
+    state_path = crm_path.parent / STATE_FILENAME
+
+    own_owner = own_repo = None
+    if args.own_repo and "/" in args.own_repo:
+        own_owner, own_repo = args.own_repo.split("/", 1)
+
     run_started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    since = load_since(args.since)
+    since = load_since(args.since, state_path)
     today = date.today().isoformat()
 
-    log(f"[check-replies] since={since}  dry_run={args.dry_run}")
+    log(f"[check-replies] crm={crm_path}  since={since}  dry_run={args.dry_run}")
 
-    rows = parse_crm(CRM_PATH)
+    rows = parse_crm(crm_path)
     active = [r for r in rows if row_status(r) not in SKIP_STATUSES]
     log(f"[check-replies] {len(active)}/{len(rows)} rows active "
         f"({len(rows) - len(active)} skipped as bounce)")
@@ -589,10 +619,16 @@ def main() -> None:
         if escalate:
             crm_updates[row["_line_idx"]] = (today, "engaged")
 
-    # ── Pass 2: full sweep of omworldprotocol/om-world's own threads ───────────
-    log("[check-replies] sweeping om-world own issues / PRs / discussions")
+    # ── Pass 2: full sweep of the own repo's threads (if configured) ──────────
     sweep_sections: list[str] = []
-    own_threads = list_own_issue_threads() + list_own_discussion_threads()
+    own_threads: list[dict] = []
+    if own_owner and own_repo:
+        log(f"[check-replies] sweeping {own_owner}/{own_repo} "
+            f"issues / PRs / discussions")
+        own_threads = (list_own_issue_threads(own_owner, own_repo)
+                       + list_own_discussion_threads(own_owner, own_repo))
+    else:
+        log("[check-replies] own-repo sweep skipped (no --own-repo)")
     for thread in own_threads:
         tk = thread_key(thread)
         if tk in checked:
@@ -603,8 +639,8 @@ def main() -> None:
         if not comments and not events:
             continue
         title = thread.get("title", "")
-        header = (f"## [om-world sweep] {thread['kind']} #{thread['number']} "
-                  f"— {title}")
+        header = (f"## [{own_owner}/{own_repo} sweep] "
+                  f"{thread['kind']} #{thread['number']} — {title}")
         lines = [header,
                  "  ⚠ not tied to a CRM row — manual triage needed",
                  "", f"   {thread['url']}"]
@@ -616,10 +652,12 @@ def main() -> None:
         sweep_sections.append("\n".join(lines))
 
     # ── Print report ──────────────────────────────────────────────────────────
-    print(f"# OM World reply report — {today}")
+    own_label = f"{own_owner}/{own_repo}" if own_owner else "(skipped)"
+    print(f"# Outreach reply report — {today}")
+    print(f"# CRM: {crm_path}")
     print(f"# Checking comments since: {since[:10]}  ({since})")
     print(f"# Active CRM threads checked: {len(active)}  |  "
-          f"om-world own threads swept: {len(own_threads)}  |  "
+          f"own-repo sweep ({own_label}): {len(own_threads)} threads  |  "
           f"distinct threads this run: {len(checked)}")
     print()
 
@@ -629,20 +667,23 @@ def main() -> None:
         print("No new replies on tracked CRM threads since last check.")
     print()
 
-    if sweep_sections:
-        print("# ── OM World repo sweep (untracked threads) ──")
-        print()
-        print("\n".join(sweep_sections))
-    else:
-        print("# OM World repo sweep: no new comments on untracked own threads.")
+    if own_owner:
+        if sweep_sections:
+            print(f"# ── {own_owner}/{own_repo} repo sweep (untracked threads) ──")
+            print()
+            print("\n".join(sweep_sections))
+        else:
+            print(f"# {own_owner}/{own_repo} repo sweep: "
+                  f"no new comments on untracked own threads.")
 
     # ── Write CRM + save state ────────────────────────────────────────────────
     if not args.dry_run:
         if crm_updates:
-            write_crm_updates(CRM_PATH, crm_updates)
+            write_crm_updates(crm_path, crm_updates)
             log(f"[check-replies] updated {len(crm_updates)} CRM row(s)")
-        save_state(run_started)
-        log(f"[check-replies] state saved (last_checked={run_started})")
+        save_state(run_started, state_path)
+        log(f"[check-replies] state saved → {state_path}  "
+            f"(last_checked={run_started})")
     else:
         log("[check-replies] dry-run: no files written")
 
