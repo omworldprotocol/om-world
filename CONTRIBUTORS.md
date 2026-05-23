@@ -128,7 +128,7 @@ Multi-comment design feedback ([reference thread](https://github.com/ark-forge/p
 
 Reference: [ark-forge/proof-spec](https://github.com/ark-forge/proof-spec) — Compliance Receipts v0.1 open spec for verifiable agent-to-agent execution proofs.
 
-Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-25. desiorac has offered to review a draft PR on `ark-forge/proof-spec` for the canonical step hash definition; OM World will open that PR shortly.
+Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-25. A draft PR on `ark-forge/proof-spec` ([#2](https://github.com/ark-forge/proof-spec/pull/2)) is open with the field mapping, the canonical `step_hash` formula, the absent-optional-fields rule, and three JSON examples exercising the `context_hash` stateless/stateful/anti-pattern edge case — pending desiorac's review.
 
 ---
 
