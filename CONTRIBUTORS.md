@@ -118,6 +118,20 @@ Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pr
 
 ---
 
+**[@desiorac](https://github.com/desiorac)** (maintainer of [ark-forge/proof-spec](https://github.com/ark-forge/proof-spec) — Compliance Receipts v0.1) — Joined 2026-05-23
+
+Multi-comment design feedback ([reference thread](https://github.com/ark-forge/proof-spec/issues/1)) shaping three elements of the [Execution Proof](docs/execution-proof.md) spec:
+
+- **§Canonicalization — absent-optional-fields rule** — explicit rule that missing optional fields (e.g. `context_hash`, `attestation`) are excluded from the JCS input rather than serialized as `null`, preventing divergent hashes from identical step data when implementations disagree on null-vs-omit
+- **§Step record — `plan_hash` pre-commitment clarification** — explicit that the mandate's `plan_hash` is the pre-committed value from the intent record (set before execution begins), not a hash computed by the agent at proof time; binds the chain to what was authorized rather than what the agent claims it did
+- **§Related work — Compliance Receipts v0.1 composability** — `previous_receipt_hash` in CR v0.1 is structurally equivalent to `prev_hash` in OM World's Step record; chained proof mode composes with the CR v0.1 pipeline format without additional fields
+
+Reference: [ark-forge/proof-spec](https://github.com/ark-forge/proof-spec) — Compliance Receipts v0.1 open spec for verifiable agent-to-agent execution proofs.
+
+Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-25. desiorac has offered to review a draft PR on `ark-forge/proof-spec` for the canonical step hash definition; OM World will open that PR shortly.
+
+---
+
 ## Primitive Stewards
 
 _Stewards take long-term maintenance ownership of a primitive's spec section, typically after v1.0 freeze._
