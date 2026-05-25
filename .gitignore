@@ -30,3 +30,17 @@ prisma/migrations/dev.db
 
 # Operational data (real candidate names, DM drafts, CRM) — never pushed
 outreach/
+
+# Runtime invocation events — local-only flywheel data
+/runtime/invocations.jsonl
+/runtime/_outbox.jsonl
+
+# OMW server SQLite (Stage 3) — never committed; deployed to /opt/om-world/server
+/server/omw_server.db
+/server/*.log
+/server/.env
+/server/venv/
+
+# Pattern-level invocation logs — local data, not Pattern definitions
+patterns/**/invocations.jsonl
+patterns/**/invocations.server.jsonl

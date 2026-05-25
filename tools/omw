@@ -1,0 +1,284 @@
+#!/usr/bin/env python3
+"""omw — OM World CLI. Stage 1+ 通用入口。
+
+子命令:
+  list                       列出所有 Pattern + Pack(按 layer 分组)
+  search [-d domain] [-p project] [-t kw1 ...]
+                             按 domain / project / trigger 关键词搜
+  load <pattern-id>          打印 SKILL.md frontmatter + 5 段标题摘要
+  pack <pack-id>             加载 Pack,列展开后的全部 Pattern (按 order)
+  invoke <pattern-id> [-c ctx-json] [-m metrics-json] [--success/--fail]
+                             一次性 invocation(loaded + completed 立刻写)
+  aggregate [<id> ...]       跑 aggregator(全部或指定 id)
+  status                     OMW runtime 状态:库统计 + invocation log 字节数
+
+例子:
+  omw list
+  omw search -d ava-trend-douyin -t "hook" "前 3 秒"
+  omw load playbook-cdp
+  omw pack pack-defi-audit-cdp
+  omw invoke playbook-cdp -c '{"audit_id":"A001"}' -m '{"edges":9}' --success
+  omw aggregate playbook-cdp
+  omw status
+
+任何阶段(Local/Git/Server/Protocol)用法不变 — env OMW_BACKEND 切换实现。
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+# Bootstrap SDK
+_OMW_ROOT = os.environ.get("OMW_ROOT", "/Users/feiyang/all_bots/om-world")
+if _OMW_ROOT not in sys.path:
+    sys.path.insert(0, _OMW_ROOT)
+os.environ.setdefault("OMW_PATTERN_PATH", f"{_OMW_ROOT}/patterns")
+os.environ.setdefault("OMW_RUNTIME_PATH", f"{_OMW_ROOT}/runtime")
+
+from sdk import OMW  # noqa: E402
+
+omw = OMW()
+
+
+def _layer_of(pattern_id: str) -> str:
+    """Infer layer from id prefix."""
+    for prefix in ("meta", "flow", "playbook", "tech", "scope", "compound", "pack"):
+        if pattern_id.startswith(prefix + "-"):
+            return prefix
+    return "other"
+
+
+def cmd_list(args: argparse.Namespace) -> int:
+    patterns = omw.search()
+    by_layer: dict[str, list] = defaultdict(list)
+    for p in patterns:
+        by_layer[_layer_of(p.id)].append(p)
+    print(f"=== Patterns ({len(patterns)}) ===")
+    for layer in ("meta", "flow", "playbook", "tech", "scope", "compound", "other"):
+        items = sorted(by_layer.get(layer, []), key=lambda p: p.id)
+        if not items:
+            continue
+        print(f"\n[{layer}] {len(items)}")
+        for p in items:
+            dom = p.domain if isinstance(p.domain, str) else ",".join(p.domain or [])
+            inv = p.metrics.get("invoked") if p.metrics else None
+            sr = p.metrics.get("measured-success-rate") if p.metrics else None
+            extra = f"  [invoked={inv}, sr={sr}]" if inv else ""
+            print(f"  {p.id:<46} [{dom}]{extra}")
+    # Packs
+    packs_dir = Path(omw.backend.patterns_dir) / "packs"
+    if packs_dir.is_dir():
+        pack_ids = sorted(d.name for d in packs_dir.iterdir()
+                          if (d / "PACK.md").is_file())
+        print(f"\n=== Packs ({len(pack_ids)}) ===")
+        for pid in pack_ids:
+            try:
+                pk = omw.load_pack(pid)
+                inv = pk.body_sections  # touch to ensure parsed
+                pat_count = len(pk.patterns)
+                print(f"  {pid:<46} [{pat_count} patterns]")
+            except Exception as e:
+                print(f"  {pid:<46} [ERROR: {e}]")
+    return 0
+
+
+def cmd_search(args: argparse.Namespace) -> int:
+    res = omw.search(
+        trigger_keywords=args.trigger,
+        domain=args.domain,
+        project_type=args.project,
+    )
+    if not res:
+        print("(no matches)")
+        return 0
+    for p in res:
+        dom = p.domain if isinstance(p.domain, str) else ",".join(p.domain or [])
+        print(f"  [{p.schema_version}] {p.id:<42} [{dom}]")
+        print(f"      {p.description[:120]}")
+    print(f"\nTotal: {len(res)}")
+    return 0
+
+
+def cmd_load(args: argparse.Namespace) -> int:
+    p = omw.load_pattern(args.pattern_id)
+    print(f"=== {p.id} (schema v{p.schema_version}, version {p.version}) ===")
+    print(f"description: {p.description}")
+    if p.description_en:
+        print(f"description-en: {p.description_en}")
+    print(f"domain: {p.domain}")
+    print(f"applicable-project-types: {p.applicable_project_types}")
+    print(f"trigger: {p.trigger}")
+    print(f"anti-trigger: {p.anti_trigger}")
+    print(f"status: {p.status}")
+    if p.depends_on:
+        print(f"depends-on: {p.depends_on}")
+    if p.extends:
+        print(f"extends: {p.extends}")
+    if p.composes_with:
+        print(f"composes-with: {p.composes_with}")
+    print(f"provenance: {p.provenance}")
+    print(f"metrics: {p.metrics}")
+    print(f"\nbody sections ({len(p.body_sections)}):")
+    for name, body in p.body_sections.items():
+        preview = body.replace("\n", " ")[:100]
+        print(f"  ## {name}    — {preview}")
+    return 0
+
+
+def cmd_pack(args: argparse.Namespace) -> int:
+    pk = omw.load_pack(args.pack_id)
+    print(f"=== {pk.id} ===")
+    print(f"description: {pk.description}")
+    print(f"domain: {pk.domain}")
+    print(f"includes-pack: {pk.includes_pack}")
+    print(f"includes ({len(pk.includes)} direct):")
+    for inc in pk.includes:
+        print(f"  - {inc.pattern_id}  when={inc.when}  order={inc.order}")
+    print(f"\nResolved patterns ({len(pk.patterns)} in load order):")
+    for p in pk.patterns:
+        print(f"  [v{p.schema_version}] {p.id}  —  {p.description[:80]}")
+    return 0
+
+
+def cmd_invoke(args: argparse.Namespace) -> int:
+    ctx = json.loads(args.context) if args.context else {}
+    metrics = json.loads(args.metrics) if args.metrics else None
+    success = args.success
+    with omw.invoke(args.pattern_id, context=ctx,
+                    agent_id=args.agent_id or os.environ.get("OMW_AGENT_ID", "omw-cli")) as inv:
+        inv.record_outcome(success=success, metrics=metrics or {},
+                           notes=args.notes or "manual_cli_invoke")
+        print(f"✓ invocation logged: {inv.invocation_id}")
+        print(f"  pattern: {args.pattern_id}")
+        print(f"  success: {success}")
+        if metrics:
+            print(f"  metrics: {metrics}")
+    return 0
+
+
+def cmd_aggregate(args: argparse.Namespace) -> int:
+    # Delegate to aggregator module
+    sys.path.insert(0, str(Path(_OMW_ROOT) / "tools"))
+    import aggregate_metrics
+    sys.argv = ["aggregate_metrics"] + list(args.targets or [])
+    return aggregate_metrics.main()
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    pat_dirs = [Path(d) for d in omw.backend.patterns_dirs]
+    runtime_dir = Path(omw.backend.runtime_dir)
+    pattern_count = 0
+    pack_count = 0
+    per_dir_stats: list[tuple[Path, int, int]] = []
+    seen_pat: set[str] = set()
+    seen_pack: set[str] = set()
+    for pat_dir in pat_dirs:
+        if not pat_dir.is_dir():
+            continue
+        local_pat = 0
+        for d in pat_dir.iterdir():
+            if (d.is_dir() and (d / "SKILL.md").is_file()
+                    and d.name not in ("tools", "packs", "__pycache__")
+                    and d.name not in seen_pat):
+                local_pat += 1
+                seen_pat.add(d.name)
+        local_pack = 0
+        if (pat_dir / "packs").is_dir():
+            for d in (pat_dir / "packs").iterdir():
+                if (d.is_dir() and (d / "PACK.md").is_file()
+                        and d.name not in seen_pack):
+                    local_pack += 1
+                    seen_pack.add(d.name)
+        pattern_count += local_pat
+        pack_count += local_pack
+        per_dir_stats.append((pat_dir, local_pat, local_pack))
+    global_log = runtime_dir / "invocations.jsonl"
+    log_size = global_log.stat().st_size if global_log.is_file() else 0
+    log_lines = 0
+    if global_log.is_file():
+        with global_log.open("r", encoding="utf-8") as f:
+            log_lines = sum(1 for _ in f)
+    print(f"=== OMW Runtime Status ===")
+    print(f"Backend:           {type(omw.backend).__name__}")
+    if len(pat_dirs) == 1:
+        print(f"Patterns dir:      {pat_dirs[0]}")
+    else:
+        print(f"Patterns dirs ({len(pat_dirs)}):")
+        for d, pa, pk in per_dir_stats:
+            print(f"  - {d}  [+{pa} pat, +{pk} pack]")
+    print(f"  Patterns(unique): {pattern_count}")
+    print(f"  Packs(unique):    {pack_count}")
+    print(f"Runtime dir:       {runtime_dir}")
+    print(f"  Global log:      {global_log.name}  ({log_lines} events, {log_size} bytes)")
+    # Check launchd job
+    home = Path(os.path.expanduser("~"))
+    plist = home / "Library" / "LaunchAgents" / "world.omworld.aggregator.plist"
+    print(f"Aggregator launchd: {'INSTALLED' if plist.is_file() else 'NOT INSTALLED'}")
+    if plist.is_file():
+        print(f"  plist:           {plist}")
+        out_log = home / "Library" / "Logs" / "world.omworld.aggregator.out.log"
+        if out_log.is_file():
+            print(f"  log size:        {out_log.stat().st_size} bytes")
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="omw", description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    sub.add_parser("list", help="列出所有 Pattern + Pack")
+    sub.add_parser("status", help="OMW runtime 状态")
+
+    s = sub.add_parser("search", help="按条件搜 Pattern")
+    s.add_argument("-d", "--domain", default=None)
+    s.add_argument("-p", "--project", default=None)
+    s.add_argument("-t", "--trigger", nargs="*", default=None,
+                   help="trigger 关键词(可多个)")
+
+    s = sub.add_parser("load", help="加载并打印 Pattern")
+    s.add_argument("pattern_id")
+
+    s = sub.add_parser("pack", help="加载 Pack,展开 Pattern 列表")
+    s.add_argument("pack_id")
+
+    s = sub.add_parser("invoke", help="手工触发一次 invocation")
+    s.add_argument("pattern_id")
+    s.add_argument("-c", "--context", default=None, help="JSON")
+    s.add_argument("-m", "--metrics", default=None, help="JSON")
+    s.add_argument("--success", action="store_true")
+    s.add_argument("--fail", dest="success", action="store_false")
+    s.add_argument("--agent-id", default=None)
+    s.add_argument("--notes", default=None)
+    s.set_defaults(success=True)
+
+    s = sub.add_parser("aggregate", help="跑 metrics aggregator")
+    s.add_argument("targets", nargs="*", help="指定 Pattern/Pack id;省略=全部")
+
+    return p
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    fn = {
+        "list": cmd_list, "search": cmd_search, "load": cmd_load,
+        "pack": cmd_pack, "invoke": cmd_invoke, "aggregate": cmd_aggregate,
+        "status": cmd_status,
+    }[args.cmd]
+    try:
+        return fn(args)
+    except FileNotFoundError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 2
+    except Exception as e:  # noqa: BLE001
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 3
+
+
+if __name__ == "__main__":
+    sys.exit(main())
