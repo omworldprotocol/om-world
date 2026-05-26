@@ -58,12 +58,22 @@ class GuardCheckExecutor(Executor):
             }]}
 
         pass_criteria = step.get("pass_criteria", "All rules satisfied; no anti-pattern or hard-forbidden violations.")
+        # v0.3.3 (P2 fix 2026-05-27): tell LLM to use EXACT section names from
+        # the Pattern body — otherwise it paraphrases (e.g. "persona drift" instead
+        # of "Hard-Forbidden") and severity defaults to soft, breaking the hard-
+        # block contract. Sections list passed verbatim into the system prompt.
+        allowed_sections_list = ", ".join(f'"{s}"' for s in sections)
         system = (
             "You are an OMW guard. You enforce Pattern rules against a subject. "
             "Output STRICT JSON only, no prose. Schema: "
             '{"verdict": "pass"|"warn"|"violation", '
             '"violations": [{"section": "...", "rule": "...", "evidence": "..."}], '
             '"warnings":   [{"section": "...", "rule": "...", "evidence": "..."}]}'
+            f". IMPORTANT: the `section` field MUST be one of these EXACT strings: "
+            f"[{allowed_sections_list}]. Do not paraphrase or invent new section names — "
+            f"the section name determines violation severity (Hard-Forbidden / Anti-Pattern "
+            f"= hard-block; others = soft warn). Pick the section that contains the rule "
+            f"you are citing."
         )
         user = (
             f"Pattern: {src_id}\n\nRules:\n\n" + "\n\n".join(rule_blocks) +
@@ -76,12 +86,27 @@ class GuardCheckExecutor(Executor):
         raw = client.complete(system, user, max_tokens=1024)
         verdict = self._parse_verdict(raw)
 
+        # v0.3.3: severity decision — prefer LLM-reported section if it matches
+        # an allowed section name, else fall back to the "primary intent" of this
+        # check call:if any of `sections` contains a hard-classified name,
+        # treat all violations as hard (caller asked us to enforce Hard-Forbidden).
+        called_with_hard = any(s in HARD_SECTIONS for s in sections)
         triggered: list[dict[str, Any]] = []
         for v in verdict.get("violations", []) or []:
-            sev = "hard" if v.get("section") in HARD_SECTIONS else "soft"
+            llm_sec = v.get("section") or ""
+            if llm_sec in HARD_SECTIONS:
+                sev = "hard"
+            elif called_with_hard and llm_sec not in sections:
+                # LLM paraphrased section but we asked for Hard-Forbidden → trust caller's intent
+                sev = "hard"
+            elif llm_sec in sections:
+                # explicit non-hard section name → soft
+                sev = "soft"
+            else:
+                sev = "soft"
             triggered.append({
                 "pattern": src_id,
-                "section": v.get("section"),
+                "section": llm_sec or "(unknown)",
                 "rule": v.get("rule"),
                 "result": "violation",
                 "severity": sev,
