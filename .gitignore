@@ -44,3 +44,6 @@ outreach/
 # Pattern-level invocation logs — local data, not Pattern definitions
 patterns/**/invocations.jsonl
 patterns/**/invocations.server.jsonl
+
+# Pattern evolution proposals — auto-generated daily, local-only review queue
+/runtime/pattern_evolution/
