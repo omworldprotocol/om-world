@@ -368,6 +368,56 @@ def _write_markdown(clusters: dict, gaps: dict, low_judge: dict,
     return out_path
 
 
+def _check_growth_gaps() -> list[dict]:
+    """v1.2 (P3-C 2026-05-27): cross-reference SOVEREIGN-X account_stats. If
+    followers stagnant ≥ 7d → growth gap signal — distinct from violation
+    cluster. Tells founder "OMW guard 防降权可能不够,需要正向 winning Pattern"."""
+    sql = (
+        "SELECT fetched_at, followers FROM account_stats "
+        "ORDER BY fetched_at DESC LIMIT 60"
+    )
+    cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
+           SERVER_HOST,
+           f"sqlite3 -json /root/SOVEREIGN-X/data/sovereign_x.db \"{sql}\""]
+    r = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if r.returncode != 0 or not r.stdout.strip():
+        return []
+    try:
+        rows = json.loads(r.stdout)
+    except json.JSONDecodeError:
+        return []
+    if not rows:
+        return []
+    current = rows[0].get("followers")
+    if current is None:
+        return []
+    stagnant_days = 0
+    last_day = rows[0].get("fetched_at", "")[:10]
+    for r in rows:
+        f = r.get("followers")
+        day = r.get("fetched_at", "")[:10]
+        if day != last_day and f != current:
+            break
+        if day != last_day:
+            stagnant_days += 1
+            last_day = day
+    gaps: list[dict] = []
+    if stagnant_days >= 7:
+        gaps.append({
+            "project": "SOVEREIGN-X",
+            "metric": "followers",
+            "current": current,
+            "stagnant_days": stagnant_days,
+            "severity": "high" if stagnant_days >= 14 else "medium",
+            "detail": (
+                f"@invaribreak followers 停 {stagnant_days} 天在 {current};"
+                f"OMW 防降权 guard 可能不够,需 P3-A'/B' "
+                f"(strategist cold-start mode + winning Pattern body)。"
+            ),
+        })
+    return gaps
+
+
 def main() -> int:
     events = _ssh_fetch_events()
     if not events:
@@ -377,8 +427,20 @@ def main() -> int:
     clusters = _cluster_violations(events, pattern_versions=pattern_versions)
     gaps = _cluster_gaps(events)
     low_judge = _aggregate_judgment(events)
+    growth_gaps = _check_growth_gaps()
     out_path = _write_markdown(clusters, gaps, low_judge, len(events),
                                 pattern_versions=pattern_versions)
+    if growth_gaps:
+        # Append growth-gap section to the same daily proposal file
+        with out_path.open("a", encoding="utf-8") as fp:
+            fp.write("\n## E. 增长趋势 gap(P3-C 2026-05-27 真飞轮信号)\n\n")
+            fp.write("> 真衡量 OMW 是否帮项目涨流量。\n")
+            fp.write("> followers 持平 ≥ 7 天 = OMW 当前防降权 guard 不够,需要正向 Pattern。\n\n")
+            for g in growth_gaps:
+                fp.write(f"### E.1  {g['project']} · {g['metric']} stagnant {g['stagnant_days']}d "
+                         f"(severity={g['severity']})\n")
+                fp.write(f"- 当前值:{g['current']}\n")
+                fp.write(f"- {g['detail']}\n\n")
     active = sum(1 for v in clusters.values()
                  if v["active_count"] >= MIN_VIOLATION_COUNT)
     total = sum(1 for v in clusters.values() if v['count'] >= MIN_VIOLATION_COUNT)
