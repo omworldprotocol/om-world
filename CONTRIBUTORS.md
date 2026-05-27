@@ -118,17 +118,23 @@ Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pr
 
 ---
 
-**[@desiorac](https://github.com/desiorac)** (maintainer of [ark-forge/proof-spec](https://github.com/ark-forge/proof-spec) — Compliance Receipts v0.1) — Joined 2026-05-23
+**ark-forge/proof-spec** (Compliance Receipts v0.1, maintained by [@desiorac](https://github.com/desiorac)) — Joined 2026-05-23 · institutional attribution confirmed 2026-05-25
 
-Multi-comment design feedback ([reference thread](https://github.com/ark-forge/proof-spec/issues/1)) shaping three elements of the [Execution Proof](docs/execution-proof.md) spec:
+Multi-comment design feedback ([reference thread](https://github.com/ark-forge/proof-spec/issues/1)) shaping five elements of the [Execution Proof](docs/execution-proof.md) spec:
 
 - **§Canonicalization — absent-optional-fields rule** — explicit rule that missing optional fields (e.g. `context_hash`, `attestation`) are excluded from the JCS input rather than serialized as `null`, preventing divergent hashes from identical step data when implementations disagree on null-vs-omit
+- **§Canonicalization — `context_hash` binary-presence rule** — `context_hash` is either absent (tool output fully determined by inputs — pure function / stateless transform) or present-with-a-real-hash (output depends on external state); `""` and empty-hash encodings are explicitly invalid
 - **§Step record — `plan_hash` pre-commitment clarification** — explicit that the mandate's `plan_hash` is the pre-committed value from the intent record (set before execution begins), not a hash computed by the agent at proof time; binds the chain to what was authorized rather than what the agent claims it did
 - **§Related work — Compliance Receipts v0.1 composability** — `previous_receipt_hash` in CR v0.1 is structurally equivalent to `prev_hash` in OM World's Step record; chained proof mode composes with the CR v0.1 pipeline format without additional fields
+- **§Open questions** — two v0.2 boundary markers added at the reviewer's request: (i) config-injected stateless tools (env vars / feature flags / per-tenant settings) — current lean is explicitly out-of-scope at step level for v0.2, with a composability test vector to surface implementation disagreements; (ii) parallel step execution — linear `prev_hash` is sequential-only; flagged as v0.3+ fork point for Merkle-root composition over parallel step-hash sets
 
 Reference: [ark-forge/proof-spec](https://github.com/ark-forge/proof-spec) — Compliance Receipts v0.1 open spec for verifiable agent-to-agent execution proofs.
 
-Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-25. A draft PR on `ark-forge/proof-spec` ([#2](https://github.com/ark-forge/proof-spec/pull/2)) is open with the field mapping, the canonical `step_hash` formula, the absent-optional-fields rule, and three JSON examples exercising the `context_hash` stateless/stateful/anti-pattern edge case — pending desiorac's review.
+**Posture:** spec-level convergence only — not an endorsement of OM World governance, business model, or any future commercial state. Institutional attribution chosen as the durable referent (the spec project, not whoever happened to maintain it at review time).
+
+**License of contribution:** CC-BY-4.0 (per the prose scope in [LICENSE](LICENSE)).
+
+Genesis Reviewer for the **execution-proof v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-25. A draft PR on `ark-forge/proof-spec` ([#2](https://github.com/ark-forge/proof-spec/pull/2)) is open with the field mapping, the canonical `step_hash` formula, the absent-optional-fields + `context_hash` binary-presence rules, and three JSON examples exercising the stateless/stateful/anti-pattern edge case. To be updated with a config-injected stateless-tool test vector per the 2026-05-25 review pass.
 
 ---
 
