@@ -368,87 +368,159 @@ def _write_markdown(clusters: dict, gaps: dict, low_judge: dict,
     return out_path
 
 
+_GROWTH_PROJECTS = [
+    {"name": "SOVEREIGN-X", "db": "/root/SOVEREIGN-X/data/sovereign_x.db"},
+    {"name": "OM-WORLD-X",  "db": "/root/OM-WORLD-X/data/om_world_x.db"},
+]
+
+
+def _q_remote(db_path: str, sql: str) -> list[dict]:
+    cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
+           SERVER_HOST,
+           f"sqlite3 -json {db_path} \"{sql}\""]
+    r = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if r.returncode != 0 or not r.stdout.strip():
+        return []
+    try:
+        return json.loads(r.stdout)
+    except json.JSONDecodeError:
+        return []
+
+
 def _check_growth_gaps() -> list[dict]:
-    """v1.3 (P3-D 2026-05-27): SOVEREIGN-X 真涨流量 3 大指标 gap.
+    """v1.4 (P3-D 2026-05-27 OM-WORLD-X 推广): 跨两项目真涨流量 3 大指标 gap.
     旧 followers 指标降级 (虚荣);新 3 大指标:
       - total_bookmarks (7d): 0 持续 ≥ 7 天 = bookmark winning Pattern 没真生效
       - kol_eng_7d:  0 持续 ≥ 14 天 = KOL outreach 没真捕获关系
       - n_with_depth_ge2:  0 持续 ≥ 14 天 = conversation trigger 没生效
     """
     gaps: list[dict] = []
+    for proj in _GROWTH_PROJECTS:
+        pname, db = proj["name"], proj["db"]
 
-    def _q_remote_sql(sql: str) -> list[dict]:
-        cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
-               SERVER_HOST,
-               f"sqlite3 -json /root/SOVEREIGN-X/data/sovereign_x.db \"{sql}\""]
-        r = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        if r.returncode != 0 or not r.stdout.strip():
-            return []
-        try:
-            return json.loads(r.stdout)
-        except json.JSONDecodeError:
-            return []
+        # P3-D 1: bookmark gap (7d 总 bookmarks)
+        rows = _q_remote(db,
+            "SELECT SUM(COALESCE(bookmark_count,0)) total FROM tweet_stats "
+            "WHERE fetched_at > datetime('now','-7 days')")
+        total_bookmarks_7d = (rows[0].get("total") if rows else 0) or 0
+        if total_bookmarks_7d == 0:
+            gaps.append({
+                "project": pname, "metric": "bookmarks_7d",
+                "current": 0, "severity": "high",
+                "detail": (
+                    "7d 总 bookmarks = 0。playbook-sovereign-x-bookmark-able 没真生效 — "
+                    "agent 写出的推无 saveable 锚点。可能 governance 没真 block,"
+                    "或 LLM 长 prompt 处理失效。建议:验证 governance check_omw_guards "
+                    "对 bookmark-able Pattern 真返 hard_violations。"
+                ),
+            })
 
-    # P3-D 1: bookmark gap (7d 总 bookmarks)
-    rows = _q_remote_sql(
-        "SELECT SUM(COALESCE(bookmark_count,0)) total FROM tweet_stats "
-        "WHERE fetched_at > datetime('now','-7 days')"
-    )
-    total_bookmarks_7d = rows[0].get("total") if rows else 0
-    if total_bookmarks_7d == 0:
-        gaps.append({
-            "project": "SOVEREIGN-X",
-            "metric": "bookmarks_7d",
-            "current": 0,
-            "severity": "high",
-            "detail": (
-                "7d 总 bookmarks = 0。playbook-sovereign-x-bookmark-able 没真生效 — "
-                "agent 写出的推无 saveable 锚点。可能 governance 没真 block,"
-                "或 LLM 长 prompt 处理失效。建议:验证 governance check_omw_guards "
-                "对 bookmark-able Pattern 真返 hard_violations。"
-            ),
-        })
+        # P3-D 2: KOL engagement gap (14d distinct KOL count)
+        rows = _q_remote(db,
+            "SELECT COUNT(DISTINCT kol_handle) n FROM kol_engagement "
+            "WHERE engaged_at > datetime('now','-14 days')")
+        kol_distinct_14d = (rows[0].get("n") if rows else 0) or 0
+        if kol_distinct_14d == 0:
+            gaps.append({
+                "project": pname, "metric": "kol_distinct_14d",
+                "current": 0, "severity": "high",
+                "detail": (
+                    "14d 0 KOL 互动。playbook-sovereign-x-kol-magnet 没真触达 KOL。"
+                    "可能 reply_engine 选 candidate 排序失效 / kol_targets 配置为空 / "
+                    "reply 内容仍是 generic。建议:检查 settings.yaml kol_outreach.kol_targets。"
+                ),
+            })
 
-    # P3-D 2: KOL engagement gap (14d distinct KOL count)
-    rows = _q_remote_sql(
-        "SELECT COUNT(DISTINCT kol_handle) n FROM kol_engagement "
-        "WHERE engaged_at > datetime('now','-14 days')"
-    )
-    kol_distinct_14d = rows[0].get("n") if rows else 0
-    if kol_distinct_14d == 0:
-        gaps.append({
-            "project": "SOVEREIGN-X",
-            "metric": "kol_distinct_14d",
-            "current": 0,
-            "severity": "high",
-            "detail": (
-                "14d 0 KOL 互动。playbook-sovereign-x-kol-magnet 没真触达 KOL。"
-                "可能 reply_engine 选 candidate 排序失效 / kol_targets 配置为空 /"
-                "reply 内容仍是 generic。建议:检查 settings.yaml kol_outreach.kol_targets。"
-            ),
-        })
-
-    # P3-D 3: conversation depth gap
-    rows = _q_remote_sql(
-        "SELECT SUM(CASE WHEN max_reply_depth >= 2 THEN 1 ELSE 0 END) n "
-        "FROM tweet_stats WHERE fetched_at > datetime('now','-14 days')"
-    )
-    depth_ge2_14d = rows[0].get("n") if rows else 0
-    if depth_ge2_14d == 0:
-        gaps.append({
-            "project": "SOVEREIGN-X",
-            "metric": "depth_ge2_14d",
-            "current": 0,
-            "severity": "high",
-            "detail": (
-                "14d 0 推有 ≥ 2 round conversation depth。"
-                "playbook-sovereign-x-conversation-trigger 没真生效。"
-                "可能 LLM 仍写 closed assertion / own-tweet replies 没 follow-up。"
-                "建议:检查 reply_engine 真有 own_post pending reply 在跑。"
-            ),
-        })
+        # P3-D 3: conversation depth gap
+        rows = _q_remote(db,
+            "SELECT SUM(CASE WHEN max_reply_depth >= 2 THEN 1 ELSE 0 END) n "
+            "FROM tweet_stats WHERE fetched_at > datetime('now','-14 days')")
+        depth_ge2_14d = (rows[0].get("n") if rows else 0) or 0
+        if depth_ge2_14d == 0:
+            gaps.append({
+                "project": pname, "metric": "depth_ge2_14d",
+                "current": 0, "severity": "high",
+                "detail": (
+                    "14d 0 推有 ≥ 2 round conversation depth。"
+                    "playbook-sovereign-x-conversation-trigger 没真生效。"
+                    "可能 LLM 仍写 closed assertion / own-tweet replies 没 follow-up。"
+                    "建议:检查 reply_engine 真有 own_post pending reply 在跑。"
+                ),
+            })
 
     return gaps
+
+
+def _check_content_type_signals() -> list[dict]:
+    """v1.4 (P3-D 2026-05-27 OM-WORLD-X article-aware): per content_type 真表现差异
+    自动当 evolution candidate。
+
+    场景:
+      - article 2× single reach → 加 article 节奏建议
+      - article < single reach → article 结构有问题,反查 playbook-om-world-x-article-format
+      - article bookmark_rate / depth 仍 0 → article-format Pattern Hard-Forbidden 没真生效
+    """
+    signals: list[dict] = []
+    for proj in _GROWTH_PROJECTS:
+        pname, db = proj["name"], proj["db"]
+        rows = _q_remote(db,
+            "SELECT pp.content_type, COUNT(DISTINCT ts.tweet_id) n_posts, "
+            "AVG(ts.impression_count) avg_imp, "
+            "AVG(CASE WHEN ts.impression_count > 0 "
+            "          THEN CAST(COALESCE(ts.bookmark_count,0) AS FLOAT) / ts.impression_count "
+            "          ELSE 0 END) avg_br, "
+            "AVG(COALESCE(ts.max_reply_depth,0)) avg_depth "
+            "FROM tweet_stats ts "
+            "JOIN published_posts pp ON pp.tweet_ids LIKE '%' || ts.tweet_id || '%' "
+            "WHERE pp.published_at > datetime('now','-14 days') "
+            "  AND ts.fetched_at = (SELECT MAX(ts2.fetched_at) FROM tweet_stats ts2 WHERE ts2.tweet_id = ts.tweet_id) "
+            "GROUP BY pp.content_type")
+        if not rows:
+            continue
+        by_ct = {(r.get("content_type") or "unknown"): r for r in rows}
+
+        # article vs single reach 对比(仅 OM-WORLD-X 有 article 路径)
+        if "article" in by_ct and "single" in by_ct:
+            a, s = by_ct["article"], by_ct["single"]
+            if (s.get("avg_imp") or 0) > 0 and (a.get("n_posts") or 0) >= 3 and (s.get("n_posts") or 0) >= 3:
+                ratio = (a["avg_imp"] or 0) / (s["avg_imp"] or 1)
+                if ratio >= 1.5:
+                    signals.append({
+                        "project": pname, "signal": "article_outperforms_single",
+                        "ratio": round(ratio, 2),
+                        "detail": (
+                            f"14d article avg_imp={a['avg_imp']:.0f} vs single={s['avg_imp']:.0f} "
+                            f"({ratio:.2f}×)。article 路径明显占优 → 建议 settings.yaml schedule.article_cron "
+                            f"频率加大(当前 weekday 9am EST,可考虑加 weekend 或 weekday 第 2 篇)。"
+                            f"同步加 article hook_angles 探索池。"
+                        ),
+                    })
+                elif ratio <= 0.83:
+                    signals.append({
+                        "project": pname, "signal": "article_underperforms_single",
+                        "ratio": round(ratio, 2),
+                        "detail": (
+                            f"14d article avg_imp={a['avg_imp']:.0f} vs single={s['avg_imp']:.0f} "
+                            f"({ratio:.2f}×)。article 结构有问题 → 反查 playbook-om-world-x-article-format:"
+                            f"title 是否含 named primitive / lede 是否真有 2 anchor / "
+                            f"每 section 是否真有 1 anchor。"
+                        ),
+                    })
+
+            # article bookmark_rate 仍 0 → article-format Hard-Forbidden 没真生效
+            if (a.get("n_posts") or 0) >= 5 and (a.get("avg_br") or 0) == 0 and (a.get("avg_depth") or 0) == 0:
+                signals.append({
+                    "project": pname, "signal": "article_zero_bookmark_zero_depth",
+                    "ratio": None,
+                    "detail": (
+                        f"已发 {a['n_posts']} 篇 article,bookmark_rate=0 + depth=0。"
+                        f"playbook-om-world-x-article-format Judgment 阈值(bookmark ≥1%/depth ≥1.5)远未达。"
+                        f"两种可能:(a) 账号 follower 太小没人 bookmark/reply — 等 followers 到 30+ 再判;"
+                        f"(b) article 真没 bookmark-able / depth-trigger 锚点 — 加 article prompt "
+                        f"显式 metric-oriented 规则(为 bookmark 这样写、为 depth 这样写)。"
+                    ),
+                })
+    return signals
 
 
 def main() -> int:
@@ -461,6 +533,7 @@ def main() -> int:
     gaps = _cluster_gaps(events)
     low_judge = _aggregate_judgment(events)
     growth_gaps = _check_growth_gaps()
+    ct_signals = _check_content_type_signals()
     out_path = _write_markdown(clusters, gaps, low_judge, len(events),
                                 pattern_versions=pattern_versions)
     if growth_gaps:
@@ -473,6 +546,16 @@ def main() -> int:
                 fp.write(f"### E.{i}  {g['project']} · {g['metric']} = {g['current']} "
                          f"(severity={g['severity']})\n")
                 fp.write(f"- {g['detail']}\n\n")
+    if ct_signals:
+        # P3-D § F:per content_type 真表现差异作 evolution candidate
+        with out_path.open("a", encoding="utf-8") as fp:
+            fp.write("\n## F. content_type 真表现信号(P3-D 2026-05-27 OM-WORLD-X article-aware)\n\n")
+            fp.write("> per content_type 抓真差异 → article vs single reach 比 / article 锚点是否真起效。\n")
+            fp.write("> 真有结构差异 → 调度 + Pattern enforcement 跟着改。\n\n")
+            for i, s in enumerate(ct_signals, 1):
+                ratio_part = f" (ratio={s['ratio']}×)" if s.get("ratio") else ""
+                fp.write(f"### F.{i}  {s['project']} · {s['signal']}{ratio_part}\n")
+                fp.write(f"- {s['detail']}\n\n")
     active = sum(1 for v in clusters.values()
                  if v["active_count"] >= MIN_VIOLATION_COUNT)
     total = sum(1 for v in clusters.values() if v['count'] >= MIN_VIOLATION_COUNT)

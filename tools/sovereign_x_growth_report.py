@@ -24,13 +24,36 @@ from pathlib import Path
 
 OMW_ROOT = Path(os.environ.get("OMW_ROOT",
     str(Path(__file__).resolve().parent.parent)))
-OUT_DIR = OMW_ROOT / "runtime" / "sovereign_x_growth"
+
+# P3-D 2026-05-27: parameterized via GROWTH_PROJECT (default sovereign_x for back-compat).
+# 改 GROWTH_PROJECT=om_world_x 即跑 OM-WORLD-X 同款日报。
+_PROJECT = os.environ.get("GROWTH_PROJECT", "sovereign_x")
+_PROJECT_BRANDS = {
+    "sovereign_x": {
+        "display": "SOVEREIGN-X",
+        "handle_default": "invaribreak",
+        "remote_db_default": "/root/SOVEREIGN-X/data/sovereign_x.db",
+        "out_subdir": "sovereign_x_growth",
+    },
+    "om_world_x": {
+        "display": "OM-WORLD-X",
+        "handle_default": "OmWorldprotocol",
+        "remote_db_default": "/root/OM-WORLD-X/data/om_world_x.db",
+        "out_subdir": "om_world_x_growth",
+    },
+}
+_BRAND = _PROJECT_BRANDS.get(_PROJECT, _PROJECT_BRANDS["sovereign_x"])
+
+OUT_DIR = OMW_ROOT / "runtime" / _BRAND["out_subdir"]
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 SSH_KEY = os.environ.get("OMW_SERVER_SSH_KEY",
                          str(Path.home() / ".ssh" / "hetzner_ash_key"))
 SERVER_HOST = os.environ.get("OMW_SERVER_HOST", "root@87.99.153.204")
-REMOTE_DB = os.environ.get("SOVEREIGN_X_DB", "/root/SOVEREIGN-X/data/sovereign_x.db")
+# back-compat: SOVEREIGN_X_DB env 仍优先(老 plist 还在用),否则按 GROWTH_PROJECT 选默认
+REMOTE_DB = (os.environ.get("SOVEREIGN_X_DB") if _PROJECT == "sovereign_x" else None) \
+            or os.environ.get("REMOTE_DB") \
+            or _BRAND["remote_db_default"]
 
 
 def _q(sql: str) -> list[dict]:
@@ -111,6 +134,51 @@ def _engagement_window(days: int = 7) -> dict:
     }
 
 
+def _by_content_type(days: int = 7) -> list[dict]:
+    """P3-D 2026-05-27: per content_type breakdown — article vs single vs thread vs reply.
+
+    Returns list[dict] sorted by n_posts desc:
+      {content_type, n_posts, avg_imp, avg_bookmark_rate, avg_max_reply_depth, kol_eng}
+    """
+    rows = _q(
+        f"SELECT pp.content_type, "
+        f"COUNT(DISTINCT ts.tweet_id) n_posts, "
+        f"AVG(ts.impression_count) avg_imp, "
+        f"AVG(CASE WHEN ts.impression_count > 0 "
+        f"          THEN CAST(COALESCE(ts.bookmark_count,0) AS FLOAT) / ts.impression_count "
+        f"          ELSE 0 END) avg_bookmark_rate, "
+        f"AVG(COALESCE(ts.max_reply_depth,0)) avg_max_reply_depth "
+        f"FROM tweet_stats ts "
+        f"JOIN published_posts pp ON pp.tweet_ids LIKE '%' || ts.tweet_id || '%' "
+        f"WHERE pp.published_at > datetime('now','-{days} days') "
+        f"  AND ts.fetched_at = (SELECT MAX(ts2.fetched_at) FROM tweet_stats ts2 WHERE ts2.tweet_id = ts.tweet_id) "
+        f"GROUP BY pp.content_type"
+    )
+    if not rows:
+        return []
+    # KOL eng per content_type
+    kol_rows = _q(
+        f"SELECT pp.content_type, COUNT(*) n FROM kol_engagement ke "
+        f"JOIN published_posts pp ON pp.tweet_ids LIKE '%' || ke.source_tweet_id || '%' "
+        f"WHERE ke.engaged_at > datetime('now','-{days} days') "
+        f"GROUP BY pp.content_type"
+    )
+    kol_map = {r.get("content_type") or "unknown": int(r.get("n") or 0) for r in kol_rows}
+    out: list[dict] = []
+    for r in rows:
+        ct = r.get("content_type") or "unknown"
+        out.append({
+            "content_type": ct,
+            "n_posts": int(r.get("n_posts") or 0),
+            "avg_imp": round(float(r.get("avg_imp") or 0), 1),
+            "avg_bookmark_rate": round(float(r.get("avg_bookmark_rate") or 0), 5),
+            "avg_max_reply_depth": round(float(r.get("avg_max_reply_depth") or 0), 2),
+            "kol_eng": kol_map.get(ct, 0),
+        })
+    out.sort(key=lambda x: -x["n_posts"])
+    return out
+
+
 def _follower_delta(snaps: list[dict]) -> dict:
     """Compute followers delta over 1d / 7d / 30d windows."""
     if not snaps:
@@ -159,14 +227,15 @@ def main() -> int:
     eng = _engagement_window(7)
     pace = _publish_pace(7)
     delta = _follower_delta(snaps)
+    by_ct = _by_content_type(7)
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     out_path = OUT_DIR / f"{today}.md"
     L: list[str] = []
-    L.append(f"# SOVEREIGN-X Growth Report — {today}")
+    L.append(f"# {_BRAND['display']} Growth Report — {today}")
     L.append("")
     L.append(f"> 衡量 OMW 接入(governance/compliance.py check_omw_guards 2026-05-27 起)")
-    L.append(f"> 是否真帮 @{os.environ.get('X_USERNAME','invaribreak')} 涨流量。")
+    L.append(f"> 是否真帮 @{os.environ.get('X_USERNAME', _BRAND['handle_default'])} 涨流量。")
     L.append(f"> 若 4 周后 followers / engagement 无显著变化 = OMW 这个方向错。")
     L.append("")
 
@@ -197,6 +266,29 @@ def main() -> int:
     L.append("")
     L.append(f"### 🔴 3. Conversation Depth(真受众想接着聊)")
     L.append(f"- 7d 有 ≥2 round reply 的推:**{eng['n_with_depth_ge2']}** / {eng['n']}")
+    L.append("")
+    L.append("## P3-D content_type 拆分(article vs single vs thread vs reply)")
+    L.append("")
+    if not by_ct:
+        L.append("_无 per content_type 数据 — 等 monitor 跑一次新 schema_")
+    else:
+        L.append("| content_type | n_posts | avg_imp | bookmark_rate | avg_depth | kol_eng |")
+        L.append("|---|---|---|---|---|---|")
+        for r in by_ct:
+            L.append(
+                f"| **{r['content_type']}** | {r['n_posts']} | {r['avg_imp']:.1f} "
+                f"| {r['avg_bookmark_rate']*100:.3f}% | {r['avg_max_reply_depth']:.2f} | {r['kol_eng']} |"
+            )
+        # 对比 article vs single 一线判定
+        ct_map = {r["content_type"]: r for r in by_ct}
+        if "article" in ct_map and "single" in ct_map:
+            a, s = ct_map["article"], ct_map["single"]
+            if s["avg_imp"] > 0:
+                ratio = a["avg_imp"] / s["avg_imp"]
+                L.append("")
+                L.append(f"**article vs single reach 比**:{ratio:.2f}× "
+                         f"({'article 占优' if ratio >= 1.2 else 'single 占优' if ratio <= 0.83 else '持平'}) — "
+                         f"若 ≥1.5× 持续 14d → article 路径 invest 加倍")
     L.append("")
     L.append("## 内容节奏 + 旧指标(context)")
     L.append("")
