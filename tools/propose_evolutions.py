@@ -369,15 +369,23 @@ def _write_markdown(clusters: dict, gaps: dict, low_judge: dict,
 
 
 _GROWTH_PROJECTS = [
-    {"name": "SOVEREIGN-X", "db": "/root/SOVEREIGN-X/data/sovereign_x.db"},
-    {"name": "OM-WORLD-X",  "db": "/root/OM-WORLD-X/data/om_world_x.db"},
+    {"name": "SOVEREIGN-X", "db": "/root/SOVEREIGN-X/data/sovereign_x.db", "kind": "x_text"},
+    {"name": "OM-WORLD-X",  "db": "/root/OM-WORLD-X/data/om_world_x.db",   "kind": "x_text"},
+    # AVA-trend DB 在 Mac local(douyin 半自动发布在 Mac)
+    {"name": "AVA-trend",   "db": "/Users/feiyang/all_bots/AVA-trend/data/publish.db",
+     "kind": "douyin_video"},
 ]
 
 
 def _q_remote(db_path: str, sql: str) -> list[dict]:
-    cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
-           SERVER_HOST,
-           f"sqlite3 -json {db_path} \"{sql}\""]
+    # Local path → 直读;否则 SSH
+    from pathlib import Path as _P
+    if _P(db_path).exists():
+        cmd = ["sqlite3", "-json", db_path, sql]
+    else:
+        cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
+               SERVER_HOST,
+               f"sqlite3 -json {db_path} \"{sql}\""]
     r = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if r.returncode != 0 or not r.stdout.strip():
         return []
@@ -397,6 +405,12 @@ def _check_growth_gaps() -> list[dict]:
     gaps: list[dict] = []
     for proj in _GROWTH_PROJECTS:
         pname, db = proj["name"], proj["db"]
+        kind = proj.get("kind", "x_text")
+
+        # P3-AVA douyin_video 分支
+        if kind == "douyin_video":
+            gaps.extend(_check_ava_gaps(pname, db))
+            continue
 
         # P3-D 1: bookmark gap (7d 总 bookmarks)
         rows = _q_remote(db,
@@ -463,6 +477,12 @@ _PROJECT_PATTERN_MAP = {
         "kol_distinct_14d": "playbook-sovereign-x-kol-magnet",
         "depth_ge2_14d": "playbook-sovereign-x-conversation-trigger",
     },
+    "AVA-trend": {
+        # P3-AVA 2026-05-27:douyin 视频信号映射 3 个 winning Pattern
+        "completion_avg_7d_low": "playbook-ava-trend-completion-magnet",
+        "bounce_2s_avg_7d_high": "playbook-ava-trend-hook-strength",
+        "subscribe_7d_zero": "playbook-ava-trend-subscribe-conversion",
+    },
 }
 
 
@@ -520,6 +540,59 @@ def _recipes_for_violation_cluster(pid: str, c: dict) -> list[dict]:
             f"sample sections: {', '.join(list(c.get('sample_sections') or [])[:3])}"
         ),
     }]
+
+
+def _check_ava_gaps(pname: str, db: str) -> list[dict]:
+    """P3-AVA 2026-05-27 AVA-trend / douyin video 真涨流量 3 大指标 gap。"""
+    out: list[dict] = []
+    rows = _q_remote(db,
+        "SELECT AVG(completion_rate) avg_cr, AVG(bounce_rate_2s) avg_br, "
+        "SUM(COALESCE(subscribe_count,0)) sub_n, COUNT(*) n "
+        "FROM video_stats WHERE fetched_at > datetime('now','-7 days') "
+        "  AND bounce_rate_2s IS NOT NULL")
+    if not rows or (rows[0].get("n") or 0) == 0:
+        return out
+    r = rows[0]
+    avg_cr = float(r.get("avg_cr") or 0)
+    avg_br = float(r.get("avg_br") or 1)
+    sub_n  = int(r.get("sub_n") or 0)
+    n = int(r.get("n") or 0)
+
+    # Completion < 5% 持续 7d
+    if avg_cr < 0.05:
+        out.append({
+            "project": pname, "metric": "completion_avg_7d_low",
+            "current": round(avg_cr, 4), "severity": "high",
+            "detail": (
+                f"7d 平均 completion_rate = {avg_cr*100:.2f}% < target 5%。"
+                f"playbook-ava-trend-completion-magnet 没真生效 — 视频结构没"
+                f"4 招 (payoff promise / hook reset / 末尾埋伏 / 时长 sweet spot)。"
+                f"director/solo_writer prompt 注入需要 enforce。"
+            ),
+        })
+    # bounce_rate_2s > 50% 持续 7d
+    if avg_br > 0.50:
+        out.append({
+            "project": pname, "metric": "bounce_2s_avg_7d_high",
+            "current": round(avg_br, 4), "severity": "high",
+            "detail": (
+                f"7d 平均 bounce_rate_2s = {avg_br*100:.2f}% > target ≤ 35%。"
+                f"playbook-ava-trend-hook-strength 没真生效 — 0-2s 钩子三轨 "
+                f"(视觉锚/反常识/情绪触发词)未齐。"
+            ),
+        })
+    # 7d 0 subscribe
+    if sub_n == 0:
+        out.append({
+            "project": pname, "metric": "subscribe_7d_zero",
+            "current": 0, "severity": "high",
+            "detail": (
+                f"7d 0 subscribe(n={n} 视频)。"
+                f"playbook-ava-trend-subscribe-conversion 没真生效 — 缺 series "
+                f"期待 / 频道 furniture 持续露出 / 末尾 CTA 三件。"
+            ),
+        })
+    return out
 
 
 def _check_content_type_signals() -> list[dict]:

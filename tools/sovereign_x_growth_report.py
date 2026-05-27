@@ -34,12 +34,21 @@ _PROJECT_BRANDS = {
         "handle_default": "invaribreak",
         "remote_db_default": "/root/SOVEREIGN-X/data/sovereign_x.db",
         "out_subdir": "sovereign_x_growth",
+        "kind": "x_text",  # bookmark/depth/KOL
     },
     "om_world_x": {
         "display": "OM-WORLD-X",
         "handle_default": "OmWorldprotocol",
         "remote_db_default": "/root/OM-WORLD-X/data/om_world_x.db",
         "out_subdir": "om_world_x_growth",
+        "kind": "x_text",
+    },
+    "ava_trend": {
+        "display": "AVA-trend (Chigu_channel)",
+        "handle_default": "Chigu_channel",
+        "remote_db_default": "/Users/feiyang/all_bots/AVA-trend/data/publish.db",  # Mac local
+        "out_subdir": "ava_trend_growth",
+        "kind": "douyin_video",  # completion / hook / subscribe
     },
 }
 _BRAND = _PROJECT_BRANDS.get(_PROJECT, _PROJECT_BRANDS["sovereign_x"])
@@ -57,8 +66,12 @@ REMOTE_DB = (os.environ.get("SOVEREIGN_X_DB") if _PROJECT == "sovereign_x" else 
 
 
 def _q(sql: str) -> list[dict]:
-    cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
-           SERVER_HOST, f"sqlite3 -json {REMOTE_DB} \"{sql}\""]
+    # 本地 db 走 sqlite3 直读;远端走 ssh
+    if Path(REMOTE_DB).exists():
+        cmd = ["sqlite3", "-json", REMOTE_DB, sql]
+    else:
+        cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
+               SERVER_HOST, f"sqlite3 -json {REMOTE_DB} \"{sql}\""]
     r = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if r.returncode != 0 or not r.stdout.strip():
         return []
@@ -179,6 +192,80 @@ def _by_content_type(days: int = 7) -> list[dict]:
     return out
 
 
+def _douyin_account_snapshots() -> list[dict]:
+    """AVA-trend account_stats 表 schema 不同:follower_count / aweme_count
+    (vs SOVX/OMX 的 followers / total_tweets)。"""
+    return _q(
+        "SELECT fetched_at, follower_count AS followers, "
+        "following_count AS following, aweme_count AS total_tweets, "
+        "total_favorited "
+        "FROM account_stats ORDER BY fetched_at ASC"
+    )
+
+
+def _douyin_engagement_window(days: int = 7) -> dict:
+    """AVA-trend 真涨流量信号:completion/hook/subscribe(完播率/2s跳出/转粉)。"""
+    # per video latest stats — 只取每条最新一行,跳 P3-AVA fix 之前的旧行(bounce 等 NULL)
+    rows = _q(
+        f"SELECT ts.queue_id, ts.plays, ts.likes, "
+        f"ts.completion_rate, ts.completion_rate_5s, ts.bounce_rate_2s, "
+        f"ts.avg_view_proportion, ts.like_rate, "
+        f"COALESCE(ts.subscribe_count,0) sub_n, "
+        f"COALESCE(ts.dislike_count,0) dis_n "
+        f"FROM video_stats ts "
+        f"WHERE ts.fetched_at > datetime('now','-{days} days') "
+        f"  AND ts.fetched_at = (SELECT MAX(fetched_at) FROM video_stats ts2 "
+        f"                         WHERE ts2.queue_id = ts.queue_id) "
+        f"  AND ts.bounce_rate_2s IS NOT NULL"
+    )
+    # 字段重命名 + clamp(向下兼容老 helper 期望的 max_X 名字)
+    rows = [{
+        "max_plays": r.get("plays") or 0,
+        "max_likes": r.get("likes") or 0,
+        "max_cr": r.get("completion_rate") or 0,
+        "max_cr5": r.get("completion_rate_5s") or 0,
+        "max_bounce": r.get("bounce_rate_2s") if r.get("bounce_rate_2s") is not None else 1,
+        "max_avp": r.get("avg_view_proportion") or 0,
+        "max_lr": r.get("like_rate") or 0,
+        "sub_n": r.get("sub_n") or 0,
+        "dis_n": r.get("dis_n") or 0,
+    } for r in rows]
+    if not rows:
+        return {"n": 0, "avg_completion": 0.0, "avg_bounce_2s": 0.0,
+                "avg_completion_5s": 0.0, "avg_avp": 0.0,
+                "total_subscribe": 0, "total_dislike": 0,
+                "n_with_completion_ge5pct": 0, "n_with_bounce_le40": 0,
+                "n_with_subscribe": 0,
+                "total_plays": 0, "total_likes": 0,
+                "avg_like_rate": 0.0}
+    n = len(rows)
+    avg_completion = sum((r.get("max_cr") or 0) for r in rows) / n
+    avg_cr5 = sum((r.get("max_cr5") or 0) for r in rows) / n
+    avg_bounce = sum((r.get("max_bounce") or 0) for r in rows) / n
+    avg_avp = sum((r.get("max_avp") or 0) for r in rows) / n
+    avg_lr = sum((r.get("max_lr") or 0) for r in rows) / n
+    total_sub = sum((r.get("sub_n") or 0) for r in rows)
+    total_dis = sum((r.get("dis_n") or 0) for r in rows)
+    total_plays = sum((r.get("max_plays") or 0) for r in rows)
+    total_likes = sum((r.get("max_likes") or 0) for r in rows)
+    return {
+        "n": n,
+        "avg_completion": round(avg_completion, 4),
+        "avg_completion_5s": round(avg_cr5, 4),
+        "avg_bounce_2s": round(avg_bounce, 4),
+        "avg_avp": round(avg_avp, 4),
+        "avg_like_rate": round(avg_lr, 5),
+        "total_subscribe": total_sub,
+        "total_dislike": total_dis,
+        "net_subscribe": total_sub - total_dis,
+        "n_with_completion_ge5pct": sum(1 for r in rows if (r.get("max_cr") or 0) >= 0.05),
+        "n_with_bounce_le40": sum(1 for r in rows if (r.get("max_bounce") or 1) <= 0.40),
+        "n_with_subscribe": sum(1 for r in rows if (r.get("sub_n") or 0) > 0),
+        "total_plays": total_plays,
+        "total_likes": total_likes,
+    }
+
+
 def _follower_delta(snaps: list[dict]) -> dict:
     """Compute followers delta over 1d / 7d / 30d windows."""
     if not snaps:
@@ -223,6 +310,8 @@ def _follower_delta(snaps: list[dict]) -> dict:
 
 
 def main() -> int:
+    if _BRAND.get("kind") == "douyin_video":
+        return _main_douyin()
     snaps = _account_snapshots()
     eng = _engagement_window(7)
     pace = _publish_pace(7)
@@ -334,6 +423,102 @@ def main() -> int:
     print(f"wrote {out_path}")
     if delta["current"] is not None:
         print(f"followers={delta['current']} (d1={delta['d1']} d7={delta['d7']} d30={delta['d30']} stagnant={delta['stagnant_days']}d)")
+    return 0
+
+
+def _main_douyin() -> int:
+    """AVA-trend / douyin video 路径 — 真涨流量 3 大信号 completion/hook/subscribe。"""
+    snaps = _douyin_account_snapshots()
+    delta = _follower_delta(snaps)
+    eng = _douyin_engagement_window(7)
+    pace = _publish_pace(7)
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    out_path = OUT_DIR / f"{today}.md"
+    L: list[str] = []
+    L.append(f"# {_BRAND['display']} Growth Report — {today}")
+    L.append("")
+    L.append(f"> 衡量 AVA-trend → OMW Pattern 演化是否真帮 @{_BRAND['handle_default']} 涨流量。")
+    L.append(f"> 真涨流量信号:**completion_rate / bounce_rate_2s / subscribe** 三件,不是 plays(plays 是 cold-start 抽奖)。")
+    L.append("")
+
+    L.append("## 账号增长(account_stats 抓取)")
+    L.append("")
+    if delta["current"] is None:
+        L.append("_无 account_stats 数据 — 等 monitor 跑过一次再看_")
+    else:
+        L.append(f"- **当前 followers**:{delta['current']}")
+        L.append(f"- 24h Δ:{delta['d1']}")
+        L.append(f"- 7d Δ:{delta['d7']}")
+        L.append(f"- 30d Δ:{delta['d30']}")
+        L.append(f"- 持平天数:{delta['stagnant_days']}")
+        if delta["stagnant_days"] and delta["stagnant_days"] >= 7:
+            L.append("- 🔴 **GROWTH GAP**:7+ 天 followers 无变化,触发 propose_evolutions § E 信号")
+    L.append("")
+
+    L.append("## P3-AVA 真涨流量 3 大指标(7d)")
+    L.append("")
+    L.append(f"### 🔴 1. Completion(抖音算法 2024+ 核心信号)")
+    L.append(f"- 7d 平均 completion_rate:**{eng['avg_completion']*100:.2f}%** (target ≥ 5%)")
+    L.append(f"- 7d 平均 completion_rate_5s:{eng['avg_completion_5s']*100:.2f}% (target ≥ 30%)")
+    L.append(f"- 7d 平均 avg_view_proportion:{eng['avg_avp']*100:.2f}%")
+    L.append(f"- 完播 ≥ 5% 的视频 / 总视频:{eng['n_with_completion_ge5pct']} / {eng['n']}")
+    L.append("")
+    L.append(f"### 🔴 2. Hook strength(0-2s 钩子)")
+    L.append(f"- 7d 平均 bounce_rate_2s:**{eng['avg_bounce_2s']*100:.2f}%** (target ≤ 35%)")
+    L.append(f"- 2s 跳出 ≤ 40% 的视频 / 总视频:{eng['n_with_bounce_le40']} / {eng['n']}")
+    L.append("")
+    L.append(f"### 🔴 3. Subscribe conversion(转粉)")
+    L.append(f"- 7d 总 subscribe:**{eng['total_subscribe']}** (target ≥ 1/week)")
+    L.append(f"- 7d 总 dislike:{eng['total_dislike']}")
+    L.append(f"- 7d 净涨粉 (subscribe-dislike):{eng['net_subscribe']}")
+    L.append(f"- 有 subscribe 的视频 / 总视频:{eng['n_with_subscribe']} / {eng['n']}")
+    L.append("")
+    L.append("## 内容节奏 + 旧指标(context)")
+    L.append("")
+    L.append(f"- 发推数(7d):{pace}")
+    L.append(f"- 7d 视频 (有 stats):{eng['n']}")
+    L.append(f"- 7d 总 plays:{eng['total_plays']}(注:plays 受 cold-start 抽奖 影响 ≫ 内容质量)")
+    L.append(f"- 7d 总 likes:{eng['total_likes']}")
+    L.append(f"- 7d 平均 like_rate:{eng['avg_like_rate']*100:.3f}%")
+    L.append("")
+
+    L.append("## OMW 接入价值评估(P3-AVA 标准)")
+    L.append("")
+    L.append("**真涨流量判定**(替代 plays/followers 虚荣指标):")
+    L.append("- 14 天:avg_completion ≥ 5% OR n_with_subscribe > 0 = OMW 正向迹象")
+    L.append("- 30 天:avg_completion ≥ 10% AND avg_bounce_2s ≤ 35% AND total_subscribe ≥ 3 = OMW 真生效")
+    L.append("- 30 天:3 指标全无改善 = winning Pattern 没真改变 director 行为 → 升级 enforcement")
+    L.append("- 60 天:全无改善 = OMW 方向错 / 频道选题或风格 nichefit 错 → 重选 niche")
+    L.append("")
+    L.append("**当前 baseline(2026-05-27 P3-AVA 接入起点)**:")
+    L.append(f"- avg_completion (7d): {eng['avg_completion']*100:.2f}%")
+    L.append(f"- avg_bounce_2s (7d): {eng['avg_bounce_2s']*100:.2f}%")
+    L.append(f"- total_subscribe (7d): {eng['total_subscribe']}")
+    L.append(f"- followers: {delta.get('current')}")
+    L.append("")
+
+    L.append("## 历史快照(account_stats)")
+    L.append("")
+    L.append("| Day | followers | following | total_works | total_favorited |")
+    L.append("|---|---|---|---|---|")
+    by_day: dict[str, dict] = {}
+    for s in snaps:
+        d = (s.get("fetched_at") or "")[:10]
+        if d:
+            by_day[d] = s
+    for d in sorted(by_day.keys()):
+        s = by_day[d]
+        L.append(f"| {d} | {s.get('followers')} | {s.get('following')} | {s.get('total_tweets')} | {s.get('total_favorited')} |")
+    L.append("")
+
+    out_path.write_text("\n".join(L), encoding="utf-8")
+    print(f"wrote {out_path}")
+    if delta["current"] is not None:
+        print(f"followers={delta['current']} d7={delta['d7']} stagnant={delta['stagnant_days']}d")
+    print(f"completion_avg={eng['avg_completion']*100:.2f}% "
+          f"bounce_2s_avg={eng['avg_bounce_2s']*100:.2f}% "
+          f"subscribe_7d={eng['total_subscribe']}")
     return 0
 
 

@@ -51,10 +51,16 @@ PATTERN_WHITELIST = {
     "playbook-sovereign-x-kol-magnet",
     "playbook-sovereign-x-conversation-trigger",
     "playbook-om-world-x-article-format",
+    # P3-AVA 2026-05-27
+    "playbook-ava-trend-completion-magnet",
+    "playbook-ava-trend-hook-strength",
+    "playbook-ava-trend-subscribe-conversion",
 }
 CONFIG_WHITELIST_FILES = {
     "OM-WORLD-X/config/settings.yaml",
     "SOVEREIGN-X/config/settings.yaml",
+    # P3-AVA: AVA-trend 没 X 那种 schedule cron 维度,R-CONFIG 暂不适配 AVA
+    # (未来可加 director hook injection 强度档位)
 }
 
 # ─── safety rail 2: 每天每 target 配额 ─────────────────────────────────────────
@@ -450,20 +456,33 @@ def _query_metric(project: str, metric: str) -> int | None:
     db_map = {
         "SOVEREIGN-X": "/root/SOVEREIGN-X/data/sovereign_x.db",
         "OM-WORLD-X":  "/root/OM-WORLD-X/data/om_world_x.db",
+        "AVA-trend":   "/Users/feiyang/all_bots/AVA-trend/data/publish.db",
     }
     db = db_map.get(project)
     if not db:
         return None
     sql_map = {
+        # SOVX/OMX:
         "bookmarks_7d": "SELECT SUM(COALESCE(bookmark_count,0)) FROM tweet_stats WHERE fetched_at > datetime('now','-7 days')",
         "kol_distinct_14d": "SELECT COUNT(DISTINCT kol_handle) FROM kol_engagement WHERE engaged_at > datetime('now','-14 days')",
         "depth_ge2_14d": "SELECT SUM(CASE WHEN max_reply_depth >= 2 THEN 1 ELSE 0 END) FROM tweet_stats WHERE fetched_at > datetime('now','-14 days')",
+        # AVA-trend (rollback 检查只比较改善方向,统一返 int — 完播 / 跳出 用 ‰):
+        "completion_avg_7d_low": "SELECT CAST(AVG(COALESCE(completion_rate,0))*1000 AS INT) FROM video_stats WHERE fetched_at > datetime('now','-7 days') AND bounce_rate_2s IS NOT NULL",
+        "bounce_2s_avg_7d_high": "SELECT CAST((1-AVG(COALESCE(bounce_rate_2s,1)))*1000 AS INT) FROM video_stats WHERE fetched_at > datetime('now','-7 days') AND bounce_rate_2s IS NOT NULL",
+        "subscribe_7d_zero": "SELECT SUM(COALESCE(subscribe_count,0)) FROM video_stats WHERE fetched_at > datetime('now','-7 days')",
     }
     sql = sql_map.get(metric)
     if not sql:
         return None
     try:
-        out = _ssh(f"sqlite3 -separator '|' {db} \"{sql}\"").strip()
+        # 本地 vs SSH 同样判断
+        from pathlib import Path as _P
+        if _P(db).exists():
+            r = subprocess.run(["sqlite3", "-separator", "|", db, sql],
+                               capture_output=True, text=True, check=False)
+            out = r.stdout.strip()
+        else:
+            out = _ssh(f"sqlite3 -separator '|' {db} \"{sql}\"").strip()
         return int(out) if out else 0
     except Exception:
         return None
@@ -648,6 +667,8 @@ def _push_for_repo(repo_root: Path) -> None:
         _git_push(repo_root, "https://github.com/Family-fund1688/SOVEREIGN-X.git", "main")
     elif name == "om-world":
         _git_push(repo_root, "https://github.com/omworldprotocol/om-world.git", "main")
+    elif name == "AVA-trend":
+        _git_push(repo_root, "https://github.com/flyoung588/AVA-trend.git", "main")
     # om-world-private: 不 push remote
 
 
@@ -659,6 +680,9 @@ def _redeploy_target(repo_root: Path) -> None:
     elif name == "SOVEREIGN-X":
         _ssh("cd /root/SOVEREIGN-X && git fetch origin main && git reset --hard origin/main "
              "&& systemctl restart sovereign-x-scheduler")
+    elif name == "AVA-trend":
+        _ssh("cd /root/AVA-trend && git fetch origin main && git reset --hard origin/main "
+             "&& systemctl restart ava-trend-scheduler")
 
 
 if __name__ == "__main__":
