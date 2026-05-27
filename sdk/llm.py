@@ -30,6 +30,19 @@ def _coerce_text(o: Any) -> str:
     return str(o)
 
 
+_OPENCLAW_META_PREFIXES = ("model.run via", "provider:", "model:", "outputs:")
+
+
+def _strip_openclaw_metadata(text: str) -> str:
+    """openclaw CLI returns metadata header lines before the actual body. Strip them."""
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines) and any(lines[i].lstrip().startswith(p)
+                                  for p in _OPENCLAW_META_PREFIXES):
+        i += 1
+    return "\n".join(lines[i:]).strip()
+
+
 class LLMClient:
     """Provider-agnostic LLM completion. Stateless; safe to instantiate per-call."""
 
@@ -73,7 +86,10 @@ class LLMClient:
                 raise RuntimeError(
                     f"openclaw infer model run failed (rc={r.returncode}): "
                     f"{(r.stderr or r.stdout).strip()[:400]}")
-            return _coerce_text(r.stdout).strip()
+            # openclaw CLI prefixes output with metadata lines (model.run via X /
+            # provider: / model: / outputs: N) — strip if present, return body only.
+            out = _coerce_text(r.stdout).strip()
+            return _strip_openclaw_metadata(out)
         except FileNotFoundError:
             raise RuntimeError(
                 f"OMW_LLM_BACKEND=openclaw but `{self._openclaw_bin}` not found in PATH. "

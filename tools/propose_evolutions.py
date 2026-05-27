@@ -451,6 +451,77 @@ def _check_growth_gaps() -> list[dict]:
     return gaps
 
 
+_PROJECT_PATTERN_MAP = {
+    # 哪个 project 的真涨流量指标缺口 → 改哪个 Pattern
+    "SOVEREIGN-X": {
+        "bookmarks_7d": "playbook-sovereign-x-bookmark-able",
+        "kol_distinct_14d": "playbook-sovereign-x-kol-magnet",
+        "depth_ge2_14d": "playbook-sovereign-x-conversation-trigger",
+    },
+    "OM-WORLD-X": {
+        "bookmarks_7d": "playbook-sovereign-x-bookmark-able",
+        "kol_distinct_14d": "playbook-sovereign-x-kol-magnet",
+        "depth_ge2_14d": "playbook-sovereign-x-conversation-trigger",
+    },
+}
+
+
+def _recipes_for_growth_gap(g: dict) -> list[dict]:
+    """Map a § E growth gap to candidate auto-apply recipes."""
+    target_pattern = _PROJECT_PATTERN_MAP.get(g["project"], {}).get(g["metric"])
+    if not target_pattern:
+        return []
+    # severity high + zero current value → promote a Soft-Avoid to Hard-Forbidden
+    # 14d 内每 Pattern 最多 1 次 R-PROMOTE,apply_evolutions 强制 dedupe
+    return [{
+        "recipe_id": "R-PROMOTE",
+        "target_file": f"patterns/{target_pattern}/SKILL.md",
+        "repo": "om-world-private",
+        "promote_reason": g["detail"][:120],
+    }]
+
+
+def _recipes_for_ct_signal(s: dict) -> list[dict]:
+    """Map a § F content_type signal to candidate auto-apply recipes."""
+    out: list[dict] = []
+    if s["signal"] == "article_outperforms_single" and s["project"] == "OM-WORLD-X":
+        # 加 settings.yaml article cron 一档
+        out.append({
+            "recipe_id": "R-CONFIG",
+            "target_file": "config/settings.yaml",
+            "repo": "OM-WORLD-X",
+            "config_action": "boost_article_cadence",
+            "ratio": s.get("ratio"),
+        })
+    elif s["signal"] == "article_zero_bookmark_zero_depth":
+        # 加 article-format Pattern 一条 Anti-Pattern
+        out.append({
+            "recipe_id": "R-ADD-AP",
+            "target_file": "patterns/playbook-om-world-x-article-format/SKILL.md",
+            "repo": "om-world-private",
+            "anti_pattern_text": (
+                "0 真 bookmark / depth 持续 ≥5 篇 article = article-format Hard-Forbidden "
+                "锚点没真生效 — 反查 metric-oriented 3 套策略真注入 article prompt"
+            ),
+        })
+    return out
+
+
+def _recipes_for_violation_cluster(pid: str, c: dict) -> list[dict]:
+    """§ A: 高频 violation cluster → 加 Anti-Pattern。"""
+    if c["active_count"] < 5:
+        return []
+    return [{
+        "recipe_id": "R-ADD-AP",
+        "target_file": f"patterns/{pid}/SKILL.md",
+        "repo": "om-world-private",
+        "anti_pattern_text": (
+            f"高频 violation cluster ({c['active_count']} 次/period) 自动添加 — "
+            f"sample sections: {', '.join(list(c.get('sample_sections') or [])[:3])}"
+        ),
+    }]
+
+
 def _check_content_type_signals() -> list[dict]:
     """v1.4 (P3-D 2026-05-27 OM-WORLD-X article-aware): per content_type 真表现差异
     自动当 evolution candidate。
@@ -556,10 +627,54 @@ def main() -> int:
                 ratio_part = f" (ratio={s['ratio']}×)" if s.get("ratio") else ""
                 fp.write(f"### F.{i}  {s['project']} · {s['signal']}{ratio_part}\n")
                 fp.write(f"- {s['detail']}\n\n")
+    # P3-E 2026-05-27: machine-readable proposals.json sidecar for apply_evolutions.py
+    proposals: list[dict] = []
+    for i, g in enumerate(growth_gaps, 1):
+        proposals.append({
+            "id": f"E.{i}",
+            "kind": "growth_gap",
+            "project": g["project"],
+            "metric": g["metric"],
+            "current_value": g["current"],
+            "severity": g["severity"],
+            "detail": g["detail"],
+            "recipe_candidates": _recipes_for_growth_gap(g),
+        })
+    for i, s in enumerate(ct_signals, 1):
+        proposals.append({
+            "id": f"F.{i}",
+            "kind": "content_type_signal",
+            "project": s["project"],
+            "signal": s["signal"],
+            "ratio": s.get("ratio"),
+            "detail": s["detail"],
+            "recipe_candidates": _recipes_for_ct_signal(s),
+        })
+    # Pattern violation clusters (§ A) — only emit those with active_count ≥ MIN_VIOLATION_COUNT
+    for pid, c in clusters.items():
+        if c["active_count"] >= MIN_VIOLATION_COUNT:
+            proposals.append({
+                "id": f"A.{pid}",
+                "kind": "violation_cluster",
+                "pattern_id": pid,
+                "active_count": c["active_count"],
+                "total_count": c["count"],
+                "recipe_candidates": _recipes_for_violation_cluster(pid, c),
+            })
+
+    proposals_path = out_path.with_suffix(".proposals.json")
+    proposals_path.write_text(json.dumps({
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source_markdown": str(out_path.name),
+        "events_analyzed": len(events),
+        "proposals": proposals,
+    }, indent=2, ensure_ascii=False))
+
     active = sum(1 for v in clusters.values()
                  if v["active_count"] >= MIN_VIOLATION_COUNT)
     total = sum(1 for v in clusters.values() if v['count'] >= MIN_VIOLATION_COUNT)
     print(f"wrote {out_path}")
+    print(f"wrote {proposals_path} ({len(proposals)} proposals)")
     print(f"  events analyzed: {len(events)}")
     print(f"  patterns loaded with version: {len(pattern_versions)}")
     print(f"  active proposals: {active} (post Pattern-version-effective, ≥{MIN_VIOLATION_COUNT})")
