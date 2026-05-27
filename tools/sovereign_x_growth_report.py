@@ -61,26 +61,53 @@ def _publish_pace(days: int = 7) -> int:
 
 
 def _engagement_window(days: int = 7) -> dict:
-    """Latest stats per tweet in last N days, then avg impression / engagement_rate."""
+    """P3-D 2026-05-27 真涨流量 3 大指标:bookmark / KOL eng / conversation depth.
+    旧 likes/retweets/replies/impressions 保留作 context,但**判定真涨流量看新 3 个**。
+    """
+    # bookmark + impression + likes (tweet_stats per-tweet)
     rows = _q(
         f"SELECT tweet_id, MAX(impression_count) max_imp, "
-        f"MAX(like_count + retweet_count + reply_count) max_eng "
+        f"MAX(like_count + retweet_count + reply_count) max_eng, "
+        f"MAX(COALESCE(bookmark_count,0)) max_bookmark, "
+        f"MAX(COALESCE(max_reply_depth,0)) max_depth "
         f"FROM tweet_stats "
         f"WHERE fetched_at > datetime('now','-{days} days') "
         f"GROUP BY tweet_id"
     )
     if not rows:
         return {"n": 0, "avg_imp": 0.0, "avg_engagement_rate": 0.0,
-                "total_imp": 0, "total_eng": 0}
+                "total_imp": 0, "total_eng": 0,
+                "total_bookmarks": 0, "bookmark_rate": 0.0,
+                "n_with_bookmark": 0, "n_with_depth_ge2": 0,
+                "kol_eng_7d": 0, "kol_eng_distinct_handles": 0}
     total_imp = sum(r.get("max_imp") or 0 for r in rows)
     total_eng = sum(r.get("max_eng") or 0 for r in rows)
+    total_bookmarks = sum(r.get("max_bookmark") or 0 for r in rows)
     n = len(rows)
+    n_with_bookmark = sum(1 for r in rows if (r.get("max_bookmark") or 0) > 0)
+    n_with_depth = sum(1 for r in rows if (r.get("max_depth") or 0) >= 2)
+
+    # KOL engagement (kol_engagement 表)
+    kol_rows = _q(
+        f"SELECT kol_handle, COUNT(*) n FROM kol_engagement "
+        f"WHERE engaged_at > datetime('now','-{days} days') GROUP BY kol_handle"
+    )
+    kol_eng_7d = sum(r.get("n") or 0 for r in kol_rows)
+    kol_distinct = len(kol_rows)
+
     return {
         "n": n,
         "avg_imp": round(total_imp / n, 1) if n else 0,
         "avg_engagement_rate": round(total_eng / max(total_imp, 1), 4),
         "total_imp": total_imp,
         "total_eng": total_eng,
+        # P3-D 真涨流量指标
+        "total_bookmarks": total_bookmarks,
+        "bookmark_rate": round(total_bookmarks / max(total_imp, 1), 5),
+        "n_with_bookmark": n_with_bookmark,
+        "n_with_depth_ge2": n_with_depth,
+        "kol_eng_7d": kol_eng_7d,
+        "kol_eng_distinct_handles": kol_distinct,
     }
 
 
@@ -157,27 +184,43 @@ def main() -> int:
             L.append("- 🔴 **GROWTH GAP**:7+ 天 followers 无变化,触发 propose_evolutions 增长信号")
     L.append("")
 
-    L.append("## 内容节奏(过去 7 天)")
+    L.append("## P3-D 真涨流量 3 大指标(7d)")
+    L.append("")
+    L.append(f"### 🔴 1. Bookmark(X 算法 2024+ 核心信号)")
+    L.append(f"- 7d 总 bookmarks:**{eng['total_bookmarks']}**")
+    L.append(f"- bookmark rate (bookmarks/impressions):{eng['bookmark_rate']}")
+    L.append(f"- 有 ≥1 bookmark 的推 / 总推:{eng['n_with_bookmark']} / {eng['n']}")
+    L.append("")
+    L.append(f"### 🔴 2. KOL Engagement(高杠杆受众捕获)")
+    L.append(f"- 7d KOL 互动总数:**{eng['kol_eng_7d']}**")
+    L.append(f"- 7d 不同 KOL 数:{eng['kol_eng_distinct_handles']}")
+    L.append("")
+    L.append(f"### 🔴 3. Conversation Depth(真受众想接着聊)")
+    L.append(f"- 7d 有 ≥2 round reply 的推:**{eng['n_with_depth_ge2']}** / {eng['n']}")
+    L.append("")
+    L.append("## 内容节奏 + 旧指标(context)")
     L.append("")
     L.append(f"- 发推数:{pace}")
-    L.append(f"- 7d 推 (有 stats 的):{eng['n']}")
+    L.append(f"- 7d 推 (有 stats):{eng['n']}")
     L.append(f"- 7d 平均 impressions:{eng['avg_imp']}")
     L.append(f"- 7d 平均 engagement_rate:{eng['avg_engagement_rate']}")
     L.append(f"- 7d 总 impressions:{eng['total_imp']}")
     L.append(f"- 7d 总 engagements:{eng['total_eng']}")
     L.append("")
-    if eng["avg_engagement_rate"] == 0 and eng["n"] >= 5:
-        L.append("- 🟡 **engagement_rate=0**:winning_hooks 仅是 0 engagement 池里相对最高,")
-        L.append("  反馈环 garbage-in;P3-A' (strategist cold-start mode) 待做")
-    L.append("")
 
-    L.append("## OMW 接入价值评估")
+    L.append("## OMW 接入价值评估(P3-D 标准)")
     L.append("")
-    L.append("**判定标准**(对比 OMW 接入前 baseline followers=3):")
-    L.append("- 接入后 14 天:followers 增 +1~+3 = OMW 至少不害,继续观察")
-    L.append("- 接入后 30 天:followers 增 +5 + engagement_rate > 0 = OMW 真有正向贡献")
-    L.append("- 接入后 30 天:followers 无变化 = OMW 防降权可能有效但不够,需 P3-A'/B' 跟上")
-    L.append("- 接入后 60 天:无变化 = OMW 方向错,撤回")
+    L.append("**真涨流量判定**(替代 followers 这个滞后虚荣指标):")
+    L.append("- 接入后 14 天:total_bookmarks > 0 OR kol_eng_7d > 0 OR n_with_depth_ge2 > 0 = OMW 正向迹象")
+    L.append("- 接入后 30 天:bookmark_rate ≥ 0.005 (0.5%) OR kol_eng_distinct ≥ 3 OR avg_depth ≥ 0.3 = OMW 真生效")
+    L.append("- 接入后 30 天:3 指标全 0 = winning Pattern 没真改变 LLM 行为 → 加 enforcement")
+    L.append("- 接入后 60 天:全 0 = OMW 这个方向错 / SOVEREIGN-X niche X 无受众 → 撤回")
+    L.append("")
+    L.append("**当前 baseline(2026-05-27 OMW P3-D 接入起点)**:")
+    L.append(f"- total_bookmarks (7d): {eng['total_bookmarks']}")
+    L.append(f"- kol_eng_7d: {eng['kol_eng_7d']}")
+    L.append(f"- n_with_depth_ge2: {eng['n_with_depth_ge2']}")
+    L.append(f"- followers: {delta.get('current')} (虚荣,仅 context)")
     L.append("")
 
     L.append("## 历史快照(account_stats)")

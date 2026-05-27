@@ -369,52 +369,85 @@ def _write_markdown(clusters: dict, gaps: dict, low_judge: dict,
 
 
 def _check_growth_gaps() -> list[dict]:
-    """v1.2 (P3-C 2026-05-27): cross-reference SOVEREIGN-X account_stats. If
-    followers stagnant ≥ 7d → growth gap signal — distinct from violation
-    cluster. Tells founder "OMW guard 防降权可能不够,需要正向 winning Pattern"."""
-    sql = (
-        "SELECT fetched_at, followers FROM account_stats "
-        "ORDER BY fetched_at DESC LIMIT 60"
-    )
-    cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
-           SERVER_HOST,
-           f"sqlite3 -json /root/SOVEREIGN-X/data/sovereign_x.db \"{sql}\""]
-    r = subprocess.run(cmd, capture_output=True, text=True, check=False)
-    if r.returncode != 0 or not r.stdout.strip():
-        return []
-    try:
-        rows = json.loads(r.stdout)
-    except json.JSONDecodeError:
-        return []
-    if not rows:
-        return []
-    current = rows[0].get("followers")
-    if current is None:
-        return []
-    stagnant_days = 0
-    last_day = rows[0].get("fetched_at", "")[:10]
-    for r in rows:
-        f = r.get("followers")
-        day = r.get("fetched_at", "")[:10]
-        if day != last_day and f != current:
-            break
-        if day != last_day:
-            stagnant_days += 1
-            last_day = day
+    """v1.3 (P3-D 2026-05-27): SOVEREIGN-X 真涨流量 3 大指标 gap.
+    旧 followers 指标降级 (虚荣);新 3 大指标:
+      - total_bookmarks (7d): 0 持续 ≥ 7 天 = bookmark winning Pattern 没真生效
+      - kol_eng_7d:  0 持续 ≥ 14 天 = KOL outreach 没真捕获关系
+      - n_with_depth_ge2:  0 持续 ≥ 14 天 = conversation trigger 没生效
+    """
     gaps: list[dict] = []
-    if stagnant_days >= 7:
+
+    def _q_remote_sql(sql: str) -> list[dict]:
+        cmd = ["ssh", "-i", SSH_KEY, "-o", "StrictHostKeyChecking=no",
+               SERVER_HOST,
+               f"sqlite3 -json /root/SOVEREIGN-X/data/sovereign_x.db \"{sql}\""]
+        r = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        if r.returncode != 0 or not r.stdout.strip():
+            return []
+        try:
+            return json.loads(r.stdout)
+        except json.JSONDecodeError:
+            return []
+
+    # P3-D 1: bookmark gap (7d 总 bookmarks)
+    rows = _q_remote_sql(
+        "SELECT SUM(COALESCE(bookmark_count,0)) total FROM tweet_stats "
+        "WHERE fetched_at > datetime('now','-7 days')"
+    )
+    total_bookmarks_7d = rows[0].get("total") if rows else 0
+    if total_bookmarks_7d == 0:
         gaps.append({
             "project": "SOVEREIGN-X",
-            "metric": "followers",
-            "current": current,
-            "stagnant_days": stagnant_days,
-            "severity": "high" if stagnant_days >= 14 else "medium",
+            "metric": "bookmarks_7d",
+            "current": 0,
+            "severity": "high",
             "detail": (
-                f"@invaribreak followers 停 {stagnant_days} 天在 {current};"
-                f"OMW 防降权 guard 可能不够,需 P3-A'/B' "
-                f"(strategist cold-start mode + winning Pattern body)。"
+                "7d 总 bookmarks = 0。playbook-sovereign-x-bookmark-able 没真生效 — "
+                "agent 写出的推无 saveable 锚点。可能 governance 没真 block,"
+                "或 LLM 长 prompt 处理失效。建议:验证 governance check_omw_guards "
+                "对 bookmark-able Pattern 真返 hard_violations。"
             ),
         })
+
+    # P3-D 2: KOL engagement gap (14d distinct KOL count)
+    rows = _q_remote_sql(
+        "SELECT COUNT(DISTINCT kol_handle) n FROM kol_engagement "
+        "WHERE engaged_at > datetime('now','-14 days')"
+    )
+    kol_distinct_14d = rows[0].get("n") if rows else 0
+    if kol_distinct_14d == 0:
+        gaps.append({
+            "project": "SOVEREIGN-X",
+            "metric": "kol_distinct_14d",
+            "current": 0,
+            "severity": "high",
+            "detail": (
+                "14d 0 KOL 互动。playbook-sovereign-x-kol-magnet 没真触达 KOL。"
+                "可能 reply_engine 选 candidate 排序失效 / kol_targets 配置为空 /"
+                "reply 内容仍是 generic。建议:检查 settings.yaml kol_outreach.kol_targets。"
+            ),
+        })
+
+    # P3-D 3: conversation depth gap
+    rows = _q_remote_sql(
+        "SELECT SUM(CASE WHEN max_reply_depth >= 2 THEN 1 ELSE 0 END) n "
+        "FROM tweet_stats WHERE fetched_at > datetime('now','-14 days')"
+    )
+    depth_ge2_14d = rows[0].get("n") if rows else 0
+    if depth_ge2_14d == 0:
+        gaps.append({
+            "project": "SOVEREIGN-X",
+            "metric": "depth_ge2_14d",
+            "current": 0,
+            "severity": "high",
+            "detail": (
+                "14d 0 推有 ≥ 2 round conversation depth。"
+                "playbook-sovereign-x-conversation-trigger 没真生效。"
+                "可能 LLM 仍写 closed assertion / own-tweet replies 没 follow-up。"
+                "建议:检查 reply_engine 真有 own_post pending reply 在跑。"
+            ),
+        })
+
     return gaps
 
 
@@ -431,15 +464,14 @@ def main() -> int:
     out_path = _write_markdown(clusters, gaps, low_judge, len(events),
                                 pattern_versions=pattern_versions)
     if growth_gaps:
-        # Append growth-gap section to the same daily proposal file
+        # P3-D § E:新 3 大真涨流量指标 gap(替代旧 followers stagnant)
         with out_path.open("a", encoding="utf-8") as fp:
-            fp.write("\n## E. 增长趋势 gap(P3-C 2026-05-27 真飞轮信号)\n\n")
-            fp.write("> 真衡量 OMW 是否帮项目涨流量。\n")
-            fp.write("> followers 持平 ≥ 7 天 = OMW 当前防降权 guard 不够,需要正向 Pattern。\n\n")
-            for g in growth_gaps:
-                fp.write(f"### E.1  {g['project']} · {g['metric']} stagnant {g['stagnant_days']}d "
+            fp.write("\n## E. 真涨流量指标 gap(P3-D 2026-05-27)\n\n")
+            fp.write("> 真衡量 OMW 是否帮项目涨流量。**bookmark / KOL eng / conversation depth**\n")
+            fp.write("> 这 3 大真信号为 0 持续 ≥ 7-14 天 = winning Pattern 没真生效。\n\n")
+            for i, g in enumerate(growth_gaps, 1):
+                fp.write(f"### E.{i}  {g['project']} · {g['metric']} = {g['current']} "
                          f"(severity={g['severity']})\n")
-                fp.write(f"- 当前值:{g['current']}\n")
                 fp.write(f"- {g['detail']}\n\n")
     active = sum(1 for v in clusters.values()
                  if v["active_count"] >= MIN_VIOLATION_COUNT)
