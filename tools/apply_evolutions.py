@@ -47,14 +47,19 @@ LOG_DB.parent.mkdir(parents=True, exist_ok=True)
 
 # ─── safety rail 1: whitelist ────────────────────────────────────────────────
 PATTERN_WHITELIST = {
+    # SOVX/OMX Pattern 真被 governance check_omw_guards 读 → R-PROMOTE 改完
+    # SOVX/OMX 真行为变化。
     "playbook-sovereign-x-bookmark-able",
     "playbook-sovereign-x-kol-magnet",
     "playbook-sovereign-x-conversation-trigger",
     "playbook-om-world-x-article-format",
-    # P3-AVA 2026-05-27
-    "playbook-ava-trend-completion-magnet",
-    "playbook-ava-trend-hook-strength",
-    "playbook-ava-trend-subscribe-conversion",
+    # 注:AVA-trend Pattern (completion-magnet / hook-strength /
+    # subscribe-conversion) **不在 whitelist** — AVA director 不读这 3
+    # Pattern,改 Pattern 对 AVA 真行为零影响。AVA 自有 learning worker
+    # (services/learning/snapshot_correlation.py) + a1_topic._learned_
+    # weight_bonus 负责 AVA 内部演化,跟 OMW Pattern flywheel 完全分工。
+    # 2026-05-28 architecture review 决定:OMW Pattern flywheel 只动它
+    # 真控的领域(SOVX/OMX governance + check_omw_guards 真读的 Pattern)。
 }
 CONFIG_WHITELIST_FILES = {
     "OM-WORLD-X/config/settings.yaml",
