@@ -66,7 +66,12 @@ def _ssh_state(slug: str) -> dict | None:
 
 
 def _per_audit_omw_metrics(audit_id: str) -> dict:
-    """OMW invocations 真信号(2026-05-27 audit_run.py 升级后才有 step/guard/score)。"""
+    """OMW invocations 真信号(2026-05-27 audit_run.py 升级后才有 step/guard/score)。
+
+    2026-05-28 fix: SDK 老版 record_outcome 没 emit context,所以 completed events
+    的 `context.audit_id` 字段空。用 step_id LIKE 'AXXXX_%' 兜底匹配,catch
+    SDK fix 前的所有 completed events。
+    """
     sql = (
         f"SELECT COUNT(*) total, "
         f"COUNT(DISTINCT pattern_id) patterns_used, "
@@ -77,7 +82,8 @@ def _per_audit_omw_metrics(audit_id: str) -> dict:
         f"SUM(CASE WHEN judgment_score = 0 THEN 1 ELSE 0 END) gate_fails, "
         f"SUM(CASE WHEN judgment_score = 1 THEN 1 ELSE 0 END) gate_passes "
         f"FROM invocations "
-        f"WHERE json_extract(context,'\\$.audit_id') = '{audit_id}'"
+        f"WHERE json_extract(context,'\\$.audit_id') = '{audit_id}' "
+        f"   OR step_id LIKE '{audit_id}\\_%' ESCAPE '\\'"
     )
     rows = _ssh_json(sql, OMW_DB)
     return rows[0] if rows else {}

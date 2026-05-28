@@ -96,6 +96,12 @@ class Invocation(AbstractContextManager["Invocation"]):
           gap_signal: {kind, detail} when LLM lacked Pattern guidance for this step.
         """
         event = self._base_event("completed")
+        # 2026-05-28 fix: 透传 context 到 completed event(原 SDK 只在 __enter__
+        # 的 loaded event 加 context,record_outcome 的 completed event 没 context
+        # → server 表里 SQL `json_extract(context,'$.audit_id')` 拿不到 completed
+        # events → propose_evolutions / defi_audit_growth_report 漏看一半数据,
+        # 把 19 guards / 22 judgment 全 miss 当 0)。
+        event["context"] = self.context
         event["success"] = success
         event["duration_s"] = int(time.time() - (self._started_at or time.time()))
         if metrics:
