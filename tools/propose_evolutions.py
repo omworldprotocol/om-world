@@ -595,6 +595,57 @@ def _check_ava_gaps(pname: str, db: str) -> list[dict]:
     return out
 
 
+def _check_ava_snapshot_flywheel() -> list[dict]:
+    """P3-SNAP 2026-05-28:读 ava_snapshot_weights.json,surface 飞轮状态。
+
+    correlation report 是真信号源(每天 launchd 跑),本函数只 surface。
+    """
+    weights_path = OMW_ROOT / "runtime" / "ava_snapshot_weights.json"
+    if not weights_path.exists():
+        return []
+    try:
+        import json as _j
+        data = _j.loads(weights_path.read_text())
+    except Exception:
+        return []
+    n = int(data.get("n_samples") or 0)
+    ready = bool(data.get("ready"))
+    weights = data.get("weights") or {}
+    nontrivial = [(k, v) for k, v in weights.items() if abs(float(v)) >= 0.3]
+    out: list[dict] = []
+    if n < 8:
+        out.append({
+            "title": f"AVA-trend Snapshot flywheel cold-start (n={n} < 8)",
+            "detail": (
+                f"snapshot→brief→video event chain 已有 {n} 条。需 ≥ 8 才能算"
+                f"信任 correlation。继续累 — 等下周再判 v3.1 score 公式是否"
+                f"真预测 perf。"
+            ),
+        })
+    elif not ready or not nontrivial:
+        out.append({
+            "title": f"AVA-trend Snapshot flywheel 全 noise(n={n})",
+            "detail": (
+                f"v3.1 信号 {len(weights)} 维全部 |r| < 0.3。跟 AVA Judge "
+                f"r=-0.11 同款 — score 公式当前对真表现无预测能力。"
+                f"建议:(a) 等 sample > 30 再判;(b) 重审 _composite_score 公式"
+                f"分量;(c) 检查是否 cold-start 噪声压过真信号。"
+            ),
+        })
+    else:
+        top = sorted(nontrivial, key=lambda kv: -abs(kv[1]))[:3]
+        top_str = ", ".join(f"{k}={v}" for k, v in top)
+        out.append({
+            "title": f"AVA-trend Snapshot flywheel 真转动(n={n}, {len(nontrivial)} 信号有效)",
+            "detail": (
+                f"top {len(nontrivial)} 维度 |r| ≥ 0.3 真预测 perf: {top_str}。"
+                f"director 已读 ava_snapshot_weights.json 加权 selection,下批"
+                f"brief 应见进一步提升。继续累样本 → r 应收敛得更稳。"
+            ),
+        })
+    return out
+
+
 def _check_content_type_signals() -> list[dict]:
     """v1.4 (P3-D 2026-05-27 OM-WORLD-X article-aware): per content_type 真表现差异
     自动当 evolution candidate。
@@ -700,6 +751,18 @@ def main() -> int:
                 ratio_part = f" (ratio={s['ratio']}×)" if s.get("ratio") else ""
                 fp.write(f"### F.{i}  {s['project']} · {s['signal']}{ratio_part}\n")
                 fp.write(f"- {s['detail']}\n\n")
+
+    # P3-SNAP 2026-05-28 § H: AVA Snapshot v3.1 信号 vs reality 飞轮状态
+    h_signals = _check_ava_snapshot_flywheel()
+    if h_signals:
+        with out_path.open("a", encoding="utf-8") as fp:
+            fp.write("\n## H. AVA Snapshot v3.1 信号 vs reality 飞轮(P3-SNAP)\n\n")
+            fp.write("> v3.1 score 公式预测能力的真量化(snapshot 信号 vs 真完播率 Pearson)。\n")
+            fp.write("> 飞轮转 = 同一公式下相关性 r 越来越正(随 sample 累积);停转 = 全 noise = 公式要改。\n\n")
+            for i, s in enumerate(h_signals, 1):
+                fp.write(f"### H.{i}  {s['title']}\n")
+                fp.write(f"- {s['detail']}\n\n")
+
     # P3-E 2026-05-27: machine-readable proposals.json sidecar for apply_evolutions.py
     proposals: list[dict] = []
     for i, g in enumerate(growth_gaps, 1):
