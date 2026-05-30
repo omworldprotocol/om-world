@@ -39,6 +39,25 @@ This keeps the mandate loosely coupled to the execution environment: the same ma
 
 > **Note:** Provider rotation that materially changes the trust properties of the capability (different jurisdiction, different KYC posture, different operator) is NOT covered by this rule — that is a re-consent event, not a deployment rotation. The boundary between "rotation" and "re-consent" is a deployment-policy question that the registry's `attestation_method` and `boundary` fields are meant to surface.
 
+## Identity model — root + delegation chain
+
+The `agent` field above carries the agent's identity, but it is **not** required (or recommended) to be the agent's operational signing key. In production-grade systems the agent identity is a **root identity** that issues scoped delegations to short-lived operational keys; the operational keys are what actually sign payloads. The mandate's `agent` identity is the durable referent for slashing, reputation, and audit; the signatures on payloads chain back to it via a verifiable delegation path.
+
+The trade-off:
+
+- *Reusing one key everywhere* is simpler but you lose per-runtime expiry, per-session scope, and isolated revocation.
+- *Root + delegation chain* requires the verifier to walk the chain back to the root, but the chain is what lets a verifier reason about **authority** rather than **key possession**. Per-runtime, per-session keys can be short-lived, scoped, and revoked independently without re-issuing the mandate.
+
+Verifier responsibilities with chained identities:
+
+1. Walk from the signing key on a payload back to the mandate's `agent` identity via the delegation chain.
+2. Validate each link's expiry and scope (see [§Scope narrowing](#scope-narrowing--monotonic-invariant--issuancevsruntime-split) below).
+3. Enforce the [monotonic narrowing invariant](#scope-narrowing--monotonic-invariant--issuancevsruntime-split) across the chain.
+
+> "Agent identity in a distributed setting is the root identity *plus* the verifiable delegation path to whichever key signed a given action." The root identity stays in cold storage; the runtime authority under it is disposable by design.
+
+This model is informed by the production deployment in [aeoess/agent-passport-system](https://github.com/aeoess/agent-passport-system) (127 modules, 2884 tests) and the IETF Internet-Draft [`draft-pidlisnyi-aps`](https://datatracker.ietf.org/doc/draft-pidlisnyi-aps/). Action receipts there carry the delegation path; verifiers walk back to the root without the root key ever touching the hot path. See [execution-proof.md §Related work](execution-proof.md#related-work) for the convergence on the action-ID-as-dedup-key formula.
+
 ## Memory binding
 
 When a mandate includes memory tools, the protocol specifies only the minimal interface — not the implementation.
@@ -62,6 +81,8 @@ These are intentionally left to the memory tool provider. Baking them into a pro
 If the intent carries an `executor` field, the mandate's `agent` address must correspond to the same on-chain identity (`executor.agent_id` under the declared `executor.id_scheme`). A mandate posted by a different agent identity is invalid and must be rejected by verifiers and solvers.
 
 When `intent.executor` is absent, any credentialed agent may post a mandate.
+
+When the agent uses a [root + delegation chain](#identity-model--root--delegation-chain), the constraint applies to the **root identity** (the `agent` field on the mandate); operational keys further down the chain are validated through the chain rather than via direct match to `executor.agent_id`.
 
 ## Bonding
 
@@ -103,6 +124,23 @@ This decomposition is informed by the production experience of [Nolpak14/agorio]
 
 - `tools_declared[*].carrier: 'bearer' | 'signed_mandate' | 'delegate_token' | 'none'` — optional field so verifiers can reject mandate/carrier mismatches instead of silently adopting bearer semantics. Also pins effective expiry as `min(tools_declared[*].expiry, sub_credential.expiresAt)` when a sub-credential carries its own `expiresAt`.
 - `executor.delegates: address[]` — optional pre-authorization set on the on-chain identity at `executor.agent_id`. A mandate posted by any address in `executor.delegates` is valid, attributed to `executor.agent_id` for slashing/reputation, but the audit trail records which delegate signed. Motivation: multi-LLM sub-agent chains (e.g. agorio's `AgentChain` running `find-best-price` → `request-approval` → `checkout-and-track` across different LLMs) where collapsing to one identity destroys EU AI Act attribution and posting per-sub-agent mandates triples slashable bonds.
+
+## Scope narrowing — monotonic invariant + issuance/runtime split
+
+Whenever the `agent` identity uses delegated credentials (see [§Identity model](#identity-model--root--delegation-chain)), the delegation chain MUST be **monotonically narrowing**: each delegation step's authority is a strict subset of its parent. This is non-negotiable for soundness — a delegation that grants *more* than its issuer holds is a forgery, regardless of how well-formed the chain looks structurally.
+
+**The narrowing check must be a real scope-covering predicate, not a set-membership shortcut.** "Does the child scope appear in the parent's scope list?" is structurally insufficient: it silently accepts cases where the child scope *names* match but cover *more* (e.g. broader resource patterns, broader operation classes, looser time bounds). Implementations have shipped this exact bug in production; the fix is a covering check on each scope dimension, not a membership check on scope tokens. (Empirically grounded in [aeoess/agent-passport-system](https://github.com/aeoess/agent-passport-system) which encountered and fixed exactly this systemic bug; their cross-implementation conformance suite surfaces narrowing drift as a vector that stops verifying.)
+
+**Issuance vs. runtime — two distinct checks, both required.**
+
+| Check | When | What it verifies |
+|---|---|---|
+| **Structural narrowing** | At delegation issuance | Each invariant in the chain is well-formed and the chain is monotonic top-to-bottom. Cheap; runs once per delegation. |
+| **Runtime satisfaction** | Per concrete action | The action being attempted is covered by the narrowed scope. The only place a concrete action exists to test. |
+
+Collapsing the two leaves a known gap. Issuance-only misses actions that satisfy the structural shape but escape the narrowed scope; runtime-only misses chains that were never structurally valid in the first place. Both are required.
+
+> "The structural-versus-runtime split is the part most people skip. If OM World expresses scope narrowing, it is worth deciding up front which checks run at issuance and which defer to enforcement." — aeoess review on [agent-passport-system#28](https://github.com/aeoess/agent-passport-system/issues/28) and [governance-attestation-predicate#1](https://github.com/aeoess/governance-attestation-predicate/issues/1).
 
 ## Open questions
 
