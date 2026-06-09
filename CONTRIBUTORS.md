@@ -33,9 +33,9 @@ Genesis Reviewer for the **intent-schema v0.2 freeze** (target 2026-07-04) and t
 
 #### Co-authors
 
-**[@aeoess](https://github.com/aeoess)** — Joined 2026-05-30
+**passport-system** (the [agent-passport-system](https://github.com/aeoess/agent-passport-system) project, maintained by [@aeoess](https://github.com/aeoess)) — Joined 2026-05-30 · institutional attribution confirmed 2026-06-01
 
-Substantive design dialogue across two of @aeoess's projects ([agent-passport-system#28](https://github.com/aeoess/agent-passport-system/issues/28) and [governance-attestation-predicate#1](https://github.com/aeoess/governance-attestation-predicate/issues/1)) shaped the core identity-and-narrowing model of the Agent Mandate spec on the same day (2026-05-30). Five contributions, all in [`docs/agent-mandate.md`](docs/agent-mandate.md):
+Substantive design dialogue across two of the project's repos ([agent-passport-system#28](https://github.com/aeoess/agent-passport-system/issues/28) and [governance-attestation-predicate#1](https://github.com/aeoess/governance-attestation-predicate/issues/1)) shaped the core identity-and-narrowing model of the Agent Mandate spec on the same day (2026-05-30). Five contributions, all in [`docs/agent-mandate.md`](docs/agent-mandate.md):
 
 - **§Identity model — root + delegation chain** (NEW section) — replaces the implicit single-key model with the production pattern: the mandate's `agent` field is the root identity; operational keys are short-lived scoped delegations; verifier walks the chain back to the root. The framing "agent identity in a distributed setting is the root identity *plus* the verifiable delegation path to whichever key signed a given action" is quoted from his passport-system#28 reply.
 - **§Scope narrowing — monotonic narrowing invariant** (NEW section) — non-negotiable rule that authority strictly decreases at each delegation step. Includes the empirical correction that this MUST be a real scope-covering predicate, not a set-membership shortcut (he encountered and fixed this exact systemic bug in production).
@@ -45,7 +45,7 @@ Substantive design dialogue across two of @aeoess's projects ([agent-passport-sy
 
 Reference: [agent-passport-system](https://github.com/aeoess/agent-passport-system) (127 modules, 2884 tests) + IETF [`draft-pidlisnyi-aps`](https://datatracker.ietf.org/doc/draft-pidlisnyi-aps/) + [governance-attestation-predicate](https://github.com/aeoess/governance-attestation-predicate) (in-toto Statement predicate composing on top of passport).
 
-**Posture:** spec-level contribution. Attribution flavor (personal `@aeoess` vs. institutional, name display preference) to be confirmed by maintainer in onboarding reply.
+**Posture:** spec-level contribution. Institutional attribution confirmed 2026-06-01 (passport-system as the durable referent, with @aeoess as maintainer-of-record) — matching how the Intent Schema Co-author is listed project-level rather than personal.
 
 **License of contribution:** CC-BY-4.0 (per the prose scope in [LICENSE](LICENSE)).
 
