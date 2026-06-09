@@ -73,6 +73,14 @@ A verifier holding the snapshot can independently reproduce the retrieval and ve
 
 **Rule:** Any step invoking a tool with `operation_class: read` against a stateful backend (as declared in the Tool Registry) MUST include `context_hash`. Steps missing `context_hash` for stateful tool calls are treated as unattested.
 
+**Retrieval is three layers, not one snapshot.** For embedding/vector retrieval specifically, a snapshot hash over *only* the corpus is insufficient if the retrieval *procedure* can change. A complete `context_hash` for a retrieval step must cover three layers, so a verifier knows it is replaying the same corpus **and** the same retrieval policy:
+
+1. **Corpus state** — which knowledge assets existed at time T (the snapshot hash above).
+2. **Retrieval procedure** — embedding model + version, query transform, filters, `top_k`, score function. A change here produces different results from an identical corpus.
+3. **Returned evidence** — asset IDs, scores/ranks, and any extracted subgraph/triples used downstream (the `output_hash` above).
+
+When all three are bound, a dispute between two agents claiming X vs. Y reduces cleanly to one of: different corpus root, different retrieval policy, nondeterministic ranking, or a false claim about the returned assets — each of which is independently checkable. Folding the retrieval procedure into the attested context is what makes layer (2) disputes detectable rather than silent. (This three-layer decomposition was raised on [OriginTrail/dkg#539](https://github.com/OriginTrail/dkg/issues/539) in the context of decentralized-knowledge-graph retrieval.)
+
 ### prev_hash — chained proof mode
 
 By default, steps form a flat sequence: all steps must be replayed to dispute any one. When per-step dispute localization is needed, steps may be linked via `prev_hash`:
