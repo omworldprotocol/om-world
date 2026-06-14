@@ -31,25 +31,9 @@ Genesis Reviewer for the **intent-schema v0.2 freeze** (target 2026-07-04) and t
 
 ### Agent Mandate
 
-#### Co-authors
+_Co-authors will be listed here as primitive design dialogue matures._
 
-**passport-system** (the [agent-passport-system](https://github.com/aeoess/agent-passport-system) project, maintained by [@aeoess](https://github.com/aeoess)) — Joined 2026-05-30 · institutional attribution confirmed 2026-06-01
-
-Substantive design dialogue across two of the project's repos ([agent-passport-system#28](https://github.com/aeoess/agent-passport-system/issues/28) and [governance-attestation-predicate#1](https://github.com/aeoess/governance-attestation-predicate/issues/1)) shaped the core identity-and-narrowing model of the Agent Mandate spec on the same day (2026-05-30). Five contributions, all in [`docs/agent-mandate.md`](docs/agent-mandate.md):
-
-- **§Identity model — root + delegation chain** (NEW section) — replaces the implicit single-key model with the production pattern: the mandate's `agent` field is the root identity; operational keys are short-lived scoped delegations; verifier walks the chain back to the root. The framing "agent identity in a distributed setting is the root identity *plus* the verifiable delegation path to whichever key signed a given action" is quoted from his passport-system#28 reply.
-- **§Scope narrowing — monotonic narrowing invariant** (NEW section) — non-negotiable rule that authority strictly decreases at each delegation step. Includes the empirical correction that this MUST be a real scope-covering predicate, not a set-membership shortcut (he encountered and fixed this exact systemic bug in production).
-- **§Scope narrowing — issuance/runtime split** (NEW section) — the structural-versus-runtime separation: structural narrowing checked at delegation issuance; runtime satisfaction checked per concrete action. "The structural-versus-runtime split is the part most people skip" — directly addressed his pushback on whether OM World had decided which side runs which check.
-- **§Executor constraint clarification** — extended to specify that when an agent uses root + delegation chain, the constraint binds the root identity (the `agent` field) and operational keys further down the chain are validated via the chain itself.
-- **§Related work composability (cross-spec, lands in [`execution-proof.md`](docs/execution-proof.md#related-work))** — the action-ID-as-dedup-key convergence: passport-system computes `SHA-256(JCS(action tuple))` as the canonical action identifier which doubles as the dedup key, structurally equivalent to OM World's `step_hash = SHA-256(JCS(step_record_without_prev_hash))` pinned with desiorac. Two independent systems converging on the same canonical-form-as-identity rule.
-
-Reference: [agent-passport-system](https://github.com/aeoess/agent-passport-system) (127 modules, 2884 tests) + IETF [`draft-pidlisnyi-aps`](https://datatracker.ietf.org/doc/draft-pidlisnyi-aps/) + [governance-attestation-predicate](https://github.com/aeoess/governance-attestation-predicate) (in-toto Statement predicate composing on top of passport).
-
-**Posture:** spec-level contribution. Institutional attribution confirmed 2026-06-01 (passport-system as the durable referent, with @aeoess as maintainer-of-record) — matching how the Intent Schema Co-author is listed project-level rather than personal.
-
-**License of contribution:** CC-BY-4.0 (per the prose scope in [LICENSE](LICENSE)).
-
-Genesis Co-author for the **agent-mandate v0.2 freeze** (target 2026-08-01); pre-publication review window ~2026-07-15.
+> **Note on agent-passport-system (citation, not co-authorship).** The Agent Mandate §Identity model and §Scope narrowing sections draw on the published design of [agent-passport-system](https://github.com/aeoess/agent-passport-system) and IETF [`draft-pidlisnyi-aps`](https://datatracker.ietf.org/doc/draft-pidlisnyi-aps/), cited inline at the point of use in [`docs/agent-mandate.md`](docs/agent-mandate.md). At the maintainer's explicit request (2026-05-30, 2026-05-31, 2026-06-11), this is recorded as a **citation**, not a co-author listing — the exchange was the maintainer answering design questions about their own published implementation, which the inline citation captures accurately. No co-author role, design veto, or standing review commitment is carried.
 
 ---
 
