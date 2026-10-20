@@ -10,6 +10,9 @@ Source baseline: [OM World be26d31744493f5d12dc2492e6768571c10a34b1](https://git
 - [P: Execution Proof](https://github.com/omworldprotocol/om-world/blob/be26d31744493f5d12dc2492e6768571c10a34b1/docs/execution-proof.md): Envelope, Step record, Canonicalization, Key revocation states, Verifier responsibilities.
 - [L: Intent Lifecycle](https://github.com/omworldprotocol/om-world/blob/be26d31744493f5d12dc2492e6768571c10a34b1/docs/intent-lifecycle.md): Transitions, Timeouts, Replay & double-fulfillment.
 
+See the [non-normative joint decision inventory](authorization-permission-decisions.md) for linked authorization, permission-source and version-binding options. All decisions remain UNDECIDED; no option or protocol rule is adopted, and issues #4/#6 remain open.
+
+
 ## Reading labels
 
 - **C — Current draft text:** explicitly stated in the pinned source. “Current” means documented design, not deployed behavior or proven security.

@@ -13,6 +13,9 @@ Pinned sources:
 
 Labels: **C** = explicit current design-draft text, not deployed behavior; **S** = editorial recommendation or candidate safety objective, not adopted; **U** = unresolved design requiring a separately reviewable decision. A future accepted editorial note can document U without resolving it.
 
+See the [non-normative joint decision inventory](authorization-permission-decisions.md) for linked authorization, permission-source and version-binding options. All decisions remain UNDECIDED; no option or protocol rule is adopted, and issues #4/#6 remain open.
+
+
 ## 1. Current text and responsibility boundaries
 
 | Topic | C: existing text | S: interpretation/recommendation | U: not specified by this draft |
