@@ -4,6 +4,8 @@
 
 > The directory of capabilities agents can invoke.
 
+See the [non-normative permission-source appendix](tool-registry-permission-sources.md) for responsibility boundaries, candidate options and unresolved version/confirmation questions. It records the open design space without selecting a permission-precedence rule or changing the specification below.
+
 ## Purpose
 
 Make tools discoverable, versioned, and accountable. A tool is anything an agent can call to act on the world: a contract method, an HTTP API, a model, a physical actuator.
