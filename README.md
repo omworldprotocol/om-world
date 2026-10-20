@@ -1,5 +1,7 @@
 # OM World
 
+[English](README.md) | [简体中文](i18n/zh-CN/README.md)
+
 **One Mind, One World.**
 
 OM World is a self-growing intent realization network.
