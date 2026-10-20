@@ -14,6 +14,10 @@ This restart focuses on maintaining the existing open protocol and reopening a c
 
 No prior OM World contributor is automatically a participant, reviewer, maintainer, or endorser of MSEC. New attribution must identify an actual contribution and respect the contributor's consent. Existing citation-only and non-endorsement boundaries remain in force.
 
+## Historical builder-call status
+
+The [historical activity record](builder-call-status.md) documents the bounded evidence review for issue #7. Completion remains UNKNOWN, the issue remains open, and activity execution is deferred pending a separately scoped decision. No call, invitations or contributor assignments are scheduled by this record.
+
 ## Licensing and history
 
 The existing LICENSE, LICENSE-CODE, LICENSE-DOCS, contributor records, and copyright notices remain authoritative. Brand assets are outside the open code and documentation licenses. The restart does not replace historical governance or financial-policy statements.
