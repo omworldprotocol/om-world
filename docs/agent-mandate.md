@@ -4,6 +4,8 @@
 
 > The contract an Agent posts when it accepts an Intent.
 
+See the [non-normative responsibility and open-question appendix](agent-mandate-responsibilities.md) for the distinction between principal authorization, Agent acceptance, delegated signing and concrete actions. The appendix records field differences and unresolved design; it does not amend the rules below.
+
 ## Purpose
 
 A mandate is a signed commitment from an Agent to attempt fulfillment of a specific Intent under stated conditions. It is the unit of accountability.
