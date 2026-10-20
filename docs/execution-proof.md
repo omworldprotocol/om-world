@@ -4,6 +4,8 @@
 
 > The artifact an Agent posts to claim fulfillment.
 
+See the [non-normative evidence-boundary appendix](execution-proof-evidence-boundaries.md) for snapshot, context, configuration, cross-chain and parallel boundaries, field differences and unresolved design questions. It records the open design space without changing the hash/signature formulas or specification below.
+
 ## Purpose
 
 Make execution legible to verifiers and disputable by anyone, without forcing the agent to reveal more than necessary.
