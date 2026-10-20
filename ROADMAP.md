@@ -7,6 +7,18 @@ This roadmap is a public draft.
 OM World is currently in the Genesis phase.
 Dates, phases, and deliverables may change as the community, technical architecture, and protocol design evolve.
 
+### Maintenance snapshot — 2026-10-20
+
+| Area | Evidence status for this restart |
+|---|---|
+| Phase 0 foundation | Core documents, visual assets, repository, and initial issues are present; the full exit criteria have not been independently accepted here. |
+| Phase 1 specifications | Four primitive design drafts are present. Freeze completion and the requirement for three fully mapped use cases are unconfirmed; candidate use-case descriptions are not complete protocol mappings. |
+| Phase 2 MVP | Historically reported as shipped on 2026-05-18; current service availability, behavior, and performance are not revalidated. |
+| Phase 3 testnet | Future design; an OM World deployment and its exit criteria have not been verified for this restart. External related-work deployments are not OM World deployments. |
+| Phases 4–5 network and economy | Long-term design, not a current delivery, budget, grant, bounty, or contributor commitment. |
+
+The phase numbers organize the historical roadmap; they do not certify that earlier exit criteria passed. Past review dates in [Genesis Builders](GENESIS-BUILDERS.md#versioning-the-spec) remain historical targets. Current work is the documentation maintenance listed below, not automatic progression to a later phase.
+
 The purpose of this roadmap is not to create hype.
 
 The purpose is to make progress visible.
@@ -78,6 +90,8 @@ Define the minimum protocol language required for an intent economy.
 
 This phase is about turning vision into specifications.
 
+The planning lists below are historical design checklists, not canonical wire formats or evidence that each item has shipped. Current field definitions are in [Intent Schema](docs/intent-schema.md#fields-v0), [Agent Mandate](docs/agent-mandate.md#fields-v0), [Execution Proof](docs/execution-proof.md#envelope-v0), and [Tool Registry](docs/tool-registry.md#registration), each still marked as a design draft. Verification requirements are discussed within the Execution Proof; the separate Verifier Model heading below is a planning topic, not a claim of a second delivered specification.
+
 ### Key Deliverables
 
 #### 1. Intent Schema v0.1
@@ -121,9 +135,9 @@ Should include:
 
 #### 3. Execution Proof v0.1
 
-A format for proving that an action or outcome occurred.
+A format for recording an agent's fulfillment claim and its supporting evidence. The current [envelope](docs/execution-proof.md#envelope-v0), [step record](docs/execution-proof.md#step-record), and [threat model](docs/execution-proof.md#threat-model) define the actual draft surface and its limits.
 
-Should include:
+Historical planning items (not current field names; for example, `proof_id` and `settlement_reference` are not envelope fields):
 
 * proof ID
 * intent ID
@@ -206,13 +220,13 @@ Phase 1 is complete when:
 * at least three early use cases are fully mapped
 * contributors can build against the initial specifications
 
-## Phase 2 — MVP Prototype (✅ shipped 2026-05-18)
+## Phase 2 — Historical MVP shipment report (2026-05-18)
 
-**Live at https://app.omworld.one.** The MVP demonstrates one loop end-to-end:
+**Historical deployment address: https://app.omworld.one.** Current availability and behavior are unverified for this restart. The historical report describes this loop:
 
 **submit intent → LLM classify → match capability → execute → record pattern → credit OMC**
 
-### What actually shipped (5 modules, per OM_World_MVP_Development_Spec_v0.1)
+### Modules described in the historical shipment report (per OM_World_MVP_Development_Spec_v0.1)
 
 1. **Intent Demand Entry** — `Submit an Intent` form (web), persisted to `intents` table, auto-classified by LLM, an `intent_type` written back.
 2. **Capability Supply Entry** — `Contribute a Capability` form (web), persisted to `capabilities` table; supply types: `Tool` / `Agent` / `Human Service`.
@@ -222,16 +236,16 @@ Phase 1 is complete when:
 
 ### First seeded capability & intent type
 
-The MVP launched with one seeded capability: **Genesis Builder Recruitment Generator**, supporting the single intent type `community_growth.builder_recruitment`. This is the OM World founder's own first real need; it grounds the system in something used immediately.
+The MVP launched with one seeded capability: **Genesis Builder Recruitment Generator**, supporting the single intent type `community_growth.builder_recruitment`. The shipment report described this as the founder's first use case; this is historical context, not evidence of current use.
 
-### Self-growth validation
+### Historical timing observation (not current validation)
 
-The MVP success criterion is: **the second realization of any intent_type should be easier than the first.** First production run (2026-05-18):
+The proposed MVP success criterion was: **the second realization of any intent_type should be easier than the first.** The historical report recorded these values for 2026-05-18 (retained as reported, not remeasured):
 - Round 1 (fresh generation): ~78s wall time
 - Round 2 (adapted from Pattern): ~57s wall time → **−20%**
 - Pattern Library: 1 created, 1 reused, OMC ledger 227 issued / 27 distributed
 
-This is small-N but it's the loop running on real LLM calls, not a mocked demo. Self-growth is validated in principle; the next step is widening it to more intent types.
+The stated ~78s and ~57s point values imply approximately 26.9% less wall time, while the historical report labels the change −20%; the original timing evidence and calculation basis have not been rechecked here. These approximate, small-N observations do not establish a general performance result or validate the self-growth thesis. No runtime or model rerun was performed for this correction.
 
 ### What was deliberately NOT in MVP
 
@@ -472,24 +486,17 @@ Phase 5 is complete when:
 * real disputes can be resolved
 * real governance can modify protocol parameters
 
-## Current Immediate Priorities (post-MVP shipment)
+## Current Immediate Priorities — documentation maintenance
 
-With Phase 2 MVP live at https://app.omworld.one, priorities have shifted:
+1. Align contribution guidance, roadmap status, and the [restart record](docs/collaboration-restart.md) with delivered documents and merged PRs, while retaining historical dates and evidence limits.
+2. Prepare disposition proposals for existing issues: distinguish draft delivery, remaining design questions, and historical activities. Do not treat this list as an instruction to close or relabel issues.
+3. Review bounded documentation inconsistencies against the current primitive drafts and cite the exact source revision. No new adapter, deployment, or experiment is required to complete this maintenance step.
 
-1. **Grow capability supply** — register additional `Tool` / `Agent` / `Human Service` capabilities beyond the seeded Genesis Builder Recruitment Generator
-2. **Seed the second intent type** — accept a real second-category intent so the Pattern Library expands beyond `community_growth.builder_recruitment`
-3. **Run real Genesis Builder recruitment campaigns** using the live MVP — for OM World itself and for one or two partner open-source / agent / crypto projects — and feed results back as Pattern Library evidence
-4. **Freeze Intent Schema v0.1** with Co-author kawacukennedy (see CONTRIBUTORS.md)
-5. **Freeze Execution Proof v0.1** with Reviewer Trusteedxyz
-6. **Recruit Co-authors / Reviewers** for Agent Mandate and Tool Registry
-7. **MVP UI polish** — capability detail pages, pattern detail page improvements, dashboard time-series chart for self-growth visualization
-8. **Documentation alignment** — keep public docs aligned with SELF_GROWTH_ENGINE.md as the canonical engine architecture
-9. **Translate Manifesto + Litepaper + SELF_GROWTH_ENGINE to Chinese**
-10. **Adversarial review** — red-team published documents and the live MVP; file issues with specific quotes
+Translation, contributor recruitment, calls, live-service validation, and technical expansion are deferred until separately scoped. No new freeze date, review assignment, budget, or partner commitment is established by this update.
 
-## Suggested Genesis Issues
+## Historical Genesis task suggestions
 
-Recommended public GitHub issues:
+The post-MVP suggestions below are retained as historical planning context, not current assignments or an instruction to create issues, run the service, recruit contributors, or start translation. Existing drafts should be reviewed before proposing a new specification task:
 
 1. Submit a real intent at https://app.omworld.one/intent and report the friction
 2. Register a `Tool` or `Agent` capability for an intent type *other* than `community_growth.builder_recruitment`

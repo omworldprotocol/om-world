@@ -14,6 +14,8 @@ Trigger: a candidate accepts an explicit invitation to a Co-builder role (typica
 
 Acceptance must be **explicit and in writing** (a GitHub comment, email, or signed message). "Sounds good" is enough; silence is not.
 
+A historical contributor listing is not a trigger to rerun onboarding. Each public or outreach step below must stay within the accepted role, contributor consent, and the editor's current authorization. The documentation-maintenance restart does not activate these steps or its follow-up calendar, and it does not renew past review windows.
+
 ---
 
 ## Pre-flight (before any public steps)
@@ -86,7 +88,7 @@ These are not part of the initial playbook but should be on the editor's calenda
 | When | Action |
 |------|--------|
 | 2 weeks before each freeze they're listed as reviewer for | Ping with freeze-candidate draft + 1-week review window |
-| Every 60 days, if they have been silent | Light check-in ping. Default to no follow-up if they don't respond after one ping. After 60 days of silence, status moves to `inactive` per GENESIS-BUILDERS.md lifecycle. |
+| After an authorized direct ping has received no response for 60 days | Apply the sustained-silence condition in GENESIS-BUILDERS.md; public inactivity alone is not evidence that this condition holds. Preserve attribution. Do not send repeated follow-ups or infer a lifecycle change from elapsed time alone. |
 | When the Litepaper v0.2 (or later) is being prepared | Confirm handle spelling and any preferred alternate handles |
 | When their reference implementation moves (new repo, tagged release, archived) | Update the spec's reference-implementation link |
 | When they post something in the Genesis Builders Discussion | React or reply — keep the channel feeling alive |

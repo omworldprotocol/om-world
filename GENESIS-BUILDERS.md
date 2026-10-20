@@ -122,16 +122,20 @@ OM World specs version through these stages:
 - **v0.2 — First freeze** — each primitive's design intent is stable enough that implementations can build against it without expecting silent breakage
 - **v1.0 — Public protocol** — wire formats stable; all changes through a formal RFC process (to be defined before v1.0)
 
-Current freeze targets:
+### Historical freeze targets — status clarification, 2026-10-20
 
-| Primitive | v0.2 freeze | Notes |
+The dates below are retained as earlier planning targets. Completion of those freezes has not been confirmed for this restart; the current primitive files remain marked as design drafts. These dates are not a renewed schedule or evidence of a versioned release.
+
+Past contribution attribution remains permanent. Historical role records do not establish present availability or renew a review commitment. This clarification does not change accepted roles, decision rights, or lifecycle status; any future review schedule needs its own agreement.
+
+| Primitive | Historical v0.2 target | Original planning notes |
 |-----------|-------------|-------|
 | [Intent Schema](docs/intent-schema.md) | **2026-07-04** | Already shaped through multi-round dialogue; freezes ahead of the wave |
 | [Agent Mandate](docs/agent-mandate.md) | **2026-08-01** | First freeze wave |
 | [Execution Proof](docs/execution-proof.md) | **2026-08-01** | First freeze wave |
 | [Tool Registry](docs/tool-registry.md) | **2026-08-01** | First freeze wave |
 
-v1.0 dates will be set once v0.2 implementations have had ~2 quarters of ecosystem feedback.
+The earlier planning assumption was to consider v1.0 dates after roughly two quarters of feedback on v0.2 implementations. No v1.0 date or completed feedback period is established here.
 
 ---
 
