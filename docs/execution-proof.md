@@ -250,6 +250,18 @@ An external proof retains its own encoding, signature domain, and trust assumpti
 
 If you ship a spec or implementation in this cluster and want to be listed here, open an issue tagged `genesis-builders` on the [om-world repo](https://github.com/omworldprotocol/om-world/issues).
 
+### Buyer-side delivery attestation
+
+A complementary perspective is a delivery claim signed by a key identified in the claim as the buyer. This is distinct from an executor's signed account and from third-party attestations; the related work above should not all be classified as executor self-attestation.
+
+- [capacity-attest](https://github.com/holistis/tokenizen/tree/08039b292de0622d4c33234be5a249f35cdbed46/packages/capacity-attest) — a signed, content-addressed claim describing what was promised and whether the claimed buyer says it was delivered. In the referenced version, `claimId` is a SHA-256 digest of the project's canonical claim content, and the buyer key EIP-191-signs that identifier. A consumer can recompute the identifier and recover the signing address locally; this establishes attribution to a key, not that the signer paid or that delivery occurred.
+
+  The field relationships are analogies, not automatic mappings. `evidenceHash` commits to supporting evidence, whereas an OM World step's `output_hash` commits to that tool call's returned output. They can coincide only if the hashed bytes, serialization, algorithm, and tool semantics agree. If the tool returns the full delivery claim, its output hash commits to that returned claim rather than simply copying its internal evidence hash. `claimId` is analogous to content addressing, not an OM World field or a claim of JCS compatibility. `settlementRef` points to external settlement; the claim format does not verify that payment.
+
+  Two [positive](https://base.easscan.org/attestation/view/0x81a55d54452b2cf8bdda7918f63a27bf9ff79e5025b485f7316aae6259288ccc) and [negative](https://base.easscan.org/attestation/view/0xe736b005cbcb54f8f196ac64ef09d75d939c8a18c0d5d9670b5c5025c07398c4) demonstration claims were published on Base mainnet under EAS schema `0x1dd19408345dee43b432b89ccb68760265ecff506098b6efe8ba82ad0d52b195`. The [demo source](https://github.com/holistis/tokenizen/blob/08039b292de0622d4c33234be5a249f35cdbed46/packages/capacity-attest/examples/eas-live-demo.ts) uses a test buyer and placeholder seller, evidence, and settlement values; these are publication examples, not evidence of real payment or delivery. The EAS publisher and embedded buyer signer are different roles. On-chain publication alone does not verify the embedded claim digest or buyer signature; consumers must check those and any referenced evidence separately.
+
+  Such a claim is external supporting evidence, not a replacement for the Execution Proof's aggregate agent signature, mandate/executor binding, tool-registry checks, or evaluation against `success_criteria`. `delivered` remains the claimed buyer's assertion, not an independent measurement. This citation does not establish an OM World adapter, interoperability qualification, or project endorsement.
+
 ## Contributors
 
 This spec was shaped by — see [CONTRIBUTORS.md](../CONTRIBUTORS.md#execution-proof) for current attribution:
