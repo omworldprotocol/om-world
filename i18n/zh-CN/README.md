@@ -151,7 +151,7 @@ OM World 处于 Genesis 阶段。英文源版本记载，Genesis MVP 于 2026-05
 
 OM World 采用双许可证：规范与文字材料使用 [CC-BY-4.0](../../LICENSE-DOCS)，代码与参考实现使用 [Apache-2.0](../../LICENSE-CODE)。`assets/` 下的品牌和视觉识别资产不在这两种许可证的覆盖范围内。许可范围详见 [LICENSE](../../LICENSE)；贡献条款详见 [GOVERNANCE.md 的 Licensing 章节](../../GOVERNANCE.md#licensing)（贡献采用与相应文件相同的许可，即 inbound=outbound；无需另行签署 CLA）。
 
-本页是英文 README 的中文翻译与改编，原项目贡献署名保留于 [CONTRIBUTORS.md](../../CONTRIBUTORS.md)，中文版本由 flyoung588 维护。除语言、中英导航、相对链接及明确保留历史语气外，不增加实现或科研结论。
+本页是英文 README 的中文翻译与改编，中文译文本身同样按 CC-BY-4.0 许可发布。原项目贡献署名保留于 [CONTRIBUTORS.md](../../CONTRIBUTORS.md)，中文版本由 flyoung588 维护。除语言、中英导航、相对链接及明确保留历史语气外，不增加实现或科研结论。
 
 © OM World Protocol contributors, licensed under CC-BY-4.0.
 Source: [OM World](https://github.com/omworldprotocol/om-world) · [固定版本英文 README](https://github.com/omworldprotocol/om-world/blob/e58c207f03d1a98c03b1ed8b7a96a50662cf7b12/README.md)
