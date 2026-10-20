@@ -14,7 +14,7 @@ OM World is preparing to resume open-source maintenance and review of its existi
 
 The deployment, performance observations, and review dates described below are historical project statements and have not been revalidated for this restart. They should not be read as current service guarantees or general performance results.
 
-MSEC is proposed as a separately maintained research subproject with its own repository and scope. Repository setup does not establish a scientific result. Existing OM World contributors are credited for their recorded OM World work; their participation in or endorsement of MSEC must not be inferred.
+[MSEC](https://github.com/omworldprotocol/msec) is a separately maintained research subproject with its own repository and scope. Repository setup does not establish a scientific result. Existing OM World contributors are credited for their recorded OM World work; their participation in or endorsement of MSEC must not be inferred.
 
 ## What is OM World?
 
