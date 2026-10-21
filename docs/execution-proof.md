@@ -6,6 +6,8 @@
 
 See the [non-normative evidence-boundary appendix](execution-proof-evidence-boundaries.md) for snapshot, context, configuration, cross-chain and parallel boundaries, field differences and unresolved design questions. It records the open design space without changing the hash/signature formulas or specification below.
 
+New-profile design decisions are recorded in the separate [authorization/evidence v1-draft](profiles/authorization-evidence-v1-draft.md) and [consolidated disposition](consolidated-resolution-status.md). Legacy fields and hash/signature formulas below are not upgraded or reinterpreted by that profile.
+
 ## Purpose
 
 Make execution legible to verifiers and disputable by anyone, without forcing the agent to reveal more than necessary.
@@ -63,7 +65,7 @@ ExecutionProof {
 
 ### context_hash — stateful tool attestation
 
-For stateless tools (HTTP APIs, deterministic functions), `context_hash` may be omitted: the same `input_hash` always produces the same `output_hash`, so any verifier can reproduce the call.
+For a pure function or stateless transform whose output is fully determined by its captured inputs, `context_hash` may be omitted, as described in §Canonicalization. HTTP transport alone does not establish this property: a live fetch may depend on external state. The configuration-injected tool boundary remains an open question below.
 
 For **stateful tools** — primarily memory stores — the same query against a different store state produces a different result. To enable dispute-grade replay, the step must include:
 
@@ -71,7 +73,7 @@ For **stateful tools** — primarily memory stores — the same query against a 
 - `output_hash` — hash of (ranked result set with scores, in canonical order).
 - `context_hash` — snapshot hash of the memory store at the moment the query executed, taken *before* any consolidation runs on that snapshot.
 
-A verifier holding the snapshot can independently reproduce the retrieval and verify that the agent saw exactly the results claimed. Without `context_hash`, memory retrieval steps are unverifiable if the store has since been consolidated or modified.
+Replay requires access to the committed snapshot, the bound retrieval procedure and relevant evidence, with the execution assumptions needed to reproduce the result. A corpus snapshot alone does not establish reproducibility, availability or truth. Without `context_hash`, memory retrieval steps are unverifiable if the store has since been consolidated or modified. Snapshot custody and configuration boundaries remain open below.
 
 **Rule:** Any step invoking a tool with `operation_class: read` against a stateful backend (as declared in the Tool Registry) MUST include `context_hash`. Steps missing `context_hash` for stateful tool calls are treated as unattested.
 
@@ -91,6 +93,8 @@ By default, steps form a flat sequence: all steps must be replayed to dispute an
 - The first step sets `prev_hash` to the mandate's `plan_hash` — the value **pre-committed in the intent record before execution begins**, not a hash computed by the agent at proof time. This binds the chain to what was authorized; a compromised agent that swapped the plan post-hoc cannot produce a valid-looking chain anchored to the original `plan_hash`.
 - Any verifier holding step N and step N-1 can verify the link independently, without replaying the full trace.
 - A challenger may dispute step N specifically by submitting only steps N-1 and N as evidence.
+
+Adjacent records support a local-link check or dispute evidence; they are not a replacement for the complete signed aggregate. Local consistency does not establish the entire preceding history. The step-hash formula in §Canonicalization is unchanged; full-envelope signature and chain evaluation remain separate checks.
 
 `prev_hash` is optional but recommended for multi-step pipelines where localized disputes are expected. When present in any step, all subsequent steps in the same proof MUST also include `prev_hash` (partial chaining is not valid).
 
