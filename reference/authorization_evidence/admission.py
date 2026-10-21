@@ -14,8 +14,9 @@ def admit(store, trust, request, invocation_index, ledger, checkpoint):
                 'UNAUTHORIZED', 'ledger not principal-consented authority')
         require(checkpoint is not None, 'UNAVAILABLE', 'caller-held independent ledger checkpoint required')
         # Checkpoint is lower bound, never silently chosen from an untrusted bundle.
-        ledger.audit(checkpoint)
-        outcome = ledger.reserve(**{k: v for k, v in grant.items() if k not in ('deployment_id','ledger_authorities')})
+        # Verify the caller-held prefix and update budgets/nonces in one write transaction.
+        outcome = ledger.reserve(checkpoint=checkpoint,
+                                 **{k: v for k, v in grant.items() if k not in ('deployment_id','ledger_authorities')})
         return Result('RESERVED_NO_ACTION' if outcome == 'new_reservation' else 'ALREADY_RECORDED_NO_ACTION',
                       outcome, result.layers + ['atomic-budget-reservation'], [grant],
                       result.assumptions + ['local authoritative SQLite state/key and independent rollback checkpoint'])

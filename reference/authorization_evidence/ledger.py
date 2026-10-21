@@ -57,7 +57,7 @@ class Ledger:
         raw = canonical(event)
         self.db.execute('INSERT INTO events VALUES (?,?,?)', (event['sequence'], raw, digest(raw)))
 
-    def reserve(self, invocation, nonce_scope, accounts, asset, network, amount, authority_nonces=None):
+    def reserve(self, invocation, nonce_scope, accounts, asset, network, amount, authority_nonces=None, checkpoint=None):
         """accounts: exact {signed-object-id: integer ceiling}; nonce scope includes actor/profile/type.
 
         Shared Intent/Consent/Acceptance accounts prevent per-Acceptance budget reset.
@@ -73,7 +73,7 @@ class Ledger:
         payload = {'authority_nonces': dict(sorted(authority_nonces.items())), 'invocation': invocation, 'nonce': nonce_scope, 'accounts': {k: str(v) for k, v in sorted(accounts.items())},
                    'asset': asset, 'network': network, 'amount': str(amount)}
         with self.transaction():
-            self.audit()
+            self.audit(checkpoint)
             old = self.db.execute('SELECT payload,state FROM reservations WHERE invocation=?', (invocation,)).fetchone()
             if old:
                 require(json.loads(old[0]) == payload, 'INVALID', 'invocation reused with changed reservation')
@@ -134,7 +134,26 @@ class Ledger:
         return result
 
     def audit(self, checkpoint=None):
-        """Replay signed log and compare all materialized DB state; optional external rollback anchor."""
+        """Audit a consistent snapshot; reuse but never commit/rollback the caller's transaction.
+
+        A standalone deferred read transaction pins its snapshot on the first SELECT. WAL
+        writers can still commit; all following reads retain that same snapshot. Inside
+        reserve/finish/export, reuse their existing transaction (no nested BEGIN).
+        """
+        if self.db.in_transaction:
+            return self._audit_snapshot(checkpoint)
+        self.db.execute('BEGIN')
+        try:
+            result = self._audit_snapshot(checkpoint)
+            self.db.execute('COMMIT')
+            return result
+        except BaseException:
+            if self.db.in_transaction:
+                self.db.execute('ROLLBACK')
+            raise
+
+    def _audit_snapshot(self, checkpoint=None):
+        """Caller owns a read/write transaction covering every query below."""
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
         from cryptography.exceptions import InvalidSignature
         pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(self.public[8:]))
