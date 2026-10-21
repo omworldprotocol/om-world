@@ -36,3 +36,7 @@ Checks for this tranche: closed schema/meta-schema/internal refs, exact changed-
 Next work is separately scoped conformance/implementation planning if requested. Unknown external profiles, budget ledger, exact identity/approval/relay evidence and unsupported capabilities block any end-to-end qualification. They do not invalidate this bounded design-document delivery. No new PR review by historical contributors, outreach, announcement, meeting, experiments or MSEC research is implied.
 
 © OM World Protocol contributors, CC-BY-4.0. Source history and license scopes remain unchanged.
+
+## B1–B3 specification closure — revision 2
+
+[Closure specification](profiles/authorization-evidence-dependency-closure.md) and synchronized 28-object schema now require exact principal Consent, typed dependency trust/role semantics and a step-binding bijection. These close B1–B3 as bounded design specifications, not implementations. Revision-1 drafts missing these requirements are not silently compatible. B4 atomic ledger and B5 semantic/cryptographic qualification remain blocked. #4–#8 remain open; no experiments, adapters, outreach or announcements.
