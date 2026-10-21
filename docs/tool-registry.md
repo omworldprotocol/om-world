@@ -6,6 +6,8 @@
 
 See the [non-normative permission-source appendix](tool-registry-permission-sources.md) for responsibility boundaries, candidate options and unresolved version/confirmation questions. It records the open design space without selecting a permission-precedence rule or changing the specification below.
 
+New-profile design decisions are recorded in the separate [authorization/evidence v1-draft](profiles/authorization-evidence-v1-draft.md) and [consolidated disposition](consolidated-resolution-status.md). Legacy fields and hash/signature formulas below are not upgraded or reinterpreted by that profile.
+
 ## Purpose
 
 Make tools discoverable, versioned, and accountable. A tool is anything an agent can call to act on the world: a contract method, an HTTP API, a model, a physical actuator.

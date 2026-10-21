@@ -21,3 +21,7 @@ The [historical activity record](builder-call-status.md) documents the bounded e
 ## Licensing and history
 
 The existing LICENSE, LICENSE-CODE, LICENSE-DOCS, contributor records, and copyright notices remain authoritative. Brand assets are outside the open code and documentation licenses. The restart does not replace historical governance or financial-policy statements.
+
+## Consolidated design-draft decisions — 2026-10-21
+
+The [22-item disposition](consolidated-resolution-status.md) records the approved bounded design and three editorial repairs. The new profile is separate from legacy and is not implemented or independently qualified. Issues #4–#8 remain open; the historical call stays UNKNOWN/deferred and the six remaining translations stay deferred. No meeting, outreach, announcement, adapter or experiment is started.
