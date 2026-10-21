@@ -57,7 +57,7 @@ class Ledger:
         raw = canonical(event)
         self.db.execute('INSERT INTO events VALUES (?,?,?)', (event['sequence'], raw, digest(raw)))
 
-    def reserve(self, invocation, nonce_scope, accounts, asset, network, amount, authority_nonces=None, checkpoint=None):
+    def reserve(self, invocation, nonce_scope, accounts, asset, network, amount, authority_nonces=None, checkpoint=None, before_write=None):
         """accounts: exact {signed-object-id: integer ceiling}; nonce scope includes actor/profile/type.
 
         Shared Intent/Consent/Acceptance accounts prevent per-Acceptance budget reset.
@@ -74,6 +74,8 @@ class Ledger:
                    'asset': asset, 'network': network, 'amount': str(amount)}
         with self.transaction():
             self.audit(checkpoint)
+            if before_write is not None:
+                before_write()  # Freshness after obtaining the writer lock and auditing its prefix.
             old = self.db.execute('SELECT payload,state FROM reservations WHERE invocation=?', (invocation,)).fetchone()
             if old:
                 require(json.loads(old[0]) == payload, 'INVALID', 'invocation reused with changed reservation')
