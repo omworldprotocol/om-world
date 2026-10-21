@@ -40,3 +40,7 @@ Next work is separately scoped conformance/implementation planning if requested.
 ## B1–B3 specification closure — revision 2
 
 [Closure specification](profiles/authorization-evidence-dependency-closure.md) and synchronized 28-object schema now require exact principal Consent, typed dependency trust/role semantics and a step-binding bijection. These close B1–B3 as bounded design specifications, not implementations. Revision-1 drafts missing these requirements are not silently compatible. B4 atomic ledger and B5 semantic/cryptographic qualification remain blocked. #4–#8 remain open; no experiments, adapters, outreach or announcements.
+
+## B4/B5 bounded reference implementation
+
+The [engineering status](profiles/authorization-evidence-reference-status.md) records the isolated single-deployment budget ledger and offline semantic reference, engineering tests and independent vectors. This supersedes the earlier “not implemented” status only for that bounded subset; full profile/production qualification and unsupported capabilities remain excluded. No issue is closed.

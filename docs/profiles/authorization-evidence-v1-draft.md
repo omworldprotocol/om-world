@@ -1,6 +1,6 @@
 # Authorization and evidence profile v1-draft
 
-**Status: adopted design draft, revision 2, not implemented or interoperability-qualified.** Profile identifier: `omworld.authorization-evidence.v1-draft`. This profile records the maintainer-approved consolidated design for #4/#6 and the bounded evidence decisions in #5. It is separate from legacy v0. Adoption of this document is not a freeze, community consensus, author endorsement, deployment, adapter, or scientific result. Issues #4–#6 remain open for implementation-independent design/conformance follow-up; #7/#8 remain open and deferred.
+**Status: adopted design draft, revision 2; bounded reference implementation available, full profile not interoperability-qualified.** Profile identifier: `omworld.authorization-evidence.v1-draft`. This profile records the maintainer-approved consolidated design for #4/#6 and the bounded evidence decisions in #5. It is separate from legacy v0. Adoption of this document is not a freeze, community consensus, author endorsement, deployment, adapter, or scientific result. Issues #4–#6 remain open for implementation-independent design/conformance follow-up; #7/#8 remain open and deferred.
 
 The [dependency and step-binding closure](authorization-evidence-dependency-closure.md) controls B1–B3 and supersedes earlier optional-consent and unspecified-mapping text. This is a draft-revision compatibility break; pin revision 2 and exact schema bytes.
 
@@ -73,3 +73,7 @@ Results are separated by layer: unsupported profile, unavailable dependency, inv
 See [22-item disposition](../consolidated-resolution-status.md). Documentation adoption resolves the design direction within this bounded profile, not legacy implementation gaps or independent verification. Structural schema validation does not verify signatures, canonical hashes, trust roots, event times, budget reservation or real execution. Implementations, test vectors, adapters, deployment, external review and scientific experiments are not delivered. Original contributor attribution and [LICENSE](../../LICENSE) remain unchanged; no historical contributor is deemed to agree, participate or endorse MSEC.
 
 © OM World Protocol contributors, CC-BY-4.0. This specification and its embedded schema are prose/specification scope; executable future implementations retain the repository's applicable code license. No brand rights are granted.
+
+## Bounded reference implementation
+
+[Engineering status and limits](authorization-evidence-reference-status.md) describe the separate offline verifier and local budget ledger. Earlier implementation exclusions above describe the specification tranche; this engineering increment supports only its explicit bounded subset. Legacy behavior/schema and unsupported profile capabilities are unchanged.
