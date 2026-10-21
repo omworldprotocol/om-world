@@ -1,6 +1,6 @@
-# Authorization/evidence v1-draft — structural JSON Schema
+# Authorization/evidence v1-draft revision 2 — structural JSON Schema
 
-Specification material, CC-BY-4.0, under the repository documentation scope. The fenced JSON is the complete machine-readable schema; it can be extracted without editing. This is not a semantic verifier.
+CC-BY-4.0 specification material. Shape checks do not verify cryptography or authority. See [closure rules](authorization-evidence-dependency-closure.md).
 
 ```json
 {
@@ -46,6 +46,51 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
     },
     {
       "$ref": "#/$defs/EvidenceBundle"
+    },
+    {
+      "$ref": "#/$defs/IdentityProfile"
+    },
+    {
+      "$ref": "#/$defs/ConfirmationProfile"
+    },
+    {
+      "$ref": "#/$defs/EvidenceProfile"
+    },
+    {
+      "$ref": "#/$defs/BudgetProfile"
+    },
+    {
+      "$ref": "#/$defs/RelayProfile"
+    },
+    {
+      "$ref": "#/$defs/RestrictionProfile"
+    },
+    {
+      "$ref": "#/$defs/CustodyAccessProfile"
+    },
+    {
+      "$ref": "#/$defs/RegistrySnapshot"
+    },
+    {
+      "$ref": "#/$defs/ToolBehavior"
+    },
+    {
+      "$ref": "#/$defs/Delegation"
+    },
+    {
+      "$ref": "#/$defs/KeyEvent"
+    },
+    {
+      "$ref": "#/$defs/ChannelReceipt"
+    },
+    {
+      "$ref": "#/$defs/FinalityRule"
+    },
+    {
+      "$ref": "#/$defs/RelayReceipt"
+    },
+    {
+      "$ref": "#/$defs/BudgetEvent"
     }
   ],
   "$defs": {
@@ -116,15 +161,14 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
       "type": "object",
       "properties": {
         "scheme": {
-          "type": "string",
-          "minLength": 1
+          "const": "Ed25519-RFC8032-pure-over-sha256-digest"
         },
         "key_ref": {
           "$ref": "#/$defs/ArtifactRef"
         },
         "value": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^[0-9a-f]{128}$"
         }
       },
       "required": [
@@ -225,7 +269,7 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         },
         "principal": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "body": {
           "type": "string",
@@ -303,7 +347,7 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         },
         "agent_root": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "signer_key_ref": {
           "$ref": "#/$defs/ArtifactRef"
@@ -407,7 +451,7 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         },
         "principal": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "acceptance_ref": {
           "allOf": [
@@ -488,7 +532,7 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         },
         "principal": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "acceptance_ref": {
           "allOf": [
@@ -797,11 +841,11 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         },
         "provider": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "registrar": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "interface_ref": {
           "$ref": "#/$defs/ArtifactRef"
@@ -881,7 +925,7 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         },
         "operator": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "revision": {
           "type": "string",
@@ -1077,7 +1121,7 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         },
         "provisioner": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "effective_from": {
           "type": "string",
@@ -1120,7 +1164,7 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         },
         "custodian": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ed25519:[0-9a-f]{64}$"
         },
         "evidence_classes": {
           "type": "array",
@@ -1227,7 +1271,8 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
               }
             ]
           },
-          "minItems": 0
+          "minItems": 1,
+          "maxItems": 1
         },
         "approval_refs": {
           "type": "array",
@@ -1306,6 +1351,13 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
             "$ref": "#/$defs/ArtifactRef"
           },
           "minItems": 1
+        },
+        "step_bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepBinding"
+          },
+          "minItems": 1
         }
       },
       "required": [
@@ -1320,7 +1372,1012 @@ Specification material, CC-BY-4.0, under the repository documentation scope. The
         "invocation_refs",
         "context_refs",
         "aggregate_proof_ref",
-        "exported_evidence_refs"
+        "exported_evidence_refs",
+        "step_bindings"
+      ],
+      "additionalProperties": false
+    },
+    "StepBinding": {
+      "type": "object",
+      "properties": {
+        "step_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "invocation_ref": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "properties": {
+                "object_type": {
+                  "const": "Invocation"
+                }
+              }
+            }
+          ]
+        },
+        "context_refs": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Ref"
+              },
+              {
+                "properties": {
+                  "object_type": {
+                    "const": "ContextManifest"
+                  }
+                }
+              }
+            ]
+          },
+          "maxItems": 1
+        },
+        "input_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "output_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "step_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "step_index",
+        "invocation_ref",
+        "context_refs",
+        "input_ref",
+        "output_ref",
+        "step_digest"
+      ],
+      "additionalProperties": false
+    },
+    "IdentityProfile": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "IdentityProfile"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "suite": {
+          "const": "Ed25519-RFC8032-pure-over-sha256-digest"
+        },
+        "principal_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "agent_root_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "registrar_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "operator_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "provisioner_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "custodian_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "relayer_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "delegation_artifact_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          },
+          "minItems": 0
+        },
+        "key_event_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "suite",
+        "principal_keys",
+        "agent_root_keys",
+        "registrar_keys",
+        "operator_keys",
+        "provisioner_keys",
+        "custodian_keys",
+        "relayer_keys",
+        "delegation_artifact_refs",
+        "key_event_refs"
+      ],
+      "additionalProperties": false
+    },
+    "ConfirmationProfile": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "ConfirmationProfile"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "human_in_loop": {
+          "const": "principal-affirmative-per-invocation"
+        },
+        "restricted": {
+          "const": "principal-out-of-band-per-invocation"
+        },
+        "channel_authority_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "channel_receipt_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          },
+          "minItems": 0,
+          "maxItems": 0
+        },
+        "approval_reuse": {
+          "const": "forbidden"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "human_in_loop",
+        "restricted",
+        "channel_authority_keys",
+        "channel_receipt_refs",
+        "approval_reuse"
+      ],
+      "additionalProperties": false
+    },
+    "EvidenceProfile": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "EvidenceProfile"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "mapping": {
+          "const": "linear-bijection-stepbindings-v1"
+        },
+        "payload_encoding": {
+          "const": "RFC8785-JCS-IJSON"
+        },
+        "hash_encoding": {
+          "const": "sha256-colon-lowerhex"
+        },
+        "subjective_evaluator_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 0
+        },
+        "subjective_result_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "mapping",
+        "payload_encoding",
+        "hash_encoding",
+        "subjective_evaluator_keys",
+        "subjective_result_refs"
+      ],
+      "additionalProperties": false
+    },
+    "BudgetProfile": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "BudgetProfile"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "mode": {
+          "const": "single-deployment-atomic-reservation-required"
+        },
+        "deployment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ledger_authority_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "ledger_protocol": {
+          "const": "reserve-before-call-consume-or-release-v1"
+        },
+        "ledger_event_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          },
+          "minItems": 0
+        },
+        "cross_deployment": {
+          "const": "unsupported"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "mode",
+        "deployment_id",
+        "ledger_authority_keys",
+        "ledger_protocol",
+        "ledger_event_refs",
+        "cross_deployment"
+      ],
+      "additionalProperties": false
+    },
+    "RelayProfile": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "const": "omworld.authorization-evidence.v1-draft"
+            },
+            "object_type": {
+              "const": "RelayProfile"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "mode": {
+              "const": "none"
+            }
+          },
+          "required": [
+            "profile",
+            "object_type",
+            "id",
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "const": "omworld.authorization-evidence.v1-draft"
+            },
+            "object_type": {
+              "const": "RelayProfile"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "mode": {
+              "const": "single-trust-path"
+            },
+            "source_chain": {
+              "type": "string",
+              "minLength": 1
+            },
+            "destination_chain": {
+              "type": "string",
+              "minLength": 1
+            },
+            "relayer_key": {
+              "type": "string",
+              "pattern": "^ed25519:[0-9a-f]{64}$"
+            },
+            "finality_rule_ref": {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            "freshness_seconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "receipt_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ArtifactRef"
+              },
+              "minItems": 0
+            }
+          },
+          "required": [
+            "profile",
+            "object_type",
+            "id",
+            "mode",
+            "source_chain",
+            "destination_chain",
+            "relayer_key",
+            "finality_rule_ref",
+            "freshness_seconds",
+            "receipt_refs"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "RestrictionProfile": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "RestrictionProfile"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "extra_confirmation": {
+          "enum": [
+            "none",
+            "affirmative",
+            "out_of_band"
+          ]
+        },
+        "not_before": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "extra_confirmation",
+        "not_before",
+        "expires_at"
+      ],
+      "additionalProperties": false
+    },
+    "CustodyAccessProfile": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "CustodyAccessProfile"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "authorized_reader_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ed25519:[0-9a-f]{64}$"
+          },
+          "minItems": 1
+        },
+        "export": {
+          "const": "complete-bytes-manifest-v1"
+        },
+        "retention_until": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "challenge_ends_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "appeal_ends_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "authorized_reader_keys",
+        "export",
+        "retention_until",
+        "challenge_ends_at",
+        "appeal_ends_at"
+      ],
+      "additionalProperties": false
+    },
+    "RegistrySnapshot": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "RegistrySnapshot"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "entry_refs": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Ref"
+              },
+              {
+                "properties": {
+                  "object_type": {
+                    "const": "ToolEntry"
+                  }
+                }
+              }
+            ]
+          },
+          "minItems": 1
+        },
+        "registrar_key": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "snapshot_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "signature": {
+          "$ref": "#/$defs/Signature"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "entry_refs",
+        "registrar_key",
+        "snapshot_at",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "ToolBehavior": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "ToolBehavior"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "minLength": 1
+              },
+              "classes": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "read",
+                    "write",
+                    "destructive",
+                    "admin"
+                  ]
+                },
+                "minItems": 1
+              },
+              "context_mode": {
+                "enum": [
+                  "pure",
+                  "external-state"
+                ]
+              }
+            },
+            "required": [
+              "operation",
+              "classes",
+              "context_mode"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "interface_bytes_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "operations",
+        "interface_bytes_ref"
+      ],
+      "additionalProperties": false
+    },
+    "Delegation": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "Delegation"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "issuer_root": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "issuer_key": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "subject_key": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "parent_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          },
+          "maxItems": 1
+        },
+        "action_limits": {
+          "$ref": "#/$defs/Limits"
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "signature": {
+          "$ref": "#/$defs/Signature"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "issuer_root",
+        "issuer_key",
+        "subject_key",
+        "parent_refs",
+        "action_limits",
+        "issued_at",
+        "expires_at",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "KeyEvent": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "KeyEvent"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "root": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "state": {
+          "enum": [
+            "active",
+            "rotated",
+            "compromised",
+            "revoked"
+          ]
+        },
+        "effective_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "issuer": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "signature": {
+          "$ref": "#/$defs/Signature"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "root",
+        "key",
+        "state",
+        "effective_at",
+        "issuer",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "ChannelReceipt": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "ChannelReceipt"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "principal": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "invocation_ref": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "properties": {
+                "object_type": {
+                  "const": "Invocation"
+                }
+              }
+            }
+          ]
+        },
+        "mode": {
+          "enum": [
+            "affirmative",
+            "out_of_band"
+          ]
+        },
+        "channel_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "signature": {
+          "$ref": "#/$defs/Signature"
+        },
+        "approval_signing_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "principal",
+        "invocation_ref",
+        "mode",
+        "channel_id",
+        "authority",
+        "observed_at",
+        "signature",
+        "approval_signing_digest"
+      ],
+      "additionalProperties": false
+    },
+    "FinalityRule": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "FinalityRule"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "chain_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basis": {
+          "const": "pinned-relayer-asserted-finality"
+        },
+        "minimum_confirmations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maximum_age_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "chain_id",
+        "basis",
+        "minimum_confirmations",
+        "maximum_age_seconds"
+      ],
+      "additionalProperties": false
+    },
+    "RelayReceipt": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "RelayReceipt"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "relayer": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "source_chain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "destination_chain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonical_payload_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "finality_rule_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "confirmations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "signature": {
+          "$ref": "#/$defs/Signature"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "relayer",
+        "source_chain",
+        "destination_chain",
+        "canonical_payload_ref",
+        "finality_rule_ref",
+        "observed_at",
+        "confirmations",
+        "signature"
+      ],
+      "additionalProperties": false
+    },
+    "BudgetEvent": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "const": "omworld.authorization-evidence.v1-draft"
+        },
+        "object_type": {
+          "const": "BudgetEvent"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "deployment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "previous_event_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          },
+          "maxItems": 1
+        },
+        "invocation_ref": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "properties": {
+                "object_type": {
+                  "const": "Invocation"
+                }
+              }
+            }
+          ]
+        },
+        "acceptance_ref": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "properties": {
+                "object_type": {
+                  "const": "Acceptance"
+                }
+              }
+            }
+          ]
+        },
+        "event": {
+          "enum": [
+            "reserve",
+            "consume",
+            "release"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/Money"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "authority": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$"
+        },
+        "signature": {
+          "$ref": "#/$defs/Signature"
+        }
+      },
+      "required": [
+        "profile",
+        "object_type",
+        "id",
+        "deployment_id",
+        "sequence",
+        "previous_event_refs",
+        "invocation_ref",
+        "acceptance_ref",
+        "event",
+        "amount",
+        "observed_at",
+        "authority",
+        "signature"
       ],
       "additionalProperties": false
     }
